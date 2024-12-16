@@ -2,7 +2,7 @@ import { DataSource } from "typeorm";
 import * as dotenv from "dotenv";
 
 dotenv.config();
-
+//ghg
 // export const AppDataSource = new DataSource({
 //     type: process.env.DB_TYPE as "postgres",   
 //     host: process.env.DB_HOST || "127.0.0.1",
