@@ -28,9 +28,4 @@ export const AppDataSource = new DataSource({
     subscribers: ["src/Entities/subscriber/**/*.ts"],
 });
 
-// 54.167.117.131
-// dbmasteruser
-// tEun`42MyUF,7y;maVFX$*|}:3>U;|8v
-
-// ls-fd2a1baa99a970a9bb4d7350b6ae68e7c0291163.cvzv7bthfyp2.us-east-1.rds.amazonaws.com
-// 5432
+ 
