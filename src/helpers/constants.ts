@@ -17,5 +17,5 @@ export const MESSAGES = {
     CONTACT_DELETED: "Contact deleted successfully.",
     NO_FILE_UPLOAD: "No file uploaded",
     PROFILE_UPDATED: "Profile updated successfully.",
-    ACCESS_DENIED:"Access Denied. No token provided."
+    ACCESS_DENIED: "Access Denied. No token provided."
 };

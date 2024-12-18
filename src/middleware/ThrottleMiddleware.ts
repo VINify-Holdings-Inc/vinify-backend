@@ -3,7 +3,7 @@ import { createResponse } from "../helpers/response";
 
 export const throttleMiddleware = rateLimit({
   windowMs: 1 * 30 * 1000, // 1 minute
-  max: 2, // Limit each IP to 2 requests per windowMs
+  max: 20, // Limit each IP to 2 requests per windowMs
   standardHeaders: false, // Return rate limit info in the `RateLimit-*` headers
   legacyHeaders: false, // Disable the `X-RateLimit-*` headers
   handler: (req: any, res: any) => {
