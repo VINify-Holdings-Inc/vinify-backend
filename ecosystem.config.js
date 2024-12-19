@@ -1,4 +1,4 @@
-require('dotenv').config(); // Make sure dotenv is required at the top
+require('dotenv').config();  
 
 module.exports = {
   apps: [
