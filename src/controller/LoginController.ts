@@ -181,22 +181,20 @@ export const userProfileUpdate = async (req: any, res: any) => {
     }
 }; 
 export const ProfileUpdate = async (req: any, res: any) => {
-    // const { email } = req.params; 
-    try {  
-        const userData = await User
-        .createQueryBuilder("User")
-        .leftJoinAndSelect("Login", "login", "User.emailId = login.emailId")  // Corrected column name
-        // .where("User.emailId = :email", { email })
-        .getMany(); 
-        
-      if (!userData) {
-        return res.status(404).json({ message: "User not found" });
-      }
-  
-      res.status(200).json(userData);
-    } catch (error) {
-      console.error("Error fetching user data:", error);
-      res.status(500).json({ message: "Internal Server Error", error });
+    const { email } = req.params; 
+    try {
+        const userData = await User.createQueryBuilder("User")
+            .leftJoinAndSelect("Login", "login", "User.userId = login.userId")
+            .where("User.emailId = :email", { email })
+            .getOne();
+
+        if (!userData) {
+            return res.status(404).json({ message: "User not found" });
+        } 
+        res.status(200).json(userData);
+    } catch (error:any) {
+        console.error("Error fetching user data:", error);
+        res.status(500).json({ message: "Internal Server Error", error: error.message });
     }
-  };
+};
   
