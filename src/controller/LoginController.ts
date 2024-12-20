@@ -1,9 +1,9 @@
 import jwt from "jsonwebtoken";
 import { Login } from "../Entities/login";
+import { User } from "../Entities/user";
 import { sendEmail } from "../helpers/email";
 import { MESSAGES } from "../helpers/constants";
 import { createResponse } from "../helpers/response";
-import { User } from "../Entities/user";
 import upload from "../middleware/multer";
 
 export const LoginController = async (req: any, res: any) => {
@@ -179,4 +179,24 @@ export const userProfileUpdate = async (req: any, res: any) => {
 
         return createResponse(res, 500, MESSAGES?.RESET_ERROR, [], false, true);
     }
-};
+}; 
+export const ProfileUpdate = async (req: any, res: any) => {
+    // const { email } = req.params; 
+    try {  
+        const userData = await User
+        .createQueryBuilder("User")
+        .leftJoinAndSelect("Login", "login", "User.emailId = login.emailId")  // Corrected column name
+        // .where("User.emailId = :email", { email })
+        .getMany(); 
+        
+      if (!userData) {
+        return res.status(404).json({ message: "User not found" });
+      }
+  
+      res.status(200).json(userData);
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+      res.status(500).json({ message: "Internal Server Error", error });
+    }
+  };
+  
