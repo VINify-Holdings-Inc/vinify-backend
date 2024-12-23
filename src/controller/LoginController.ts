@@ -184,7 +184,7 @@ export const ProfileUpdate = async (req: any, res: any) => {
     const { email } = req.params; 
     try {
         const userData = await User.createQueryBuilder("User")
-            .leftJoinAndSelect("Login", "login", "User.userId = login.userId")
+            .leftJoinAndSelect("Login", "login", "User.id = login.id")
             .where("User.emailId = :email", { email })
             .getOne();
 
