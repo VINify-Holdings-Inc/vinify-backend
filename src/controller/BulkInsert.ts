@@ -62,7 +62,7 @@ export const getBulkSheetData = async (req: any, res: any) => {
         totalPages,
         totalItems,
         items,
-      }, false, true);
+      }, true,false);
       
     } catch (error: any) {
       // tslint:disable-next-line:no-console
@@ -142,7 +142,7 @@ export const getBulkSheetDataSheet2 = async (req: any, res: any) => {
         totalPages,
         totalItems,
         items,
-      }, false, true);
+      },  true,false);
       
     } catch (error: any) {
       // tslint:disable-next-line:no-console
