@@ -11,9 +11,10 @@ routerAdmin.get("/user-profile/:email",  ProfileUpdate);
 routerAdmin.post("/forget-password", ForgetPassword);
 routerAdmin.post("/reset-password", ResetPassword);  
 routerAdmin.post("/reset-tocken-check", ResetTockenCheck);
+
 routerAdmin.post("/contact-us",  insertContactUs);
 routerAdmin.get("/contact-us",  readContactUs);
-routerAdmin.delete("/contact-us/:id",  deleteContactUs);
+routerAdmin.delete("/contact-us/:id",  deleteContactUs); 
 
 routerAdmin.post("/csv-import", insertBulkSheetData);  
 routerAdmin.get("/csv-import",  getBulkSheetData); 
