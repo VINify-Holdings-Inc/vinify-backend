@@ -114,6 +114,32 @@ export const ResetPassword = async (req: any, res: any, next: any) => {
         return createResponse(res, 500, MESSAGES?.RESET_ERROR, [], false, true);
     }
 };
+export const ResetTockenCheck = async (req: any, res: any, next: any) => {
+    const { token } = req.body;
+    try {
+        if(!token){
+            return createResponse(res, 404, MESSAGES?.TOKEN_NOT_FOUND, [], false, true);
+        } 
+        const user = await Login.findOne({ where: { loginToken: token } });
+        if (user) {
+            const tokenIssuedAt = new Date(user?.updatedAt).getTime(); 
+            const currentTime = Date.now(); 
+            const tokenExpiryTime = 300000; 
+            // Check if token has expired
+            if (currentTime - tokenIssuedAt > tokenExpiryTime) {
+                return createResponse(res, 401, MESSAGES?.TOKEN_EXPIRED, [], false, true);
+            } 
+            // Token is valid, proceed
+            next();
+        } else {
+
+            return createResponse(res, 401, MESSAGES?.INVALID_TOKEN, [], false, true);
+        }
+    } catch (err) {
+        console.error(MESSAGES?.RESET_ERROR, err);
+        return createResponse(res, 500, MESSAGES?.INTERNAL_SERVER_ERROR, [], false, true);
+    }
+}; 
 export const userProfileUpdate = async (req: any, res: any) => {
     try {
         // Handle file upload using multer

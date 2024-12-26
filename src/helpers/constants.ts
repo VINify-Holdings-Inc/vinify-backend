@@ -10,6 +10,7 @@ export const MESSAGES = {
     RESET_LINK_ERROR: "An error occurred while sending the password reset link.",
     PASSWORD_UPDATED: "Password updated successfully.",
     TOKEN_EXPIRED: "The token has expired. Please request a new password reset link.",
+    TOKEN_NOT_FOUND: "Token not found",
     INVALID_TOKEN: "Invalid link or expired token.",
     RESET_ERROR: "An error occurred while processing your password reset request.",
     CONTACT_SAVED: "Message sent successfully. We’ll get back to you shortly.",
