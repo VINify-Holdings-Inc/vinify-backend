@@ -12,7 +12,7 @@ export const MESSAGES = {
     TOKEN_EXPIRED: "The token has expired. Please request a new password reset link.",
     INVALID_TOKEN: "Invalid link or expired token.",
     RESET_ERROR: "An error occurred while processing your password reset request.",
-    CONTACT_SAVED: "Your contact message has been submitted successfully.",
+    CONTACT_SAVED: "Message sent successfully. We’ll get back to you shortly.",
     CONTACT_NOT_FOUND: "No contact messages found.",
     CONTACT_DELETED: "Contact deleted successfully.",
     NO_FILE_UPLOAD: "No file uploaded",

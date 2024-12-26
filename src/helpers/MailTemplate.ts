@@ -9,12 +9,12 @@ export const  forgetPasswordMailTemplate = ({ subject, text, hyperText }: any) =
             .x_831786570w-100p { width: 100%; }
             .x_831786570pb-60 { padding-bottom: 60px; }
             .x_831786570pt-60 { padding-top: 60px; }
-            .x_831786570btn-white2 { background-color: #ffffff; font-weight: bold; color: #6366f0; border: 3px solid #6366f0; border-radius: 5px; }
-            .x_831786570link { text-decoration: none; color: #6366f0; }
+            .x_831786570btn-white2 { background-color: #ffffff; font-weight: bold; color: #cf4b5f; border: 3px solid #cf4b5f; border-radius: 5px; }
+            .x_831786570link { text-decoration: none; color: #cf4b5f; }
         </style>
     </head>
     <body>
-        <table align="center" class="x_831786570darkmode x_831786570gmail-fix" width="100%" style="background: rgb(255, 255, 255); min-width: 320px" cellspacing="0" cellpadding="0">
+        <table align="center" class="x_831786570darkmode x_831786570gmail-fix" width="650" style="background: rgb(255, 255, 255); min-width: 320px" cellspacing="0" cellpadding="0">
             <tbody>
                 <tr>
                     <td>
@@ -23,7 +23,7 @@ export const  forgetPasswordMailTemplate = ({ subject, text, hyperText }: any) =
                                 <tr>
                                     <td align="left" class="x_831786570pb-32 x_831786570darkmode" style="padding: 28px 24px 24px">
                                         <a style="text-decoration: none" href="#" target="_blank">
-                                            <img class="x_831786570light-img" width="150" style="width: 150px; max-width: 150px; background-color: rgb(255, 255, 255); color: rgb(0, 0, 0); text-align: center" alt="Motor Vehicle Monitoring" src="https://mvm.techwagger.com/email-template/mvm-logo-email.png">
+                                            <img class="x_831786570light-img" width="150" style="width: 150px; max-width: 150px; background-color: rgb(255, 255, 255); color: rgb(0, 0, 0); text-align: center" alt="Motor Vehicle Monitoring" src="https://mvm.techwagger.com/assets/images/ta-logo.png">
                                         </a>
                                     </td>
                                 </tr>
@@ -42,7 +42,7 @@ export const  forgetPasswordMailTemplate = ({ subject, text, hyperText }: any) =
                                                             <tbody>
                                                                 <tr>
                                                                     <td class="x_831786570btn-white2" align="center">
-                                                                        <a class="x_831786570link" style="padding: 12px 27px; display: block" href="${hyperText}" target="_blank">Reset your password</a>
+                                                                        <a class="x_831786570link" style="width:199px; height: 44px; line-height:44px; display: block" href="${hyperText}" target="_blank">Reset Your Password</a>
                                                                     </td>
                                                                 </tr>
                                                             </tbody>
@@ -96,8 +96,8 @@ export const  forgetPasswordMailTemplate = ({ subject, text, hyperText }: any) =
               .x_831786570pb-60 { padding-bottom: 60px; }
               .x_831786570pt-60 { padding-top: 60px; }
               .x_831786570content { font-family: Arial, sans-serif; color: #000; font-size: 16px; line-height: 24px; }
-              .x_831786570heading { font-size: 24px; font-weight: bold; color: #6366f0; text-align: center; }
-              .x_831786570label { font-weight: bold; color: #6366f0; }
+              .x_831786570heading { font-size: 24px; font-weight: bold; color: #cf4b5f; text-align: center; }
+              .x_831786570label { font-weight: bold; color: #cf4b5f; }
           </style>
       </head>
       <body>
@@ -109,7 +109,7 @@ export const  forgetPasswordMailTemplate = ({ subject, text, hyperText }: any) =
                               <tbody>
                                   <tr>
                                       <td align="center" class="x_831786570pb-32" style="padding: 28px 24px 24px">
-                                          <img width="150" style="width: 150px; max-width: 150px;" alt="Company Logo" src="https://mvm.techwagger.com/email-template/mvm-logo-email.png">
+                                          <img width="150" style="width: 150px; max-width: 150px;" alt="Company Logo" src="https://mvm.techwagger.com/assets/images/ta-logo.png">
                                       </td>
                                   </tr> 
                                   <tr>
