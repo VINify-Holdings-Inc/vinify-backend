@@ -10,7 +10,7 @@ routerAdmin.put("/user-profile-update", userProfileUpdate);
 routerAdmin.get("/user-profile/:email",  ProfileUpdate);
 routerAdmin.post("/forget-password", ForgetPassword);
 routerAdmin.post("/reset-password", ResetPassword);  
-routerAdmin.post("/reset-tocken-check", ResetTockenCheck);
+routerAdmin.post("/reset-token-check", ResetTockenCheck);
 
 routerAdmin.post("/contact-us",  insertContactUs);
 routerAdmin.get("/contact-us",  readContactUs);
