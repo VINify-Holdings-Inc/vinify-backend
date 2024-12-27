@@ -1,34 +1,36 @@
+import jwt from "jsonwebtoken";
+import { MESSAGES } from "../helpers/constants"; 
+import dotenv  from 'dotenv'
+dotenv.config();
+// Middleware to verify JWT token on sign-in requests
+export const AuthSignIn = (req: any, res: any, next: any): void => {
+  const authHeader = req.headers.authorization;
+  const token = authHeader?.split(" ")[1];
 
-import jwt from "jsonwebtoken";  
-import { MESSAGES } from "../helpers/constants";
-// Middleware function to verify the JWT token on sign-in requests
-export const AuthSignIn = (req: any, res: any, next: any): void => { 
-  const authHeader: string | undefined = req.headers.authorization; 
-  const token: string | undefined = authHeader && authHeader.split(" ")[1]; 
   if (!token) {
-    res.status(401).json({
+    return res.status(401).json({
       success: false,
       code: 401,
-      message: MESSAGES?.ACCESS_DENIED,
+      data: [],
+      message: MESSAGES?.ACCESS_DENIED || "Access Denied",
       error: true,
     });
+  }
 
-    return;
-  } 
-  
-  jwt.verify(token, process.env.JWT_SECRET_KEY as string, (err, decoded) => { 
+  jwt.verify(token,"yr_mvm_me_amit_ne_kaam_kiya_haisarasetupusikahai", (err:any, decoded:any) => {
     if (err) {
-      res.status(403).json({
+      const errorMessage = err.name === "TokenExpiredError"
+        ? "Token has expired."
+        : "Invalid token.";
+      return res.status(403).json({
         success: false,
         code: 403,
-        message: "Invalid token.",
+        message: errorMessage,
         error: true,
       });
-      
-      return;
     }
 
-     req.user = decoded as { id: string; email: string };  
+    req.user = decoded as { id: string; email: string }; // Strongly typed
     next();
   });
 };
