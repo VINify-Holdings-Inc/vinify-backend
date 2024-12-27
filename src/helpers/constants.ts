@@ -9,13 +9,16 @@ export const MESSAGES = {
     RESET_LINK_SENT: "A password reset link has been sent to your registered email successfully.",
     RESET_LINK_ERROR: "An error occurred while sending the password reset link.",
     PASSWORD_UPDATED: "Password updated successfully.",
-    TOKEN_EXPIRED: "The token has expired. Please request a new password reset link.",
-    INVALID_TOKEN: "Invalid link or expired token.",
+    TOKEN_EXPIRED: "The link has been expired, please request a new one",
+    TOKEN_NOT_FOUND: "The link has been expired, please request a new one",
+    TOKEN_FOUND: "Token  found",
+    INVALID_TOKEN: "The link has been expired, please request a new one",
     RESET_ERROR: "An error occurred while processing your password reset request.",
-    CONTACT_SAVED: "Your contact message has been submitted successfully.",
+    CONTACT_SAVED: "Message sent successfully. We’ll get back to you shortly.",
     CONTACT_NOT_FOUND: "No contact messages found.",
     CONTACT_DELETED: "Contact deleted successfully.",
     NO_FILE_UPLOAD: "No file uploaded",
     PROFILE_UPDATED: "Profile updated successfully.",
     ACCESS_DENIED: "Access Denied. No token provided."
 };
+// test
