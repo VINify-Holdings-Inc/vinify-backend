@@ -2,7 +2,7 @@ import crypto from "crypto";
 const ENCRYPTION_KEY = crypto.randomBytes(32);  
 const IV_LENGTH = 16;
 
-export const encryptPayload=(text: any)=> {
+export const encryptPayload = (text: any) => {
     const iv = crypto.randomBytes(IV_LENGTH); 
     const cipher = crypto.createCipheriv("aes-256-cbc", ENCRYPTION_KEY, iv);
 
@@ -11,16 +11,16 @@ export const encryptPayload=(text: any)=> {
 
     // Combine IV and encrypted text as a single string
     return `${iv.toString("base64")}:${encrypted}`;
-}  
-export const decryptPayload=(encryptedData: any)=> {
-    const [iv, encryptedText] = encryptedData?.split(":")?.map((part:any) => Buffer?.from(part, "base64"));
+};  
+export const decryptPayload = (encryptedData: any) => {
+    const [iv, encryptedText] = encryptedData?.split(":")?.map((part: any) => Buffer?.from(part, "base64"));
     const decipher = crypto?.createDecipheriv("aes-256-cbc", ENCRYPTION_KEY, iv);
 
     let decrypted = decipher?.update(encryptedText, "base64", "utf8");
     decrypted += decipher?.final("utf8");
 
     return decrypted;
-}  
+};  
 export const generateToken = () => {
     const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
     const tokenLength = 20;

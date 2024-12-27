@@ -7,7 +7,6 @@ import { createResponse } from "../helpers/response";
 import upload from "../middleware/multer";
 import {generateToken } from "../helpers/utils"; 
  
- 
 export const LoginController = async (req: any, res: any) => {
     try {
         const { email, password } = req.body;
@@ -227,7 +226,8 @@ export const ProfileUpdate = async (req: any, res: any) => {
       // Fetch user data from the `User` table
       const userData = await User.findOne({
         where: { emailId: email },
-        select: ["userId", "userType", "firstName","profile", "lastName", "emailId", "phoneNumber", "address", "status","secondaryEmailId","companyId","title"],
+        select: ["userId", "userType", "firstName", "profile", "lastName", "emailId",
+             "phoneNumber", "address", "status", "secondaryEmailId", "companyId", "title"],
       });
   
       // Fetch corresponding login data from the `Login` table
@@ -248,17 +248,20 @@ export const ProfileUpdate = async (req: any, res: any) => {
         emailId: userData?.emailId,
         phoneNumber: userData?.phoneNumber,
         address: userData?.address,
-        secondaryEmailId:userData?.secondaryEmailId,
+        secondaryEmailId: userData?.secondaryEmailId,
         profile: userData?.profile, 
         companyId: userData?.companyId,
         title: userData?.title,
         password: loginData?.password ||  null, // Include password if available
       }; 
       // Send the combined response
+
       return createResponse(res, 200, MESSAGES?.DATA_FETCH_SUCCESS, responseData, true, false);
   
     } catch (error: any) {
+          // tslint:disable-next-line:no-console
       console.error("Error fetching user data:", error);
+
       return res.status(500).json({ message: "Internal Server Error", error: error.message });
     }
   };
