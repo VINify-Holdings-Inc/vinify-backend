@@ -5,7 +5,8 @@ import { sendEmail } from "../helpers/email";
 import { MESSAGES } from "../helpers/constants";
 import { createResponse } from "../helpers/response";
 import upload from "../middleware/multer";
-import { generateToken } from "../helpers/utils";
+import {generateToken } from "../helpers/utils"; 
+ 
  
 export const LoginController = async (req: any, res: any) => {
     try {
@@ -215,23 +216,50 @@ const {userId, firstName, lastName, companyId, title, secondaryEmailId, address,
 
         return createResponse(res, 500, MESSAGES?.RESET_ERROR, [], false, true);
     }
-}; 
+};  
 export const ProfileUpdate = async (req: any, res: any) => {
     const { email } = req.params; 
     try {
-        const userData = await User.createQueryBuilder("User")
-            .leftJoinAndSelect("Login", "login", "User.id = login.id")
-            .where("User.emailId = :email", { email })
-            .getOne();
-
-        if (!userData) {
-            return res.status(404).json({ message: "User not found" });
-        } 
-        res.status(200).json(userData);
+        // const userData = await User.createQueryBuilder("User")
+        //     .leftJoinAndSelect("Login", "login", "User.id = login.id")
+        //     .where("User.emailId = :email", { email })
+        //     .getOne();
+      // Fetch user data from the `User` table
+      const userData = await User.findOne({
+        where: { emailId: email },
+        select: ["userId", "userType", "firstName","profile", "lastName", "emailId", "phoneNumber", "address", "status","secondaryEmailId","companyId","title"],
+      });
+  
+      // Fetch corresponding login data from the `Login` table
+      const loginData = await Login.findOne({
+        where: { emailId: email },
+        select: ["password"],
+      }); 
+    //   const plainPassword=await decryptPayload(loginData?.password)
+      if (!userData) {
+        return createResponse(res, 404, MESSAGES?.USER_NOT_FOUND, [], true, false);
+      }  
+      // Combine user and login data for the response
+      const responseData = {
+        userId: userData?.userId,
+        userType: userData?.userType,
+        firstName: userData?.firstName,
+        lastName: userData?.lastName,
+        emailId: userData?.emailId,
+        phoneNumber: userData?.phoneNumber,
+        address: userData?.address,
+        secondaryEmailId:userData?.secondaryEmailId,
+        profile: userData?.profile, 
+        companyId: userData?.companyId,
+        title: userData?.title,
+        password: loginData?.password ||  null, // Include password if available
+      }; 
+      // Send the combined response
+      return createResponse(res, 200, MESSAGES?.DATA_FETCH_SUCCESS, responseData, true, false);
+  
     } catch (error: any) {
-        // tslint:disable-next-line:no-console
-        console.error("Error fetching user data:", error);
-        res.status(500).json({ message: "Internal Server Error", error: error.message });
+      console.error("Error fetching user data:", error);
+      return res.status(500).json({ message: "Internal Server Error", error: error.message });
     }
-};
+  };
   
