@@ -5,7 +5,8 @@ import { sendEmail } from "../helpers/email";
 import { MESSAGES } from "../helpers/constants";
 import { createResponse } from "../helpers/response";
 import upload from "../middleware/multer";
-
+import { generateToken } from "../helpers/utils";
+ 
 export const LoginController = async (req: any, res: any) => {
     try {
         const { email, password } = req.body;
@@ -24,7 +25,7 @@ export const LoginController = async (req: any, res: any) => {
         // Find the associated user by userId and fetch only required fields
         const user = await User.findOne({
             where: { userId: login.userId },
-            select: ["id", "userId", "name", "emailId", "phoneNumber", "profile", "address"],
+            select: ["id", "userId", "firstName", "lastName", "emailId", "phoneNumber", "profile", "address", "companyId", "title"],
         });
 
         // Check if user exists
@@ -47,11 +48,14 @@ export const LoginController = async (req: any, res: any) => {
         return createResponse(res, 200, MESSAGES?.LOGIN_SUCCESS, {
             memberId: user?.userId,
             id: user?.id,
-            name: user?.name,
+            firstName: user?.firstName,
+            lastName: user?.lastName,
             email: user?.emailId,
             phoneNumber: user?.phoneNumber,
             profile: user?.profile,
             address: user?.address,
+            companyId: user?.companyId,
+            title: user?.title,
             token,
         });
 
@@ -66,10 +70,8 @@ export const ForgetPassword = async (req: any, res: any, next: any) => {
     const { email } = req.body;
     try {
         const user = await Login.findOne({ where: { emailId: email } });
-        if (user) {
-            const JWT_SECRET: any = process.env.JWT_SECRET;
-            const token = jwt.sign({ email: email }, JWT_SECRET, { expiresIn: "40h" });
-
+        if (user) { 
+            const token = await generateToken(); 
             await Login.update({ emailId: email }, { loginToken: token, updatedAt: new Date() });
             await sendEmail(email, "Reset Password", "", `${process.env.UI_BASE_URL}/resetpassword/${token}`);
 
@@ -115,28 +117,32 @@ export const ResetPassword = async (req: any, res: any, next: any) => {
     }
 };
 export const ResetTockenCheck = async (req: any, res: any, next: any) => {
-    const { token } = req.body;
+    const { token } = req.body; 
     try {
-        if(!token){
-            return createResponse(res, 404, MESSAGES?.TOKEN_NOT_FOUND, [], false, true);
-        } 
+        if (!token) {
+            return createResponse(res, 404, "Please provide token", [], false, true);
+        }  
         const user = await Login.findOne({ where: { loginToken: token } });
         if (user) {
             const tokenIssuedAt = new Date(user?.updatedAt).getTime(); 
             const currentTime = Date.now(); 
-            const tokenExpiryTime = 300000; 
+            const tokenExpiryTime = 300000; // Token expiry time in milliseconds (5 minutes)
+
             // Check if token has expired
             if (currentTime - tokenIssuedAt > tokenExpiryTime) {
                 return createResponse(res, 401, MESSAGES?.TOKEN_EXPIRED, [], false, true);
-            } 
-            // Token is valid, proceed
-            next();
-        } else {
+            }
 
-            return createResponse(res, 401, MESSAGES?.INVALID_TOKEN, [], false, true);
+            // Token is valid
+            return createResponse(res, 200, MESSAGES?.TOKEN_FOUND, [], true, false);
         }
+
+        // Token not found in the database
+        return createResponse(res, 401, MESSAGES?.INVALID_TOKEN, [], false, true);
     } catch (err) {
+         // tslint:disable-next-line:no-console
         console.error(MESSAGES?.RESET_ERROR, err);
+
         return createResponse(res, 500, MESSAGES?.INTERNAL_SERVER_ERROR, [], false, true);
     }
 }; 
@@ -152,7 +158,7 @@ export const userProfileUpdate = async (req: any, res: any) => {
             });
         });
 
-        const { userId, name, address, phoneNumber, password } = req.body; 
+const {userId, firstName, lastName, companyId, title, secondaryEmailId, address, phoneNumber, password} = req.body; 
         
         // Validate required fields
         if (!userId) {
@@ -161,7 +167,11 @@ export const userProfileUpdate = async (req: any, res: any) => {
 
         // Prepare update data for User table
         const updateData: Record<string, any> = {
-            name, 
+            firstName,
+            lastName,
+            companyId,
+            title,
+            secondaryEmailId,
             address, 
             phoneNumber, 
             updatedBy: userId, 
@@ -178,7 +188,7 @@ export const userProfileUpdate = async (req: any, res: any) => {
             .update(User)
             .set(updateData)
             .where("userId = :userId", { userId })
-            .returning(["userId", "name", "emailId", "phoneNumber", "address", "profile"])
+            .returning(["userId", "firstName", "lastName", "companyId", "title", "secondaryEmailId", "address", "phoneNumber", "profile", "updatedAt"])
             .execute();
 
         // Check if the user was found and updated
@@ -218,7 +228,8 @@ export const ProfileUpdate = async (req: any, res: any) => {
             return res.status(404).json({ message: "User not found" });
         } 
         res.status(200).json(userData);
-    } catch (error:any) {
+    } catch (error: any) {
+        // tslint:disable-next-line:no-console
         console.error("Error fetching user data:", error);
         res.status(500).json({ message: "Internal Server Error", error: error.message });
     }

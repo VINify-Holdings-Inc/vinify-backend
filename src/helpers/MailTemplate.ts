@@ -140,7 +140,7 @@ export const  forgetPasswordMailTemplate = ({ subject, text, hyperText }: any) =
                                   </tr>
                                   <tr>
                                       <td align="center" style="border-top: 1px solid rgb(222, 222, 222); color: rgb(165, 165, 165); font-size: 14px; line-height: 18px; padding: 60px 24px 32px">
-                                          This message was sent from https://mvm.techwagger.com/contact.
+                                          This message was sent from https://mvm.techwagger.com/contact-us.
                                       </td>
                                   </tr>
                               </tbody>

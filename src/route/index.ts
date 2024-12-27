@@ -2,7 +2,7 @@
 import express from "express";
 import { deleteContactUs, insertContactUs, readContactUs } from "../controller/ContactUs";
 import { getBulkSheetData, getBulkSheetDataSheet2, insertBulkSheetData, insertBulkSheetDatSheet2 } from "../controller/BulkInsert";
-import { ForgetPassword, LoginController, ResetPassword, userProfileUpdate ,ProfileUpdate, ResetTockenCheck} from "../controller/LoginController";
+import { ForgetPassword, LoginController, ResetPassword, userProfileUpdate , ProfileUpdate, ResetTockenCheck} from "../controller/LoginController";
 const routerAdmin = express.Router();
 
 routerAdmin.post("/user-login", LoginController);
