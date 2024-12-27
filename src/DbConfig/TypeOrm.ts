@@ -19,4 +19,3 @@ export const AppDataSource = new DataSource({
     migrations: ["src/Entities/migration/**/*.ts"],  
     subscribers: ["src/Entities/subscriber/**/*.ts"],
 });
-
