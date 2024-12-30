@@ -23,6 +23,4 @@ routerAdmin.post("/csv-import-sheet2", insertBulkSheetDatSheet2);
 routerAdmin.get("/csv-import-sheet2",  getBulkSheetDataSheet2);
 routerAdmin.get("/search-pop-vin/:vin",  getSearchVinPop);
 
-export default routerAdmin;
-
-routerAdmin.get("/search-pop-vin/:vin",  getSearchVinPop);
+export default routerAdmin; 
