@@ -51,7 +51,7 @@ export const  forgetPasswordMailTemplate = ({ subject, text, hyperText }: any) =
                                                 </tr>
                                                 <tr>
                                                     <td align="center" class="x_831786570darkmode" style="font-size: 14px; line-height: 18px; font-family: Arial, sans-serif; color: rgb(0, 0, 0); padding: 0px 20px 0px; text-align: center">
-                                                        <p style="font-size: 14px; line-height: 24px; color: #000; margin: 0; text-align: center">
+                                                        <p style="font-size: 16px; line-height: 24px; color: #000; margin: 0; text-align: center">
                                                             If you do not want to change your password or didn't request a reset, you can ignore and delete this email.
                                                         </p>
                                                     </td>
@@ -108,10 +108,12 @@ export const  forgetPasswordMailTemplate = ({ subject, text, hyperText }: any) =
                           <table class="x_831786570w-100p" width="650" align="center" style="max-width: 650px; margin: 0 auto" cellpadding="0" cellspacing="0">
                               <tbody>
                                   <tr>
-                                      <td align="center" class="x_831786570pb-32" style="padding: 28px 24px 24px">
-                                          <img width="150" style="width: 150px; max-width: 150px;" alt="Company Logo" src="https://mvm.techwagger.com/assets/images/ta-logo.png">
-                                      </td>
-                                  </tr> 
+                                    <td align="left" class="x_831786570pb-32 x_831786570darkmode" style="padding: 28px 24px 24px">
+                                        <a style="text-decoration: none" href="#" target="_blank">
+                                            <img class="x_831786570light-img" width="150" style="width: 150px; max-width: 150px; background-color: rgb(255, 255, 255); color: rgb(0, 0, 0); text-align: center" alt="Motor Vehicle Monitoring" src="https://mvm.techwagger.com/assets/images/ta-logo.png">
+                                        </a>
+                                    </td>
+                                </tr>
                                   <tr>
                                       <td class="x_831786570pb-60" style="padding: 20px 30px">
                                           <table align="center" class="x_831786570content" width="100%" cellpadding="0" cellspacing="0">
