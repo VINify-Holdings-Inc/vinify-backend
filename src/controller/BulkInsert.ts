@@ -155,13 +155,13 @@ export const getBulkSheetDataSheet2 = async (req: any, res: any) => {
 export const getSearchVinPop = async (req: any, res: any) => {
   const { vin } = req.params;
   try {
-
-    const contactMessage = await VehicleData.findOne(vin);
-    if (!contactMessage) {
+     
+    const vinData = await VehicleData.findOne({where:{vin}});
+    if (!vinData) {
       return createResponse(res, 404, MESSAGES?.VIN_NOT_FOUND, [], false, true);
     }
 
-    return createResponse(res, 200, MESSAGES?.DATA_FETCH_SUCCESS);
+    return createResponse(res, 200, MESSAGES?.DATA_FETCH_SUCCESS,vinData,true,false);
   } catch (error) {
     // tslint:disable-next-line:no-console
     console.error(MESSAGES?.INTERNAL_SERVER_ERROR, error);
