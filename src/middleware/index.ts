@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
-import { MESSAGES } from "../helpers/constants"; 
-import dotenv  from 'dotenv'
+import { MESSAGES } from "../helpers/constants";
+import dotenv from "dotenv";
 dotenv.config();
 // Middleware to verify JWT token on sign-in requests
 export const AuthSignIn = (req: any, res: any, next: any): void => {
@@ -17,11 +17,12 @@ export const AuthSignIn = (req: any, res: any, next: any): void => {
     });
   }
 
-  jwt.verify(token,"yr_mvm_me_amit_ne_kaam_kiya_haisarasetupusikahai", (err:any, decoded:any) => {
+  jwt.verify(token, "yr_mvm_me_amit_ne_kaam_kiya_haisarasetupusikahai", (err: any, decoded: any) => {
     if (err) {
       const errorMessage = err.name === "TokenExpiredError"
         ? "Token has expired."
         : "Invalid token.";
+
       return res.status(403).json({
         success: false,
         code: 403,
