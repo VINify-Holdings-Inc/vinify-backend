@@ -8,7 +8,7 @@ const swaggerOptions = {
       version: "1.0.0",
       description: "API documentation for the MVM",
       contact: {
-        name: "DEV Amit Chauhan ",
+        name: "techwagger.com",
         email: "connect@techwagger.com",
         url: "https://www.techwagger.com",
       },
