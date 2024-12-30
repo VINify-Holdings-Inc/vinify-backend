@@ -1,8 +1,8 @@
 import express, { Request, Response, NextFunction } from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import swaggerUi from 'swagger-ui-express';
-import swaggerSpec from './docs/swagger';  
+import swaggerUi from "swagger-ui-express";
+import swaggerSpec from "./docs/swagger";  
 import routerAdmin from "./route/index";
 import { AppDataSource } from "./DbConfig/TypeOrm";
 import { throttleMiddleware } from "./middleware/ThrottleMiddleware";
@@ -20,14 +20,16 @@ app.use("/api/uploads", express.static("./src/uploads"));
 // Initialize PostgreSQL Database
 AppDataSource.initialize()
   .then(() => {
+     // tslint:disable-next-line:no-console
     console.log("🚀Data Source has been initialized! ✅");
   })
   .catch((err: any) => {
+     // tslint:disable-next-line:no-console
     console.error("Error during Data Source initialization", err);
   });
 
 // Swagger setup
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+app.use("/api-doc", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Routes
 app.use("/api", throttleMiddleware, routerAdmin);
@@ -42,12 +44,14 @@ app.get("/test", throttleMiddleware, (req: Request, res: Response) => {
 
 // Error handling middleware
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+   // tslint:disable-next-line:no-console
   console.error(err.stack);
-  res.status(500).send('Something went wrong!');
+  res.status(500).send("Something went wrong!");
 });
 
 // Start server
 const PORT = process.env.PORT || 4800;
 app.listen(PORT, () => {
+ // tslint:disable-next-line:no-console
   console.log(`Hi Server is Running 🚀 at Port ${PORT}`);
 });

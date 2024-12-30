@@ -1,28 +1,37 @@
-import swaggerJSDoc from 'swagger-jsdoc';
+import swaggerJSDoc from "swagger-jsdoc";
 
 const swaggerOptions = {
   definition: {
-    openapi: '3.0.0',
+    openapi: "3.0.0",
     info: {
-      title: 'MVM API',
-      version: '1.0.0',
-      description: 'API documentation for the MVM',
+      title: "MVM API",
+      version: "1.0.0",
+      description: "API documentation for the MVM",
       contact: {
-        name: 'Amit Chauhan', 
-        email: 'amit.chauhan@techwagger.com',
-        
+        name: "DEV Amit Chauhan ",
+        email: "connect@techwagger.com",
+        url: "https://www.techwagger.com",
       },
     },
     servers: [
       {
-        url: 'http://localhost:4800', 
+        url: "https://mvmapi.techwagger.com",
       },
       {
-        url: 'https://mvmapi.techwagger.com', 
+        url: "http://localhost:4800",
       },
     ],
+    components: {
+      securitySchemes: {
+        BearerAuth: {
+          type: "http",
+          scheme: "bearer",
+          bearerFormat: "JWT",
+        },
+      },
+    },
   },
-  apis: ['./src/route/*.ts', './src/docs/*.ts'],  
+  apis: ["./src/route/*.ts", "./src/docs/*.ts"], // Path to your API docs
 };
 
 const swaggerSpec = swaggerJSDoc(swaggerOptions);
