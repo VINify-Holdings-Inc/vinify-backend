@@ -63,7 +63,7 @@ export const sendContactFormEmail = async (name: any, email: any, phone: any, me
 
     const mailOptions = {
         from: "hello@techwagger.com",  
-      to: "astha.sharma@hashtaglabs.in", // Recipient email from environment variable
+      to: "amit.chauhan@techwagger.com", // Recipient email from environment variable
       subject: "New Inquiry from Contact Us Page", // Email subject
       html: htmlContent // Email content in HTML
     };
