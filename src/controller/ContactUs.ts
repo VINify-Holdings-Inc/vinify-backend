@@ -62,7 +62,7 @@ export const readContactUs = async (req: any, res: any) => {
           totalPages,
           totalItems,
           items,
-        }, false, true);
+        }, true, false);
     } catch (error) {
         // tslint:disable-next-line:no-console
         console.error(MESSAGES?.INTERNAL_SERVER_ERROR, error);
