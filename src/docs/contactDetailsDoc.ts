@@ -24,6 +24,12 @@
  *                 type: string
  *               subject:
  *                 type: string
+ *           example:
+ *             name: John Doe
+ *             email: johndoe@example.com
+ *             phone: "+1234567890"
+ *             message: I have a question about your services.
+ *             subject: Inquiry
  *     responses:
  *       201:
  *         description: Contact us record inserted successfully.

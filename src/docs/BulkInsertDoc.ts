@@ -201,36 +201,76 @@
  */
 /**
  * @swagger
- * /api/search-pop-vin/{vin}:
+ * /api/search-pop-vin:
  *   get:
- *     summary: Search for vehicle data by VIN
- *     description: Search for vehicle data based on VIN.
+ *     summary: Search for vehicle data
+ *     description: Fetch vehicle data based on filters such as VIN, model, brand, etc., with pagination.
  *     tags:
  *       - CSV Import
  *     security:
  *       - BearerAuth: []
  *     parameters:
- *       - in: path
+ *       - in: query
  *         name: vin
- *         required: true
- *         example: "1FTCF15N5HLA06223"
+ *         required: false
  *         schema:
  *           type: string
  *         description: VIN of the vehicle to search for
+ *       - in: query
+ *         name: model
+ *         required: false
+ *         schema:
+ *           type: string
+ *         description: Model of the vehicle to search for
+ *       - in: query
+ *         name: brand
+ *         required: false
+ *         schema:
+ *           type: string
+ *         description: Brand of the vehicle to search for
+ *       - in: query
+ *         name: page
+ *         required: false
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Page number for pagination
+ *       - in: query
+ *         name: limit
+ *         required: false
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *         description: Number of items per page
  *     responses:
  *       200:
- *         description: Successfully fetched vehicle data for the VIN
+ *         description: Successfully fetched vehicle data
  *         content:
  *           application/json:
  *             schema:
  *               type: object
  *               properties:
- *                 vin:
- *                   type: string
- *                 model:
- *                   type: string
+ *                 page:
+ *                   type: integer
+ *                 limit:
+ *                   type: integer
+ *                 totalItems:
+ *                   type: integer
+ *                 totalPages:
+ *                   type: integer
+ *                 items:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       vin:
+ *                         type: string
+ *                       model:
+ *                         type: string
+ *                       brand:
+ *                         type: string
  *       404:
  *         description: VIN not found
  *       500:
  *         description: Internal server error
- */ 
+ */
