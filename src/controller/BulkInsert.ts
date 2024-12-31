@@ -151,22 +151,44 @@ export const getBulkSheetDataSheet2 = async (req: any, res: any) => {
     return createResponse(res, 500, MESSAGES?.INTERNAL_SERVER_ERROR, [], false, true);
   }
 };
-
 export const getSearchVinPop = async (req: any, res: any) => {
-  const { vin } = req.params;
   try {
-     
-    const vinData = await VehicleData.findOne({where: {vin}});
-    if (!vinData) {
-      return createResponse(res, 404, MESSAGES?.VIN_NOT_FOUND, [], false, true);
-    }
+    const { page = 1, limit = 10, ...filters } = req.query; 
+    const queryBuilder = VehicleData.createQueryBuilder("VehicleData"); 
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value && key !== "page" && key !== "limit") {
+        queryBuilder.andWhere(`LOWER(VehicleData.${key}) LIKE LOWER(:${key})`, {
+          [key]: `%${value}%`,
+        });
+      }
+    });
+ 
+    const offset = (parseInt(page, 10) - 1) * parseInt(limit, 10);
+ 
+    const [items, totalItems] = await queryBuilder
+      .skip(offset)
+      .take(parseInt(limit, 10))
+      .getManyAndCount();
 
-    return createResponse(res, 200, MESSAGES?.DATA_FETCH_SUCCESS, vinData, true, false);
+    const totalPages = Math.ceil(totalItems / parseInt(limit, 10)); 
+    if (items.length === 0) {
+
+      return createResponse(res, 404, MESSAGES?.VIN_NOT_FOUND, [], false, true);
+    } 
+
+    return createResponse(  res,  200,
+      MESSAGES?.DATA_FETCH_SUCCESS,
+      {
+        page: parseInt(page, 10),
+        limit: parseInt(limit, 10),
+        totalItems,
+        totalPages,
+        items,
+      }  );
   } catch (error) {
-    // tslint:disable-next-line:no-console
+     // tslint:disable-next-line:no-console
     console.error(MESSAGES?.INTERNAL_SERVER_ERROR, error);
 
     return createResponse(res, 500, MESSAGES?.INTERNAL_SERVER_ERROR, [], false, true);
   }
-
 };
