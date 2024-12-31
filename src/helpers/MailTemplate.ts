@@ -22,7 +22,7 @@ export const  forgetPasswordMailTemplate = ({ subject, text, hyperText }: any) =
                             <tbody>
                                 <tr>
                                     <td align="left" class="x_831786570pb-32 x_831786570darkmode" style="padding: 28px 24px 24px">
-                                        <a style="text-decoration: none" href="#" target="_blank">
+                                        <a style="text-decoration: none" href="https://mvm.techwagger.com" target="_blank">
                                             <img class="x_831786570light-img" width="150" style="width: 150px; max-width: 150px; background-color: rgb(255, 255, 255); color: rgb(0, 0, 0); text-align: center" alt="Motor Vehicle Monitoring" src="https://mvm.techwagger.com/assets/images/ta-logo.png">
                                         </a>
                                     </td>
@@ -59,20 +59,7 @@ export const  forgetPasswordMailTemplate = ({ subject, text, hyperText }: any) =
                                             </tbody>
                                         </table>
                                     </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <table class="x_831786570w-100p x_831786570darkmode" width="540" align="center" style="max-width: 540px; margin: 0 auto" cellpadding="0" cellspacing="0">
-                                            <tbody>
-                                                <tr>
-                                                    <td class="x_831786570pt-60 x_831786570darkmode" align="center" style="border-top: 1px solid rgb(222, 222, 222); color: rgb(165, 165, 165); font-size: 14px; line-height: 18px; font-family: Arial, sans-serif; padding: 60px 24px 32px">
-                                                        The AMIE Integrated Online Processing Specification provides the technical specifications for interfacing with the National Motor Vehicle Title Information System (NMVTIS) in online mode.
-                                                    </td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
-                                    </td>
-                                </tr>
+                                </tr> 
                             </tbody>
                         </table>
                     </td>
@@ -109,7 +96,7 @@ export const  forgetPasswordMailTemplate = ({ subject, text, hyperText }: any) =
                               <tbody>
                                   <tr>
                                     <td align="left" class="x_831786570pb-32 x_831786570darkmode" style="padding: 28px 24px 24px">
-                                        <a style="text-decoration: none" href="#" target="_blank">
+                                        <a style="text-decoration: none" href="https://mvm.techwagger.com/" target="_blank">
                                             <img class="x_831786570light-img" width="150" style="width: 150px; max-width: 150px; background-color: rgb(255, 255, 255); color: rgb(0, 0, 0); text-align: center" alt="Motor Vehicle Monitoring" src="https://mvm.techwagger.com/assets/images/ta-logo.png">
                                         </a>
                                     </td>
