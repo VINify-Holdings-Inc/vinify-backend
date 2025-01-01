@@ -259,26 +259,32 @@ export const forgetPasswordMailTemplate = ({ subject, text, hyperText }: any) =>
                                           <table align="center" class="x_831786570content" width="100%" cellpadding="0" cellspacing="0">
                                               <tbody>
                                                   <tr>
-                                                      <td width="80" style="text-align:left; color: #000; font-weight:normal">
+                                                      <td width="80" style="text-align:left; color: #000; font-weight:normal; width:80px">
                                                       Name</td>
-                                                      <td style="text-align:left; color: #000; font-weight:normal">: ${name}</td>
+                                                      <td>:</td>
+                                                      <td style="text-align:left; color: #000; font-weight:normal">${name}</td>
                                                   </tr>
                                                   <tr>
-                                                      <td width="80" style="text-align:left; color: #000; font-weight:normal">Email</td>
-                                                      <td style="text-align:left; color: #000; font-weight:normal">: ${email}</td>
+                                                      <td width="80" style="text-align:left; color: #000; font-weight:normal; width:80px">Email</td>
+                                                      <td width="10">:</td>
+                                                      <td style="text-align:left; color: #000; font-weight:normal">${email}</td>
                                                   </tr>
                                                   <tr>
-                                                      <td width="80" style="text-align:left; color: #000; font-weight:normal">Phone</td>
-                                                      <td style="text-align:left; color: #000; font-weight:normal">: ${phone}</td>
+                                                      <td width="80" style="text-align:left; color: #000; font-weight:normal;  width:80px">Phone</td>
+                                                      <td width="10">:</td>
+                                                      <td style="text-align:left; color: #000; font-weight:normal">${phone}</td>
                                                   </tr>
                                                   <tr>
-                                                      <td width="80" style="text-align:left; color: #000; font-weight:normal">Subject</td>
-                                                      <td style="text-align:left; color: #000; font-weight:normal">: ${subject}</td>
+                                                      <td width="80" style="text-align:left; color: #000; font-weight:normal;  width:80px">Subject</td>
+                                                      <td width="10">:</td>
+                                                      <td style="text-align:left; color: #000; font-weight:normal">${subject}</td>
                                                   </tr>
                                                   <tr>
-                                                      <td  width="80" style="text-align:left; color: #000; font-weight:normal; verticle-align:top">Message</td>
-                                                      <td style="text-align:left; color: #000; font-weight:normal">: ${message}</td>
+                                                      <td valign="top" width="80" style="text-align:left; color: #000; font-weight:normal; verticle-align:top; width:80px; height:24px">Message</td>
+                                                      <td valign="top" width="10">:</td>
+                                                      <td style="text-align:left; color: #000; font-weight:normal">${message}</td>
                                                   </tr>
+                                                  
                                                   
                                                   
                                               </tbody>
@@ -286,7 +292,7 @@ export const forgetPasswordMailTemplate = ({ subject, text, hyperText }: any) =>
                                       </td>
                                   </tr>
                                   <tr>
-                                      <td align="center" style="border-top: 1px solid rgb(222, 222, 222); color: rgb(165, 165, 165); font-size: 14px; line-height: 18px; padding: 60px 24px 32px">
+                                      <td align="center" style="border-top: 1px solid rgb(222, 222, 222); color: rgb(165, 165, 165); font-size: 14px; line-height: 18px; padding: 20px 0 0">
                                           Title Alert. © 2025 All Rights Reserved.
                                       </td>
                                   </tr>
