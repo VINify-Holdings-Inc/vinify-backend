@@ -253,7 +253,7 @@ export const ProfileUpdate = async (req: any, res: any) => {
         companyId: userData?.companyId,
         title: userData?.title,
         password: loginData?.password ||  null,
-        updatedAt: userData?.updatedAt// Include password if available
+        updatedAt: userData?.updatedAt 
       }; 
       // Send the combined response
 
