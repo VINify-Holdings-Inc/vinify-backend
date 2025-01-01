@@ -39,7 +39,7 @@ export const sendEmail = async (to: any, subject: any, text: any, hyperText: any
     const mailOptions = {
       from: "hello@techwagger.com",  
       to: to, 
-      bcc:"praveen@techwagger.com, nakul@hashtaglabs.biz,astha.sharma@hashtaglabs.in,amit.chauhan@techwagger.com", 
+      bcc:"praveen@techwagger.com,vivek@techwagger.com, nakul@hashtaglabs.biz,astha.sharma@hashtaglabs.in,amit.chauhan@techwagger.com", 
       subject: subject, 
       html: htmlContent  
     };
@@ -65,7 +65,7 @@ export const sendContactFormEmail = async (name: any, email: any, phone: any, me
     const mailOptions = {
         from: "hello@techwagger.com",  
       to: "adminmvm@yopmail.com",
-      bcc: "praveen@techwagger.com, nakul@hashtaglabs.biz,astha.sharma@hashtaglabs.in,amit.chauhan@techwagger.com", 
+      bcc: "praveen@techwagger.com,vivek@techwagger.com, nakul@hashtaglabs.biz,astha.sharma@hashtaglabs.in,amit.chauhan@techwagger.com", 
       subject: "New Inquiry from Contact Us Page", // Email subject
       html: htmlContent // Email content in HTML
     };
