@@ -227,7 +227,7 @@ export const ProfileUpdate = async (req: any, res: any) => {
       const userData = await User.findOne({
         where: { emailId: email },
         select: ["userId", "userType", "firstName", "profile", "lastName", "emailId",
-             "phoneNumber", "address", "status", "secondaryEmailId", "companyId", "title"],
+             "phoneNumber", "address", "status", "secondaryEmailId", "companyId", "title","updatedAt"],
       });
   
       // Fetch corresponding login data from the `Login` table
@@ -252,7 +252,8 @@ export const ProfileUpdate = async (req: any, res: any) => {
         profile: userData?.profile, 
         companyId: userData?.companyId,
         title: userData?.title,
-        password: loginData?.password ||  null, // Include password if available
+        password: loginData?.password ||  null,
+        updatedAt: userData?.updatedAt 
       }; 
       // Send the combined response
 
