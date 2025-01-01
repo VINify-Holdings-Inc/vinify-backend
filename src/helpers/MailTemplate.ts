@@ -136,18 +136,18 @@ export const forgetPasswordMailTemplate = ({ subject, text, hyperText }: any) =>
                                                                                 <td style="padding:0; height: 35px" align="left"> &nbsp;</td>
                                                                             </tr>
                                                                             <tr>
-                                                                                <td style="padding:0;Margin:0;padding-bottom:10px" align="left"><p style="Margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family:Roboto;line-height:24px;color:#0f131a;font-size:16px;font-weight: 300;">Dear User,</p></td>
+                                                                                <td style="padding:0;Margin:0;padding-bottom:10px" align="left"><p style="Margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;line-height:24px;color:000;">Dear User,</p></td>
                                                                             </tr>
                                                                             <tr>
                                                                                 <td style="padding:0;Margin:0;padding-bottom:10px" align="left">
-                                                                                    <p style="margin-top:0;margin-bottom:10px;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family:Roboto;line-height:24px;color:#0f131a;font-size:16px;font-weight: 300;">We are sending you this email because you requested a password reset. Click on this link to create a new password.</p>
+                                                                                    <p style="margin-top:0;margin-bottom:10px;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;line-height:24px;color:000;">We are sending you this email because you requested a password reset. Click on this link to create a new password.</p>
 
                                                                                     <p style="margin-bottom:10px;">
                                                                                     <a href="${hyperText}" style="display: inline-block">
                                                                                     <img width="160" height="41" src="https://mvm.techwagger.com/assets/images/reset-password-red.png" />  </a>    </p>
 
 
-                                                                                    <p style="margin-bottom:10px;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family:Roboto;line-height:24px;color:#0f131a;font-size:16px;font-weight: 300;">
+                                                                                    <p style="margin-bottom:10px;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;line-height:24px;color:000;">
                                                                                         If you did not request a password reset, you can ignore this email. Your existing will not be changed.
                                                                                     </p>
 
@@ -157,7 +157,7 @@ export const forgetPasswordMailTemplate = ({ subject, text, hyperText }: any) =>
                                                                             </tr>
                                                                             
                                                                             <tr>
-                                                                                <td><p style="Margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family:Roboto;line-height:24px;color:#0f131a;font-size:16px;font-weight: 300;">Regards,<br />Team Title Alert</p></td>
+                                                                                <td><p style="Margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;line-height:24px;color:000;">Regards,<br />Team Title Alert</p></td>
                                                                             </tr>
                                                                         </tbody>
                                                                     </table>
@@ -195,7 +195,7 @@ export const forgetPasswordMailTemplate = ({ subject, text, hyperText }: any) =>
                                                                         <tbody>
                                                                             <tr>
                                                                                 <td class="es-infoblock made_with" style="padding:0;Margin:0;line-height:120%;font-size:0;padding-top:0px;height: 20px;" align="left">
-                                                                                    <p style="text-align:center;Margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family:Roboto;line-height:24px;color:#0f131a;font-size:14px;font-weight: 300;">
+                                                                                    <p style="text-align:center;Margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;line-height:24px;color:000;font-size:14px;">
                                                                                         &nbsp;
                                                                                     Title Alert. &copy; 2025 All Rights Reserved.</p>
                                                                                 </td>
@@ -361,33 +361,33 @@ export const forgetPasswordMailTemplate = ({ subject, text, hyperText }: any) =>
                                                                                 <td style="padding:0; height: 35px" align="left"> &nbsp;</td>
                                                                             </tr>
                                                                             <tr>
-                                                                                <td width="80" style="padding:0;Margin:0;padding-bottom:10px" align="left"><p style="Margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family:Roboto;line-height:24px;color:#0f131a;font-size:16px;font-weight: 300;">Name</p></td>
-                                                                                <td width="10">:</td>
-                                                                                <td style="text-align:left; color: #000; font-weight:normal">${name}</td>
+                                                                                <td width="80" style="padding:0;Margin:0;padding-bottom:10px" align="left"><p style="Margin:0;line-height:24px;color:000;">Name</p></td>
+                                                                                <td width="10" style="line-height:24px;">:</td>
+                                                                                <td style="text-align:left; color: #000; font-weight:normal;line-height:24px; ">${name}</td>
                                                   </tr>
                                                                             </tr>
                                                                             
                                                                              <tr>
-                                                                                <td width="80" style="padding:0;Margin:0;padding-bottom:10px" align="left"><p style="Margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family:Roboto;line-height:24px;color:#0f131a;font-size:16px;font-weight: 300;">Email</p></td>
-                                                                                <td width="10">:</td>
-                                                                                <td style="text-align:left; color: #000; font-weight:normal">${email}</td>
+                                                                                <td width="80" style="padding:0;Margin:0;padding-bottom:10px" align="left"><p style="Margin:0;line-height:24px;color:000;">Email</p></td>
+                                                                                <td width="10" style="line-height:24px;">:</td>
+                                                                                <td style="text-align:left; color: #000; font-weight:normal;line-height:24px; ">${email}</td>
                                                   </tr>
 
                                                     <tr>
-                                                                                <td width="80" style="padding:0;Margin:0;padding-bottom:10px" align="left"><p style="Margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family:Roboto;line-height:24px;color:#0f131a;font-size:16px;font-weight: 300;">Phone</p></td>
-                                                                                <td width="10">:</td>
-                                                                                <td style="text-align:left; color: #000; font-weight:normal">${phone}</td>
+                                                                                <td width="80" style="padding:0;Margin:0;padding-bottom:10px" align="left"><p style="Margin:0;line-height:24px;color:000;">Phone</p></td>
+                                                                                <td width="10" style="line-height:24px;">:</td>
+                                                                                <td style="text-align:left; color: #000; font-weight:normal; line-height:24px;">${phone}</td>
                                                   </tr>
 
                                                     <tr>
-                                                                                <td width="80" style="padding:0;Margin:0;padding-bottom:10px" align="left"><p style="Margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family:Roboto;line-height:24px;color:#0f131a;font-size:16px;font-weight: 300;">Subject</p></td>
-                                                                                <td width="10">:</td>
-                                                                                <td style="text-align:left; color: #000; font-weight:normal">${subject}</td>
+                                                                                <td width="80" style="padding:0;Margin:0;padding-bottom:10px" align="left"><p style="Margin:0;line-height:24px;color:000;">Subject</p></td>
+                                                                                <td width="10" style="line-height:24px;">:</td>
+                                                                                <td style="text-align:left; color: #000; font-weight:normal; line-height:24px;">${subject}</td>
                                                   </tr>
                                                   <tr>
-                                                                                <td valign="top" width="80" style="padding:0;Margin:0;padding-bottom:10px" align="left"><p style="Margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family:Roboto;line-height:24px;color:#0f131a;font-size:16px;font-weight: 300;">Message</p></td>
-                                                                                <td valign="top" width="10">:</td>
-                                                                                <td style="text-align:left; color: #000; font-weight:normal">${message}</td>
+                                                                                <td valign="top" width="80" style="padding:0;Margin:0;padding-bottom:10px" align="left"><p style="Margin:0;line-height:24px;color:000;">Message</p></td>
+                                                                                <td valign="top" width="10" style="line-height:24px;">:</td>
+                                                                                <td style="text-align:left; color: #000; font-weight:normal; line-height:24px; ">${message}</td>
                                                   </tr>
                                                                             
                                                                            
@@ -427,7 +427,7 @@ export const forgetPasswordMailTemplate = ({ subject, text, hyperText }: any) =>
                                                                         <tbody>
                                                                             <tr>
                                                                                 <td class="es-infoblock made_with" style="padding:0;Margin:0;line-height:120%;font-size:0;padding-top:0px;height: 20px;" align="left">
-                                                                                    <p style="text-align:center;Margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family:Roboto;line-height:24px;color:#0f131a;font-size:14px;font-weight: 300;">
+                                                                                    <p style="text-align:center;Margin:0;line-height:24px;color:000;font-size:14px;">
                                                                                         &nbsp;
                                                                                     Title Alert. &copy; 2025 All Rights Reserved.</p>
                                                                                 </td>
