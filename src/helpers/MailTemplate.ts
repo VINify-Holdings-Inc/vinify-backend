@@ -131,7 +131,7 @@ export const forgetPasswordMailTemplate = ({ subject, text, hyperText }: any) =>
                                                                                 <td style="padding:0; height: 20px" align="left"> &nbsp;</td>
                                                                             </tr>
                                                                             <tr>
-                                                                                <td style="padding:0;" align="left"><a href="#" style="display: inline-block;"><img width="180" class="adapt-img" style="display:block;border:0;outline:none;text-decoration:none;-ms-interpolation-mode:bicubic;" alt="LOGO" src="https://mvm.techwagger.com/assets/images/ta-logo.png"></a></td>
+                                                                                <td style="padding:0;" align="left"><a href="#" style="display: inline-block;"><img width="180" class="adapt-img" style="display:block;border:0;outline:none;text-decoration:none;-ms-interpolation-mode:bicubic;" alt="LOGO" src="https://mvm.techwagger.com/assets/images/eta-logo.png"></a></td>
                                                                             </tr>
                                                                             <tr>
                                                                                 <td style="padding:0; height: 35px" align="left"> &nbsp;</td>
@@ -143,9 +143,9 @@ export const forgetPasswordMailTemplate = ({ subject, text, hyperText }: any) =>
                                                                                 <td style="padding:0;Margin:0;padding-bottom:10px" align="left">
                                                                                     <p style="margin-top:0;margin-bottom:10px;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family:Roboto;line-height:24px;color:#0f131a;font-size:16px;font-weight: 300;">We are sending you this email because you requested a password reset. Click on this link to create a new password.</p>
 
-                                                                                    <p style="margin-bottom:10px;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family:Roboto;line-height:24px;color:#0f131a;font-size:16px;font-weight: 300;">
-                                                                                    <a href="${hyperText}">
-                                                                                    <img width="160" src="https://mvm.techwagger.com/assets/images/reset-password-red.png" />  </a>    </p>
+                                                                                    <p style="margin-bottom:10px;">
+                                                                                    <a href="${hyperText}" style="display: inline-block">
+                                                                                    <img width="160" height="41" src="https://mvm.techwagger.com/assets/images/reset-password-red.png" />  </a>    </p>
 
 
                                                                                     <p style="margin-bottom:10px;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family:Roboto;line-height:24px;color:#0f131a;font-size:16px;font-weight: 300;">
@@ -250,7 +250,7 @@ export const forgetPasswordMailTemplate = ({ subject, text, hyperText }: any) =>
                                   <tr>
                                     <td align="left" class="x_831786570pb-32 x_831786570darkmode" style="padding: 28px 0 24px">
                                         <a style="text-decoration: none" href="https://mvm.techwagger.com/" target="_blank">
-                                            <img class="x_831786570light-img" width="150" style="width: 150px; max-width: 150px; background-color: rgb(255, 255, 255); color: rgb(0, 0, 0); text-align: center" alt="Motor Vehicle Monitoring" src="https://mvm.techwagger.com/assets/images/ta-logo.png">
+                                            <img class="x_831786570light-img" width="150" style="width: 150px; max-width: 150px; background-color: rgb(255, 255, 255); color: rgb(0, 0, 0); text-align: center" alt="Motor Vehicle Monitoring" src="https://mvm.techwagger.com/assets/images/eta-logo.png">
                                         </a>
                                     </td>
                                 </tr>
