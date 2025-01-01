@@ -136,10 +136,10 @@ export const forgetPasswordMailTemplate = ({ subject, text, hyperText }: any) =>
                                                                                 <td style="padding:0; height: 35px" align="left"> &nbsp;</td>
                                                                             </tr>
                                                                             <tr>
-                                                                                <td style="padding:0;Margin:0;padding-bottom:10px" align="left"><p style="Margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;line-height:24px;color:000;">Dear User,</p></td>
+                                                                                <td style="padding:0;Margin:0;" align="left"><p style="Margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;line-height:24px;color:000;">Dear User,</p></td>
                                                                             </tr>
                                                                             <tr>
-                                                                                <td style="padding:0;Margin:0;padding-bottom:10px" align="left">
+                                                                                <td style="padding:0;Margin:0;" align="left">
                                                                                     <p style="margin-top:0;margin-bottom:10px;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;line-height:24px;color:000;">We are sending you this email because you requested a password reset. Click on this link to create a new password.</p>
 
                                                                                     <p style="margin-bottom:10px;">
@@ -361,31 +361,31 @@ export const forgetPasswordMailTemplate = ({ subject, text, hyperText }: any) =>
                                                                                 <td style="padding:0; height: 35px" align="left"> &nbsp;</td>
                                                                             </tr>
                                                                             <tr>
-                                                                                <td width="80" style="padding:0;Margin:0;padding-bottom:10px" align="left"><p style="Margin:0;line-height:24px;color:000;">Name</p></td>
+                                                                                <td width="80" style="padding:0;Margin:0;" align="left"><p style="Margin:0;line-height:24px;color:000;">Name</p></td>
                                                                                 <td width="10" style="line-height:24px;">:</td>
                                                                                 <td style="text-align:left; color: #000; font-weight:normal;line-height:24px; ">${name}</td>
                                                   </tr>
                                                                             </tr>
                                                                             
                                                                              <tr>
-                                                                                <td width="80" style="padding:0;Margin:0;padding-bottom:10px" align="left"><p style="Margin:0;line-height:24px;color:000;">Email</p></td>
+                                                                                <td width="80" style="padding:0;Margin:0;" align="left"><p style="Margin:0;line-height:24px;color:000;">Email</p></td>
                                                                                 <td width="10" style="line-height:24px;">:</td>
                                                                                 <td style="text-align:left; color: #000; font-weight:normal;line-height:24px; ">${email}</td>
                                                   </tr>
 
                                                     <tr>
-                                                                                <td width="80" style="padding:0;Margin:0;padding-bottom:10px" align="left"><p style="Margin:0;line-height:24px;color:000;">Phone</p></td>
+                                                                                <td width="80" style="padding:0;Margin:0;" align="left"><p style="Margin:0;line-height:24px;color:000;">Phone</p></td>
                                                                                 <td width="10" style="line-height:24px;">:</td>
                                                                                 <td style="text-align:left; color: #000; font-weight:normal; line-height:24px;">${phone}</td>
                                                   </tr>
 
                                                     <tr>
-                                                                                <td width="80" style="padding:0;Margin:0;padding-bottom:10px" align="left"><p style="Margin:0;line-height:24px;color:000;">Subject</p></td>
+                                                                                <td width="80" style="padding:0;Margin:0;" align="left"><p style="Margin:0;line-height:24px;color:000;">Subject</p></td>
                                                                                 <td width="10" style="line-height:24px;">:</td>
                                                                                 <td style="text-align:left; color: #000; font-weight:normal; line-height:24px;">${subject}</td>
                                                   </tr>
                                                   <tr>
-                                                                                <td valign="top" width="80" style="padding:0;Margin:0;padding-bottom:10px" align="left"><p style="Margin:0;line-height:24px;color:000;">Message</p></td>
+                                                                                <td valign="top" width="80" style="padding:0;Margin:0;" align="left"><p style="Margin:0;line-height:24px;color:000;">Message</p></td>
                                                                                 <td valign="top" width="10" style="line-height:24px;">:</td>
                                                                                 <td style="text-align:left; color: #000; font-weight:normal; line-height:24px; ">${message}</td>
                                                   </tr>
