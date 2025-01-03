@@ -69,8 +69,11 @@ export class VehicleData extends BaseEntity {
   @Column({ name: "titleBrandDate", type: "timestamptz", default: () => "CURRENT_TIMESTAMP" , nullable: true })
   titleBrandDate: Date;
 
-  @Column({ name: "modelYear", type: "timestamptz", default: () => "CURRENT_TIMESTAMP", nullable: true  })
-  modelYear: Date;
+  // @Column({ name: "modelYear", type: "timestamptz", default: () => "CURRENT_TIMESTAMP", nullable: true  })
+  // modelYear: Date;
+
+  @Column({ name: "modelYear", type: "varchar", nullable: true })
+  modelYear: string;
   
   @Column({ name: "summary", type: "text", nullable: true })
   summary: string;
