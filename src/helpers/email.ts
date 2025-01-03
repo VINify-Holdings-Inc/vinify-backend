@@ -39,7 +39,7 @@ export const sendEmail = async (to: any, subject: any, text: any, hyperText: any
     const mailOptions = {
       from: "hello@techwagger.com",  
       to: to, 
-      bcc:"vivek@techwagger.com, nakul@hashtaglabs.biz,astha.sharma@hashtaglabs.in,amit.chauhan@techwagger.com", 
+      bcc: "vivek@techwagger.com, nakul@hashtaglabs.biz,astha.sharma@hashtaglabs.in,amit.chauhan@techwagger.com", 
       subject: subject, 
       html: htmlContent  
     };

@@ -5,37 +5,53 @@ import { VehicleData } from "../Entities/vehicle_data";
 
 export const insertBulkSheetData = async (req: any, res: any) => {
   try {
-    const { data } = req.body;
+    const { sheet1, sheet2 } = req.body;
 
-    // Validate that data exists and is an array
-    if (!data || !Array.isArray(data) || data.length === 0) {
-      return createResponse(res, 400, "No data provided for insertion", [], false, true);
+    // Validate input
+    if (!sheet1 || !Array.isArray(sheet1) || sheet1.length === 0) {
+      return createResponse(res, 400, "No data provided for insertion in sheet1", [], false, true);
     }
 
-    // Format the incoming data to match the entity fields
-    const vehicleEntities = data.map((item: any) => ({
-      vin: item.VIN || null,
-      title: item.Title !== "" ? item.Title : null,
-      brand: item.Brand !== "" ? item.Brand : null,
-      insurance: item.Insurance !== "" ? item.Insurance : null,
-      junkSalvage: item.Junk_Salvage !== "" ? item.Junk_Salvage : null,
-      status: 1,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      createdBy: "system",
-      updatedBy: "system"
+    if (!sheet2 || !Array.isArray(sheet2) || sheet2.length === 0) {
+      return createResponse(res, 400, "No data provided for insertion in sheet2", [], false, true);
+    }
+
+    // Format data for VehicleData entity
+    const formattedSheet1 :any= sheet1.map(item => ({
+      vin: item?.vin || null,
+      titleStatus: item?.titleStatus || null,
+      brand: item?.brand || null,
+      insurance: item?.insurance || null,
+      junkSalvage: item?.junkSalvage || null,
     }));
 
-    const result = await VehicleInfo.insert(vehicleEntities);
+    // Format data for VehicleInfo entity
+    const formattedSheet2:any = sheet2.map(item => ({
+      vin: item?.vin || null,
+      vinId: item?.vinId || null,
+      status: item?.status || null,
+      state: item?.state || null,
+      brand: item?.brand || null,
+      model: item?.model || null,
+      modelYear: item?.modelYear ? new Date(item.modelYear) : null,
+      titleBrandDate: item?.titleBrandDate ? new Date(item.titleBrandDate) : null,
+      member: item?.member || null,
+    }));
+ 
+    // Insert data into the respective tables
+    const result1 = await VehicleData.save(formattedSheet2); 
 
-    return createResponse(res, 201, MESSAGES?.CONTACT_SAVED, result);
+    const result2 = await VehicleInfo.save(formattedSheet1); 
+
+    return createResponse(res, 201, MESSAGES.DATA_SAVED, { result1, result2 });
   } catch (error) {
-    // tslint:disable-next-line:no-console
-    console.error(MESSAGES?.INTERNAL_SERVER_ERROR, error);
+    // Log specific error details
+    console.error("Error during data insertion:", error);
 
-    return createResponse(res, 500, MESSAGES?.INTERNAL_SERVER_ERROR, [], false, true);
+    return createResponse(res, 500, MESSAGES.INTERNAL_SERVER_ERROR, [], false, true);
   }
 };
+
 
 export const getBulkSheetData = async (req: any, res: any) => {
   try {
@@ -74,45 +90,25 @@ export const getBulkSheetData = async (req: any, res: any) => {
 
 export const insertBulkSheetDatSheet2 = async (req: any, res: any) => {
   try {
-    const { data } = req.body;
+    const { sheet1, shhet2 } = req.body;
 
     // Validate that data exists and is an array
-    if (!data || !Array.isArray(data) || data.length === 0) {
+    if (!sheet1 || !Array.isArray(sheet1) || sheet1.length === 0) {
 
-      return createResponse(res, 400, "No data provided for insertion", [], false, true);
+      return createResponse(res, 400, "No data provided for insertion sheet1", [], false, true);
     }
 
+    if (!shhet2 || !Array.isArray(shhet2) || shhet2.length === 0) {
+
+      return createResponse(res, 400, "No data provided for insertion sheet2", [], false, true);
+    }
     // Format the incoming data to match the entity fields
-    const vehicleEntities: any = data.map((item: any) => ({
-      vin: item.VIN,
-      vinId: item.Vin_id || null,
-      member: item.Member || "",
-      model: item.Make || "",
-      brand: parseInt(item.Brand_Code) || null,
-      insurance: null,
-      junkSalvage: null,
-      state: item.SOT || "",
-      resolutionStatus: item.status || "",
-      fraudState: null,
-      currentStatus: null,
-      alertDate: new Date(),
-      actionRequired: null,
-      titleStatus: null,
-      fuelType: null,
-      eventTypeId: null,
-      eventDate: new Date(),
-      summary: item.JSI_Info_set || "",
-      status: item.status || "",
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      createdBy: item.Member || "System",
-      updatedBy: item.Member || "System",
-    }));
-
+     
     // Insert the formatted entities into the database
-    const result = await VehicleData.insert(vehicleEntities);
+    const result = await VehicleData.insert(sheet1);
+    const result2 = await VehicleInfo.insert(sheet1);
 
-    return createResponse(res, 201, MESSAGES?.CONTACT_SAVED, result);
+    return createResponse(res, 201, MESSAGES?.CONTACT_SAVED, {result2, result});
   } catch (error) {
     // tslint:disable-next-line:no-console
     console.error(MESSAGES?.INTERNAL_SERVER_ERROR, error);
