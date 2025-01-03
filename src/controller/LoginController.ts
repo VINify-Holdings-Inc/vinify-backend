@@ -227,7 +227,7 @@ export const ProfileUpdate = async (req: any, res: any) => {
       const userData = await User.findOne({
         where: { emailId: email },
         select: ["userId", "userType", "firstName", "profile", "lastName", "emailId",
-             "phoneNumber", "address", "status", "secondaryEmailId", "companyId", "title","updatedAt"],
+             "phoneNumber", "address", "status", "secondaryEmailId", "companyId", "title", "updatedAt"],
       });
   
       // Fetch corresponding login data from the `Login` table
