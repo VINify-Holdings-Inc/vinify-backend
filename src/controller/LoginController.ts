@@ -5,7 +5,7 @@ import { sendEmail } from "../helpers/email";
 import { MESSAGES } from "../helpers/constants";
 import { createResponse } from "../helpers/response";
 import upload from "../middleware/multer";
-import {generateToken } from "../helpers/utils"; 
+import {generateToken, profileCompletion } from "../helpers/utils"; 
  
 export const LoginController = async (req: any, res: any) => {
     try {
@@ -43,7 +43,11 @@ export const LoginController = async (req: any, res: any) => {
         const token = jwt.sign({ id: user.userId, email: user.emailId }, JWT_SECRET, {
             expiresIn: "24h",
         });
-
+        const userData = await User.findOne({
+            where: { emailId: email },
+            select: ["firstName", "profile", "lastName", "emailId", "secondaryEmailId", "companyId", "title"],
+          });
+        const profileComplete=await profileCompletion(userData)
         // Send response with only the necessary data and token
         return createResponse(res, 200, MESSAGES?.LOGIN_SUCCESS, {
             memberId: user?.userId,
@@ -57,6 +61,7 @@ export const LoginController = async (req: any, res: any) => {
             companyId: user?.companyId,
             title: user?.title,
             token,
+            profileComplete
         });
 
     } catch (error) {
@@ -190,7 +195,7 @@ const {userId, firstName, lastName, companyId, title, secondaryEmailId, address,
             .where("userId = :userId", { userId })
             .returning(["userId", "firstName", "lastName", "companyId", "title", "secondaryEmailId", "address", "phoneNumber", "profile", "updatedAt"])
             .execute();
-
+            const profileComplete=await profileCompletion(result)
         // Check if the user was found and updated
         if (result?.affected === 0) {
             return createResponse(res, 404, MESSAGES?.USER_NOT_FOUND, [], false, true);
@@ -207,7 +212,7 @@ const {userId, firstName, lastName, companyId, title, secondaryEmailId, address,
 
         const updatedUserData = result.raw[0]; 
 
-        return createResponse(res, 200, MESSAGES?.PROFILE_UPDATED, updatedUserData, true, false);
+        return createResponse(res, 200, MESSAGES?.PROFILE_UPDATED,{ ...updatedUserData,profileComplete}, true, false);
 
     } catch (err) {
         // tslint:disable-next-line:no-console
@@ -229,7 +234,7 @@ export const ProfileUpdate = async (req: any, res: any) => {
         select: ["userId", "userType", "firstName", "profile", "lastName", "emailId",
              "phoneNumber", "address", "status", "secondaryEmailId", "companyId", "title", "updatedAt"],
       });
-  
+     const profileComplete=await profileCompletion(userData)
       // Fetch corresponding login data from the `Login` table
       const loginData = await Login.findOne({
         where: { emailId: email },
@@ -253,7 +258,8 @@ export const ProfileUpdate = async (req: any, res: any) => {
         companyId: userData?.companyId,
         title: userData?.title,
         password: loginData?.password ||  null,
-        updatedAt: userData?.updatedAt 
+        updatedAt: userData?.updatedAt,
+        profileComplete 
       }; 
       // Send the combined response
 
