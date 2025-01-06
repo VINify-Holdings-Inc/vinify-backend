@@ -194,8 +194,8 @@ const {userId, firstName, lastName, companyId, title, secondaryEmailId, address,
             .set(updateData)
             .where("userId = :userId", { userId })
             .returning(["userId", "firstName", "lastName", "companyId", "title", "secondaryEmailId", "address", "phoneNumber", "profile", "updatedAt"])
-            .execute();
-            const profileComplete=await profileCompletion(result)
+            .execute();  
+            const profileComplete=await profileCompletion(result?.raw[0])
         // Check if the user was found and updated
         if (result?.affected === 0) {
             return createResponse(res, 404, MESSAGES?.USER_NOT_FOUND, [], false, true);
@@ -211,7 +211,6 @@ const {userId, firstName, lastName, companyId, title, secondaryEmailId, address,
         }
 
         const updatedUserData = result.raw[0]; 
-
         return createResponse(res, 200, MESSAGES?.PROFILE_UPDATED,{ ...updatedUserData,profileComplete}, true, false);
 
     } catch (err) {
