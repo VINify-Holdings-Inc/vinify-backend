@@ -157,7 +157,7 @@ export const forgetPasswordMailTemplate = ({ subject, text, hyperText }: any) =>
                                                                             </tr>
                                                                             
                                                                             <tr>
-                                                                                <td><p style="Margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;line-height:24px;color:000;">Regards,<br />Team Title Alert</p></td>
+                                                                                <td><p style="Margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;line-height:24px;color:000;">Regards,<br />Team Vin Alarm</p></td>
                                                                             </tr>
                                                                         </tbody>
                                                                     </table>
@@ -197,7 +197,7 @@ export const forgetPasswordMailTemplate = ({ subject, text, hyperText }: any) =>
                                                                                 <td class="es-infoblock made_with" style="padding:0;Margin:0;line-height:120%;font-size:0;padding-top:0px;height: 20px;" align="left">
                                                                                     <p style="text-align:center;Margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;line-height:24px;color:000;font-size:14px;">
                                                                                         &nbsp;
-                                                                                    Title Alert. &copy; 2025 All Rights Reserved.</p>
+                                                                                    Vin Alarm. &copy; 2025 All Rights Reserved.</p>
                                                                                 </td>
                                                                             </tr>
                                                                         </tbody>
@@ -429,7 +429,7 @@ export const forgetPasswordMailTemplate = ({ subject, text, hyperText }: any) =>
                                                                                 <td class="es-infoblock made_with" style="padding:0;Margin:0;line-height:120%;font-size:0;padding-top:0px;height: 20px;" align="left">
                                                                                     <p style="text-align:center;Margin:0;line-height:24px;color:000;font-size:14px;">
                                                                                         &nbsp;
-                                                                                    Title Alert. &copy; 2025 All Rights Reserved.</p>
+                                                                                    Vin Alarm. &copy; 2025 All Rights Reserved.</p>
                                                                                 </td>
                                                                             </tr>
                                                                         </tbody>
