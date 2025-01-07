@@ -25,7 +25,7 @@ export const LoginController = async (req: any, res: any) => {
         // Find the associated user by userId and fetch only required fields
         const user = await User.findOne({
             where: { userId: login.userId },
-            select: ["id", "userId", "firstName", "lastName", "emailId", "phoneNumber", "profile", "address", "companyId", "title","createdAt"],
+            select: ["id", "userId", "firstName", "lastName", "emailId", "phoneNumber", "profile", "address", "companyId", "title","createdAt","secondaryEmailId"],
         });
 
         // Check if user exists
