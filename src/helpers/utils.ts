@@ -36,17 +36,23 @@ export const generateToken = () => {
 // Fields to consider for profile completion
 const fieldsToCheck = ['firstName', 'lastName', 'emailId', 'secondaryEmailId', 'companyId', 'title', 'profile'];
 
-export const profileCompletion = (data: any) => {  
-   const total = fieldsToCheck.length; 
-   let raw = 0; 
-   fieldsToCheck?.forEach((field) => { 
-     if (data[field] != null && data[field] !== undefined) {
-       raw++;  
-     }
-   }); 
+export const profileCompletion = (data: any) => {
+  const total = fieldsToCheck?.length;
+  let raw = 0;
 
-   const per = (raw * 100) / total;
-   return Math.ceil(per)
+  fieldsToCheck?.forEach((field) => {
+    if (
+      data[field] != null && 
+      data[field] !== undefined && 
+      data[field] !== '' && 
+      data[field] !== 'undefined' // Check for string 'undefined'
+    ) {
+      raw++;
+    }
+  }); 
+  const per = (raw * 100) / total;
+  return Math.ceil(per); // Rounds up to the nearest whole number
 };
+
 
  

@@ -48,8 +48,8 @@ export class VehicleData extends BaseEntity {
   @Column({ name: "currentStatus", type: "varchar", nullable: true })
   currentStatus: string;
 
-  @Column({ name: "alertDate", type: "timestamptz", default: () => "CURRENT_TIMESTAMP", nullable: true  })
-  alertDate: Date;
+  @Column({ name: "alertDate",type: "varchar", nullable: true })
+  alertDate: string;
 
   @Column({ name: "actionRequired", type: "varchar", nullable: true })
   actionRequired: number;
