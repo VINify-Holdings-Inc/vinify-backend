@@ -40,6 +40,7 @@ export const profileCompletion = (data: any) => {
   const total = fieldsToCheck?.length;
   let raw = 0;
 
+
   fieldsToCheck?.forEach((field) => {
     if (
       data[field] != null && 
@@ -49,7 +50,7 @@ export const profileCompletion = (data: any) => {
     ) {
       raw++;
     }
-  }); 
+  });  
   const per = (raw * 100) / total;
   return Math.ceil(per); // Rounds up to the nearest whole number
 };
