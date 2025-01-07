@@ -34,11 +34,9 @@ export const insertBulkSheetData = async (req: any, res: any) => {
       brand: item?.brand || null,
       model: item?.model || null,
       modelYear: item?.modelYear  || null,
-      titleBrandDate: item?.titleBrandDate ? new Date(item.titleBrandDate) : null,
+      alertDate: item?.titleBrandDate ?  item?.titleBrandDate : null,
       member: item?.member || null,
-    }));
- console.log(formattedSheet2,"o6543");
- 
+    })); 
     // Insert data into the respective tables
     const result1 = await VehicleData.save(formattedSheet2); 
 

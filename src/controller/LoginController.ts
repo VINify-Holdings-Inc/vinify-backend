@@ -25,7 +25,7 @@ export const LoginController = async (req: any, res: any) => {
         // Find the associated user by userId and fetch only required fields
         const user = await User.findOne({
             where: { userId: login.userId },
-            select: ["id", "userId", "firstName", "lastName", "emailId", "phoneNumber", "profile", "address", "companyId", "title"],
+            select: ["id", "userId", "firstName", "lastName", "emailId", "phoneNumber", "profile", "address", "companyId", "title","createdAt"],
         });
 
         // Check if user exists
@@ -43,11 +43,8 @@ export const LoginController = async (req: any, res: any) => {
         const token = jwt.sign({ id: user.userId, email: user.emailId }, JWT_SECRET, {
             expiresIn: "24h",
         });
-        const userData = await User.findOne({
-            where: { emailId: email },
-            select: ["firstName", "profile", "lastName", "emailId", "secondaryEmailId", "companyId", "title"],
-          });
-        const profileComplete=await profileCompletion(userData)
+         
+        const profileComplete=await profileCompletion(user)
         // Send response with only the necessary data and token
         return createResponse(res, 200, MESSAGES?.LOGIN_SUCCESS, {
             memberId: user?.userId,
@@ -60,6 +57,7 @@ export const LoginController = async (req: any, res: any) => {
             address: user?.address,
             companyId: user?.companyId,
             title: user?.title,
+            createdAt:user?.createdAt,
             token,
             profileComplete
         });
@@ -233,7 +231,7 @@ export const ProfileUpdate = async (req: any, res: any) => {
         select: ["userId", "userType", "firstName", "profile", "lastName", "emailId",
              "phoneNumber", "address", "status", "secondaryEmailId", "companyId", "title", "updatedAt"],
       });
-     const profileComplete=await profileCompletion(userData)
+     const profileComplete=await profileCompletion(userData); 
       // Fetch corresponding login data from the `Login` table
       const loginData = await Login.findOne({
         where: { emailId: email },
