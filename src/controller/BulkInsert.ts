@@ -1,9 +1,34 @@
-
 import { VehicleInfo } from "../Entities/vehicle_info";
 import { MESSAGES } from "../helpers/constants";
 import { createResponse } from "../helpers/response";
-import { VehicleData } from "../Entities/vehicle_data";
+import { VehicleData } from "../Entities/vehicle_data"; 
+import { In } from "typeorm";   
+export const ExportPdfVINData = async (req: any, res: any) => {
+  try {
+    const { type = "all" } = req.query;
+    const { vins = [] } = req.body; 
+    let data; 
+    // Handle fetching data based on the type and vins
+    if (type === "single" && vins.length > 0) {
+      data = await VehicleData.find({
+        where: {
+          vin: In(vins),
+        },
+      });
+    } else if (type === "all") {
+      data = await VehicleData.find();
+    } else {
+      return createResponse(res, 400, "Invalid parameters", [], false, true);
+    }
 
+    // Send successful response with fetched data
+    return createResponse(res, 200, MESSAGES?.DATA_FETCH_SUCCESS, { items: data });
+  } catch (error: any) {
+    // Log error and return internal server error response
+    console.error(MESSAGES?.INTERNAL_SERVER_ERROR, error);
+    return createResponse(res, 500, MESSAGES?.INTERNAL_SERVER_ERROR, [], false, true);
+  }
+}; 
 export const DashboardSummaryVIN = async (req: any, res: any) => {
   try {
     const { page = 1, limit = 10, ...filters } = req.query;
@@ -50,7 +75,7 @@ export const DashboardSummaryVIN = async (req: any, res: any) => {
       currentPage: page,
       totalPages,
       totalRecords: totalDistinctVINs,
-      data: distinctVINs,
+      items: distinctVINs,
     });
   } catch (error: any) {
     console.error(MESSAGES?.INTERNAL_SERVER_ERROR, error);
@@ -278,7 +303,7 @@ export const getTotalKpiesData = async (req: any, res: any) => {
       true
     );
   }
-};
- 
+}; 
+
 
 
