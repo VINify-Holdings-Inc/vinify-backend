@@ -9,7 +9,7 @@ import {
 @Entity({ name: "VehicleInfo" })
 export class VehicleInfo extends BaseEntity {
   @PrimaryGeneratedColumn({ name: "id" })
-  id: number;
+  id: string;
 
   @Column({ name: "uuid", type: "varchar", unique: true })
   @Generated("uuid")
@@ -19,28 +19,28 @@ export class VehicleInfo extends BaseEntity {
   vin: string;
 
   @Column({ name: "userId", type: "varchar", nullable: true })
-  userId: string;
+  userId: string; 
 
   @Column({ name: "modelYear", type: "varchar", nullable: true })
   modelYear: string;
 
-  @Column({ name: "title", type: "int", nullable: true })
-  title: number;
+  @Column({ name: "title", type: "varchar", nullable: true })
+  title: string;
 
-  @Column({ name: "brand", type: "int", nullable: true })
-  brand: number;
+  @Column({ name: "brand", type: "varchar", nullable: true })
+  brand: string;
 
-  @Column({ name: "insurance", type: "int", nullable: true })
-  insurance: number;
+  @Column({ name: "insurance", type: "varchar", nullable: true })
+  insurance: string;
+  
+  @Column({ name: "junkSalvage", type: "varchar", nullable: true })
+  junkSalvage: string;
 
-  @Column({ name: "junkSalvage", type: "int", nullable: true })
-  junkSalvage: number;
-
-  @Column({ name: "vehicleDetails", type: "text", nullable: true })
+  @Column({ name: "vehicleDetails", type: "varchar", nullable: true })
   vehicleDetails: string;
 
-  @Column({ name: "status", type: "int", nullable: true })
-  status: number;
+  @Column({ name: "status", type: "varchar", nullable: true })
+  status: string;
 
   @Column({
     name: "createdAt",
