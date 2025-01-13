@@ -1,8 +1,62 @@
+
+import { VehicleInfo } from "../Entities/vehicle_info";
 import { MESSAGES } from "../helpers/constants";
 import { createResponse } from "../helpers/response";
-import { VehicleInfo } from "../Entities/vehicle_info";
 import { VehicleData } from "../Entities/vehicle_data";
 
+export const DashboardSummaryVIN = async (req: any, res: any) => {
+  try {
+    const { page = 1, limit = 10, ...filters } = req.query;
+    const offset = (page - 1) * limit;  
+
+    // Correct the misplaced where condition
+    const queryBuilder = VehicleData.createQueryBuilder("vehicle")
+      .select("vehicle.*")  
+      .distinctOn(["vehicle.vin"])  
+      .orderBy("vehicle.vin")  
+      .where("vehicle.status = :status", { status: "Current" })  // Added 'where' here
+      .addOrderBy("vehicle.createdAt", "DESC")  
+      .limit(limit)  
+      .offset(offset); 
+
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value) {
+        queryBuilder.andWhere(`LOWER(vehicle.${key}) LIKE LOWER(:${key})`, {
+          [key]: `%${value}%`,
+        });
+      }
+    });
+
+    const distinctVINs = await queryBuilder.getRawMany(); 
+
+    // Correct the missing semicolon in the totalQueryBuilder
+    const totalQueryBuilder = VehicleData.createQueryBuilder("vehicle")
+      .select("COUNT(DISTINCT vehicle.vin)", "totalDistinctVINs") 
+      .where("vehicle.status = :status", { status: "Current" });
+
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value) {
+        totalQueryBuilder.andWhere(`LOWER(vehicle.${key}) LIKE LOWER(:${key})`, {
+          [key]: `%${value}%`,
+        });
+      }
+    });
+
+    const result = await totalQueryBuilder.getRawOne();
+    const totalDistinctVINs = result?.totalDistinctVINs || 0; 
+    const totalPages = Math.ceil(totalDistinctVINs / limit); 
+
+    return createResponse(res, 200, MESSAGES?.DATA_FETCH_SUCCESS, {
+      currentPage: page,
+      totalPages,
+      totalRecords: totalDistinctVINs,
+      data: distinctVINs,
+    });
+  } catch (error: any) {
+    console.error(MESSAGES?.INTERNAL_SERVER_ERROR, error);
+    return createResponse(res, 500, MESSAGES?.INTERNAL_SERVER_ERROR, [], false, true);
+  }
+}; 
 export const insertBulkSheetData = async (req: any, res: any) => {
   try {
     const { sheet1, sheet2 } = req.body;
@@ -49,9 +103,7 @@ export const insertBulkSheetData = async (req: any, res: any) => {
 
     return createResponse(res, 500, MESSAGES.INTERNAL_SERVER_ERROR, [], false, true);
   }
-};
-
-
+}; 
 export const getBulkSheetData = async (req: any, res: any) => {
   try {
     const { page = 1, limit = 10, ...filters } = req.query;
@@ -85,8 +137,7 @@ export const getBulkSheetData = async (req: any, res: any) => {
 
     return createResponse(res, 500, MESSAGES?.INTERNAL_SERVER_ERROR, [], false, true);
   }
-};
-
+}; 
 export const insertBulkSheetDatSheet2 = async (req: any, res: any) => {
   try {
     const { sheet1, shhet2 } = req.body;
@@ -114,8 +165,7 @@ export const insertBulkSheetDatSheet2 = async (req: any, res: any) => {
 
     return createResponse(res, 500, MESSAGES?.INTERNAL_SERVER_ERROR, [], false, true);
   }
-};
-
+}; 
 export const getBulkSheetDataSheet2 = async (req: any, res: any) => {
   try {
     const { page = 1, limit = 10, ...filters } = req.query;
@@ -186,4 +236,49 @@ export const getSearchVinPop = async (req: any, res: any) => {
 
     return createResponse(res, 500, MESSAGES?.INTERNAL_SERVER_ERROR, [], false, true);
   }
+}; 
+export const getTotalKpiesData = async (req: any, res: any) => {
+  try {
+    // Await the query to get the result
+    const totalKpiData = await VehicleData.createQueryBuilder("vehicleData")
+      .select("COUNT(DISTINCT vehicleData.vin)", "uniqueVinCount")
+      .getRawOne();
+
+    // Check if uniqueVinCount exists in the result
+    if (!totalKpiData || !totalKpiData.uniqueVinCount) {
+      return createResponse(
+        res,
+        404,
+        MESSAGES?.VIN_NOT_FOUND,
+        [],
+        false,
+        true
+      );
+    }
+
+    // Return the success response
+    return createResponse(
+      res,
+      200,
+      MESSAGES?.DATA_FETCH_SUCCESS,
+      { uniqueVinCount: totalKpiData.uniqueVinCount },
+      true,
+      false
+    );
+  } catch (error) {
+    // Log the error and return the error response
+    console.error(MESSAGES?.INTERNAL_SERVER_ERROR, error);
+
+    return createResponse(
+      res,
+      500,
+      MESSAGES?.INTERNAL_SERVER_ERROR,
+      [],
+      false,
+      true
+    );
+  }
 };
+ 
+
+
