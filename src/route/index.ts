@@ -1,7 +1,7 @@
  
 import express from "express";
 import { deleteContactUs, insertContactUs, readContactUs } from "../controller/ContactUs";
-import { getBulkSheetData, getSearchVinPop, getBulkSheetDataSheet2, insertBulkSheetData, insertBulkSheetDatSheet2, getTotalKpiesData, DashboardSummaryVIN } from "../controller/BulkInsert";
+import { getBulkSheetData, getSearchVinPop, getBulkSheetDataSheet2, insertBulkSheetData, insertBulkSheetDatSheet2, getTotalKpiesData, DashboardSummaryVIN, ExportPdfVINData } from "../controller/BulkInsert";
 import { ForgetPassword, LoginController, ResetPassword, userProfileUpdate , ProfileUpdate, ResetTockenCheck} from "../controller/LoginController";
  
 const routerAdmin = express.Router();
@@ -24,5 +24,5 @@ routerAdmin.get("/csv-import-sheet2",  getBulkSheetDataSheet2);
 routerAdmin.get("/search-pop-vin",  getSearchVinPop);
 routerAdmin.get("/kpi-data", getTotalKpiesData); 
 routerAdmin.get("/dashboard-vin-summary", DashboardSummaryVIN);
-
+routerAdmin.get("/export-pdf", ExportPdfVINData);
 export default routerAdmin; 
