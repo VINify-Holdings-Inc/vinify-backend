@@ -27,7 +27,7 @@
  *           example:
  *             name: John Doe
  *             email: johndoe@example.com
- *             phone: "+1234567890"
+ *             phone: "999-831-332"
  *             message: I have a question about your services.
  *             subject: Inquiry
  *     responses:
