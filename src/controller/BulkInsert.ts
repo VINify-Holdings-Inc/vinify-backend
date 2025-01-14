@@ -9,19 +9,19 @@ export const ExportPdfVINData = async (req: any, res: any) => {
     const { vins = [] } = req.body;  
     let data; 
     if (type === "single" && vins.length > 0) { 
-      const filters = vins.map(({ vin, model }: { vin: string; model: string }) => ({ vin, model }));
+      const filters = vins.map(({ vin, alertDate }: { vin: string; alertDate: string }) => ({ vin, alertDate }));
 
       data = await VehicleData.createQueryBuilder("vehicle")
         .where( 
           filters
             .map(
               (_: any, index: any) =>
-                `(vehicle.vin = :vin${index} AND vehicle.model = :model${index} AND vehicle.status = :status)`
+                `(vehicle.vin = :vin${index} AND vehicle.alertDate = :alertDate${index} AND vehicle.status = :status)`
             )
             .join(" OR "),
-          {  ...Object.fromEntries(filters.flatMap(({ vin, model }: any, index: any) => [
+          {  ...Object.fromEntries(filters.flatMap(({ vin, alertDate }: any, index: any) => [
               [`vin${index}`, vin],
-              [`model${index}`, model],
+              [`alertDate${index}`, alertDate],
             ])),
             status: "Current",
           }
