@@ -5,7 +5,7 @@ import { VehicleData } from "../Entities/vehicle_data";
 export const ExportPdfVINData = async (req: any, res: any) => {
   try {
     const { type = "all" } = req.query;
-    const { vins = [[{ vin: "1FTCF15N5HLA06223", make: "CHEV" }, { vin: "1FTCF15N5HLA06926", make: "FORD" }]] } = req.body;
+    const { vins = [] } = req.body;
     const flattenedVins = vins.flat().map((item: any) => item.vin);
     let data;
     if (type === "single" && flattenedVins.length > 0) {
