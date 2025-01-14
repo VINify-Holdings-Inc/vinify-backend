@@ -2,46 +2,59 @@ import { VehicleInfo } from "../Entities/vehicle_info";
 import { MESSAGES } from "../helpers/constants";
 import { createResponse } from "../helpers/response";
 import { VehicleData } from "../Entities/vehicle_data";
+ 
 export const ExportPdfVINData = async (req: any, res: any) => {
   try {
-    const { type = "all" } = req.query;
-    const { vins = [] } = req.body;
-    const flattenedVins = vins.flat().map((item: any) => item.vin);
-    let data;
-    if (type === "single" && flattenedVins.length > 0) {
+    const { type = "all" } = req.query;  
+    const { vins = [] } = req.body;  
+    let data; 
+    if (type === "single" && vins.length > 0) { 
+      const filters = vins.map(({ vin, model }: { vin: string; model: string }) => ({ vin, model }));
+
       data = await VehicleData.createQueryBuilder("vehicle")
-        .where("vehicle.vin IN (:...vins)", { vins: flattenedVins })
-        .andWhere("vehicle.status = :status", { status: "Current" })
+        .where( 
+          filters
+            .map(
+              (_: any, index: any) =>
+                `(vehicle.vin = :vin${index} AND vehicle.model = :model${index} AND vehicle.status = :status)`
+            )
+            .join(" OR "),
+          {  ...Object.fromEntries(filters.flatMap(({ vin, model }: any, index: any) => [
+              [`vin${index}`, vin],
+              [`model${index}`, model],
+            ])),
+            status: "Current",
+          }
+        )
         .orderBy("vehicle.vin")
         .getMany();
     } else if (type === "all") {
+      // Fetch all data with status "Current"
       data = await VehicleData.createQueryBuilder("vehicle")
         .where("vehicle.status = :status", { status: "Current" })
         .orderBy("vehicle.vin")
         .getMany();
     } else {
+      
       return createResponse(res, 400, "Invalid parameters", [], false, true);
     }
 
-    // Send successful response with fetched data
     return createResponse(res, 200, MESSAGES?.DATA_FETCH_SUCCESS, { items: data });
   } catch (error: any) {
-    // Log error and return internal server error response
+      // tslint:disable-next-line:no-console
     console.error(MESSAGES?.INTERNAL_SERVER_ERROR, error);
+
     return createResponse(res, 500, MESSAGES?.INTERNAL_SERVER_ERROR, [], false, true);
   }
-};
-
+}; 
 export const DashboardSummaryVIN = async (req: any, res: any) => {
   try {
     const { page = 1, limit = 10, ...filters } = req.query;
-    const offset = (page - 1) * limit;
-
-    // Correct the misplaced where condition
+    const offset = (page - 1) * limit; 
     const queryBuilder = VehicleData.createQueryBuilder("vehicle")
       .select("vehicle.*")
       .orderBy("vehicle.vin")
-      .where("vehicle.status = :status", { status: "Current" })  // Added 'where' here
+      .where("vehicle.status = :status", { status: "Current" })   
       .addOrderBy("vehicle.createdAt", "DESC")
       .limit(limit)
       .offset(offset);
@@ -54,9 +67,7 @@ export const DashboardSummaryVIN = async (req: any, res: any) => {
       }
     });
 
-    const distinctVINs = await queryBuilder.getRawMany();
-
-    // Correct the totalQueryBuilder to add 'andWhere' before calling 'getCount'
+    const distinctVINs = await queryBuilder.getRawMany(); 
     const totalQueryBuilder = VehicleData.createQueryBuilder("vehicle")
       .where("vehicle.status = :status", { status: "Current" });
 
@@ -68,7 +79,7 @@ export const DashboardSummaryVIN = async (req: any, res: any) => {
       }
     });
 
-    const totalDistinctVINs = await totalQueryBuilder.getCount(); // Get the count after applying the filters
+    const totalDistinctVINs = await totalQueryBuilder.getCount();  
     const totalPages = Math.ceil(totalDistinctVINs / limit);
 
     return createResponse(res, 200, MESSAGES?.DATA_FETCH_SUCCESS, {
@@ -78,16 +89,16 @@ export const DashboardSummaryVIN = async (req: any, res: any) => {
       items: distinctVINs,
     });
   } catch (error: any) {
+       // tslint:disable-next-line:no-console
     console.error(MESSAGES?.INTERNAL_SERVER_ERROR, error);
+
     return createResponse(res, 500, MESSAGES?.INTERNAL_SERVER_ERROR, [], false, true);
   }
-};
-
+}; 
 export const insertBulkSheetData = async (req: any, res: any) => {
   try {
     const { sheet1, sheet2 } = req.body;
-
-    // Validate input
+ 
     if (!sheet1 || !Array.isArray(sheet1) || sheet1.length === 0) {
       return createResponse(res, 400, "No data provided for insertion in sheet1", [], false, true);
     }
@@ -95,17 +106,14 @@ export const insertBulkSheetData = async (req: any, res: any) => {
     if (!sheet2 || !Array.isArray(sheet2) || sheet2.length === 0) {
       return createResponse(res, 400, "No data provided for insertion in sheet2", [], false, true);
     }
-
-    // Format data for VehicleData entity
+ 
     const formattedSheet1: any = sheet1.map(item => ({
       vin: item?.vin || null,
       titleStatus: item?.titleStatus || null,
       brand: item?.brand || null,
       insurance: item?.insurance || null,
       junkSalvage: item?.junkSalvage || null,
-    }));
-
-    // Format data for VehicleInfo entity
+    })); 
     const formattedSheet2: any = sheet2.map(item => ({
       vin: item?.vin || null,
       vinId: item?.vinId || null,
@@ -124,7 +132,7 @@ export const insertBulkSheetData = async (req: any, res: any) => {
 
     return createResponse(res, 201, MESSAGES.DATA_SAVED, { result1, result2 });
   } catch (error) {
-    // Log specific error details
+       // tslint:disable-next-line:no-console
     console.error("Error during data insertion:", error);
 
     return createResponse(res, 500, MESSAGES.INTERNAL_SERVER_ERROR, [], false, true);
@@ -166,9 +174,7 @@ export const getBulkSheetData = async (req: any, res: any) => {
 };
 export const insertBulkSheetDatSheet2 = async (req: any, res: any) => {
   try {
-    const { sheet1, shhet2 } = req.body;
-
-    // Validate that data exists and is an array
+    const { sheet1, shhet2 } = req.body; 
     if (!sheet1 || !Array.isArray(sheet1) || sheet1.length === 0) {
 
       return createResponse(res, 400, "No data provided for insertion sheet1", [], false, true);
@@ -178,9 +184,7 @@ export const insertBulkSheetDatSheet2 = async (req: any, res: any) => {
 
       return createResponse(res, 400, "No data provided for insertion sheet2", [], false, true);
     }
-    // Format the incoming data to match the entity fields
-
-    // Insert the formatted entities into the database
+     
     const result = await VehicleData.insert(sheet1);
     const result2 = await VehicleInfo.insert(sheet1);
 
@@ -265,12 +269,11 @@ export const getSearchVinPop = async (req: any, res: any) => {
 };
 export const getTotalKpiesData = async (req: any, res: any) => {
   try {
-    // Await the query to get the result
+    
     const totalKpiData = await VehicleData.createQueryBuilder("vehicleData")
       .select("COUNT(DISTINCT vehicleData.vin)", "uniqueVinCount")
       .getRawOne();
-
-    // Check if uniqueVinCount exists in the result
+ 
     if (!totalKpiData || !totalKpiData.uniqueVinCount) {
       return createResponse(
         res,
@@ -281,8 +284,7 @@ export const getTotalKpiesData = async (req: any, res: any) => {
         true
       );
     }
-
-    // Return the success response
+ 
     return createResponse(
       res,
       200,
@@ -292,7 +294,7 @@ export const getTotalKpiesData = async (req: any, res: any) => {
       false
     );
   } catch (error) {
-    // Log the error and return the error response
+      // tslint:disable-next-line:no-console
     console.error(MESSAGES?.INTERNAL_SERVER_ERROR, error);
 
     return createResponse(
@@ -305,6 +307,3 @@ export const getTotalKpiesData = async (req: any, res: any) => {
     );
   }
 };
-
-
-

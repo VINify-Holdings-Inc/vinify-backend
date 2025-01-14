@@ -14,21 +14,19 @@ export const TestRoute = async (req: any, res: any) => {
         const userData = await User.createQueryBuilder("user")
             .innerJoinAndSelect(Login, "login", "user.emailId = login.emailId")
             .where("user.emailId = :email", { email })
-            .getOne(); 
+            .getOne();
         if (!userData) {
             return createResponse(res, 404, "User not found", null, false, true);
         }
 
         return createResponse(res, 200, "Data fetched successfully.", userData, true, false);
     } catch (error: any) {
-        // Log error
+        // tslint:disable-next-line:no-console
         console.error("Error fetching user data:", error);
 
         return res.status(500).json({ message: "Internal Server Error", error: error.message });
     }
 };
-
-
 
 export const LoginController = async (req: any, res: any) => {
     try {
@@ -58,6 +56,7 @@ export const LoginController = async (req: any, res: any) => {
 
         // Compare password with stored value (assuming plaintext password comparison here)
         if (login.password !== password) {
+
             return createResponse(res, 401, MESSAGES?.INVALID_CREDENTIALS, [], false, true);
         }
 
@@ -67,7 +66,8 @@ export const LoginController = async (req: any, res: any) => {
             expiresIn: "24h",
         });
 
-        const profileComplete = await profileCompletion(user)
+        const profileComplete = await profileCompletion(user);
+
         // Send response with only the necessary data and token
         return createResponse(res, 200, MESSAGES?.LOGIN_SUCCESS, {
             memberId: user?.userId,
@@ -184,7 +184,16 @@ export const userProfileUpdate = async (req: any, res: any) => {
             });
         });
 
-        const { userId, firstName, lastName, companyId, title, secondaryEmailId, address, phoneNumber, password } = req.body;
+        const {
+            userId,
+            firstName,
+            lastName,
+            companyId,
+            title,
+            secondaryEmailId,
+            address,
+            phoneNumber,
+            password } = req.body;
 
         // Validate required fields
         if (!userId) {
@@ -216,7 +225,7 @@ export const userProfileUpdate = async (req: any, res: any) => {
             .where("userId = :userId", { userId })
             .returning(["userId", "firstName", "lastName", "companyId", "title", "secondaryEmailId", "address", "phoneNumber", "profile", "updatedAt"])
             .execute();
-        const profileComplete = await profileCompletion(result?.raw[0])
+        const profileComplete = await profileCompletion(result?.raw[0]);
         // Check if the user was found and updated
         if (result?.affected === 0) {
             return createResponse(res, 404, MESSAGES?.USER_NOT_FOUND, [], false, true);
@@ -232,7 +241,12 @@ export const userProfileUpdate = async (req: any, res: any) => {
         }
 
         const updatedUserData = result.raw[0];
-        return createResponse(res, 200, MESSAGES?.PROFILE_UPDATED, { ...updatedUserData, profileComplete }, true, false);
+
+        return createResponse(res,
+            200, MESSAGES?.PROFILE_UPDATED,
+            { ...updatedUserData, profileComplete },
+            true,
+            false);
 
     } catch (err) {
         // tslint:disable-next-line:no-console
@@ -252,7 +266,7 @@ export const ProfileUpdate = async (req: any, res: any) => {
         const userData = await User.findOne({
             where: { emailId: email },
             select: ["userId", "userType", "firstName", "profile", "lastName", "emailId",
-                "phoneNumber", "address", "status", "secondaryEmailId", "companyId", "title", "updatedAt","createdAt"],
+                "phoneNumber", "address", "status", "secondaryEmailId", "companyId", "title", "updatedAt", "createdAt"],
         });
         const profileComplete = await profileCompletion(userData);
         // Fetch corresponding login data from the `Login` table
@@ -279,7 +293,7 @@ export const ProfileUpdate = async (req: any, res: any) => {
             title: userData?.title,
             password: loginData?.password || null,
             updatedAt: userData?.updatedAt,
-            last_record_updated:userData?.createdAt,
+            last_record_updated: userData?.createdAt,
             profileComplete
         };
         // Send the combined response
@@ -293,4 +307,3 @@ export const ProfileUpdate = async (req: any, res: any) => {
         return res.status(500).json({ message: "Internal Server Error", error: error.message });
     }
 };
-
