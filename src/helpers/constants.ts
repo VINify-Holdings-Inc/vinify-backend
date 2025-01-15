@@ -21,6 +21,6 @@ export const MESSAGES = {
     NO_FILE_UPLOAD: "No file uploaded",
     PROFILE_UPDATED: "Profile updated successfully.",
     ACCESS_DENIED: "Access Denied. No token provided.",
-    VIN_NOT_FOUND: "We are not monitoring the entered VIN. Do you want to run a new VIN report?"
-};
-// test
+    VIN_NOT_FOUND: "We are not monitoring the entered VIN. Do you want to run a new VIN report?",
+    TEST_MSG:"hi"
+}; 

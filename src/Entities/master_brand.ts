@@ -20,7 +20,7 @@ import {
     @Column({
       name: "code",
       type: "varchar",
-      length: 50,
+      length: 255,
       nullable: true,
       default: null,
     })
@@ -29,7 +29,7 @@ import {
     @Column({
       name: "name",
       type: "varchar",
-      length: 50,
+      length: 2000,
       nullable: true,
       default: null,
     })
@@ -39,7 +39,7 @@ import {
       name: "status",
       type: "int",
       nullable: true,
-      default: null,
+      default: 1,
     })
     status: number;
   
