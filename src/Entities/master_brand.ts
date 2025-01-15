@@ -7,7 +7,7 @@ import {
     PrimaryGeneratedColumn,
   } from "typeorm";
   
-  @Entity({ name: "masterBrand" })
+  @Entity({ name: "MasterBrand" })
   export class MasterBrand extends BaseEntity {
   
     @PrimaryGeneratedColumn({ name: "id" })
