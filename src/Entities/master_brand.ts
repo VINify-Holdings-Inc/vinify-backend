@@ -24,7 +24,7 @@ import {
       nullable: true,
       default: null,
     })
-    code: string;
+    code: number;
   
     @Column({
       name: "name",

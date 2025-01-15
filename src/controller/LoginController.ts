@@ -6,14 +6,15 @@ import { MESSAGES } from "../helpers/constants";
 import { createResponse } from "../helpers/response";
 import upload from "../middleware/multer";
 import { generateToken, profileCompletion } from "../helpers/utils";
+import { VehicleData } from "../Entities/vehicle_data";
+import { MasterBrand } from "../Entities/master_brand";
 
 export const TestRoute = async (req: any, res: any) => {
-    const { email } = req.params;
+    // const { email } = req.params;
     try {
         // Execute the query to fetch the user data with an INNER JOIN
-        const userData = await User.createQueryBuilder("user")
-            .innerJoinAndSelect(Login, "login", "user.emailId = login.emailId")
-            .where("user.emailId = :email", { email })
+        const userData = await VehicleData.createQueryBuilder("user")
+            .innerJoinAndSelect(MasterBrand, "brand", "user.brand = brand.code") 
             .getOne();
         if (!userData) {
             return createResponse(res, 404, "User not found", null, false, true);
