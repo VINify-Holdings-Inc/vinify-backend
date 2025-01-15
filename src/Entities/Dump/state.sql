@@ -1,5 +1,6 @@
 INSERT INTO "masterState" ("code", "name", "status", "createdAt", "updatedAt")
-VALUES
+VALUES     
+('AA', 'Armed Forces Americas', 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP), 
 ('AK', 'Alaska', 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
 ('AL', 'Alabama', 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
 ('AR', 'Arkansas', 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),

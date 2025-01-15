@@ -27,8 +27,7 @@ export const TestRoute = async (req: any, res: any) => {
 
         return res.status(500).json({ message: "Internal Server Error", error: error.message });
     }
-};
-
+}; 
 export const LoginController = async (req: any, res: any) => {
     try {
         const { email, password } = req.body;
