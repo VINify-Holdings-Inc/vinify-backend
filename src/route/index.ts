@@ -27,4 +27,4 @@ routerAdmin.get("/dashboard-vin-summary", DashboardSummaryVIN);
 routerAdmin.post("/export-pdf", ExportPdfVINData);
 routerAdmin.post("/test/:email", TestRoute);
 routerAdmin.get("/get-soap-token", SoapToken);
-export default routerAdmin; 
+export default routerAdmin;
