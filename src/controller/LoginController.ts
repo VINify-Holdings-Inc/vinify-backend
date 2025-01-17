@@ -20,12 +20,7 @@ export const TestRoute = async (req: any, res: any) => {
             //     "user.emailId",
             //     "login.password",
             //     "login.status",
-            // ]);
-
-        // Log the raw query for debugging
-        const [query, parameters] = queryBuilder.getQueryAndParameters();
-        console.log("Executing Query:", query, parameters);
-
+            // ]); 
         // Execute the query
         const userData = await queryBuilder.getRawOne();
         if (!userData) {

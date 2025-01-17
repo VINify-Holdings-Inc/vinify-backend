@@ -9,12 +9,9 @@ import {
 @Entity({ name: "VehicleData" })
 export class VehicleData extends BaseEntity {
   @PrimaryGeneratedColumn({ name: "id" })
-  id: number; 
-
-  @Column({ name: "uuid", type: "varchar", unique: true })
   @Generated("uuid")
-  uuid: string;
-
+  uuid: string; 
+  
   @Column({ name: "vin", type: "varchar", nullable: true })
   vin: string;
 
@@ -37,47 +34,23 @@ export class VehicleData extends BaseEntity {
   junkSalvage: string;
 
   @Column({ name: "state", type: "varchar", nullable: true })
-  state: string;
-
-  @Column({ name: "resolutionStatus", type: "varchar", nullable: true })
-  resolutionStatus: string;
-
-  @Column({ name: "fraudState", type: "varchar", nullable: true })
-  fraudState: string;
+  state: string; 
 
   @Column({ name: "currentStatus", type: "varchar", nullable: true })
   currentStatus: string;
 
   @Column({ name: "alertDate", type: "varchar", nullable: true })
-  alertDate: string;
-
-  @Column({ name: "actionRequired", type: "varchar", nullable: true })
-  actionRequired: number;
-
-  @Column({ name: "titleStatus", type: "varchar", nullable: true })
-  titleStatus: number;
-
-  @Column({ name: "fuelType", type: "varchar", nullable: true })
-  fuelType: number;
-
-  @Column({ name: "eventTypeId", type: "varchar", nullable: true })
-  eventTypeId: number;
+  alertDate: string;  
 
   @Column({ name: "eventDate", type: "timestamptz", default: () => "CURRENT_TIMESTAMP", nullable: true  })
   eventDate: Date;
   
   @Column({ name: "titleBrandDate", type: "timestamptz", default: () => "CURRENT_TIMESTAMP" , nullable: true })
-  titleBrandDate: Date;
-
-  // @Column({ name: "modelYear", type: "timestamptz", default: () => "CURRENT_TIMESTAMP", nullable: true  })
-  // modelYear: Date;
+  titleBrandDate: Date; 
 
   @Column({ name: "modelYear", type: "varchar", nullable: true })
   modelYear: string;
-  
-  @Column({ name: "summary", type: "text", nullable: true })
-  summary: string;
-
+   
   @Column({ name: "status", type: "varchar", nullable: true })
   status: string;
 
