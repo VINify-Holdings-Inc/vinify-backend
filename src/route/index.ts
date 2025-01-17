@@ -3,7 +3,7 @@ import express from "express";
 import { deleteContactUs, insertContactUs, readContactUs} from "../controller/ContactUs";
 import { getBulkSheetData, getSearchVinPop, getBulkSheetDataSheet2, insertBulkSheetData, insertBulkSheetDatSheet2, getTotalKpiesData, DashboardSummaryVIN, ExportPdfVINData } from "../controller/BulkInsert";
 import { ForgetPassword, LoginController, ResetPassword, userProfileUpdate , ProfileUpdate, ResetTockenCheck, TestRoute} from "../controller/LoginController";
-import {SoapToken} from "../controller/soapController";
+import {SoapToken,ValidateVinData} from "../controller/soapController";
 const routerAdmin = express.Router();
 
 routerAdmin.post("/user-login", LoginController);
@@ -27,4 +27,5 @@ routerAdmin.get("/dashboard-vin-summary", DashboardSummaryVIN);
 routerAdmin.post("/export-pdf", ExportPdfVINData);
 routerAdmin.post("/test/:email", TestRoute);
 routerAdmin.get("/get-soap-token", SoapToken);
+routerAdmin.post("/validate-vin-data", ValidateVinData);
 export default routerAdmin;
