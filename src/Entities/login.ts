@@ -79,7 +79,7 @@ export class Login extends BaseEntity {
     type: "varchar",
     length: 50,
     nullable: true,
-    default: null,
+    default: "system",
   })
   createdBy: string;
 
