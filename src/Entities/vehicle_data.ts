@@ -11,7 +11,7 @@ export class VehicleData extends BaseEntity {
   @PrimaryGeneratedColumn({ name: "id" })
   @Generated("uuid")
   uuid: string; 
-  
+
   @Column({ name: "vin", type: "varchar", nullable: true })
   vin: string;
 
@@ -34,16 +34,10 @@ export class VehicleData extends BaseEntity {
   junkSalvage: string;
 
   @Column({ name: "state", type: "varchar", nullable: true })
-  state: string; 
-
-  @Column({ name: "currentStatus", type: "varchar", nullable: true })
-  currentStatus: string;
-
+  state: string;  
+ 
   @Column({ name: "alertDate", type: "varchar", nullable: true })
-  alertDate: string;  
-
-  @Column({ name: "eventDate", type: "timestamptz", default: () => "CURRENT_TIMESTAMP", nullable: true  })
-  eventDate: Date;
+  alertDate: string;   
   
   @Column({ name: "titleBrandDate", type: "timestamptz", default: () => "CURRENT_TIMESTAMP" , nullable: true })
   titleBrandDate: Date; 
