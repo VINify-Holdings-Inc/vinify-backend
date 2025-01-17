@@ -341,3 +341,47 @@ export const getTotalKpiesData = async (req: any, res: any) => {
     );
   }
 };
+
+export const insertBulkSheetDataUdated = async (req: any, res: any) => {
+  try {
+    const { sheet1, sheet2 } = req.body;
+ 
+    if (!sheet1 || !Array.isArray(sheet1) || sheet1.length === 0) {
+      return createResponse(res, 400, "No data provided for insertion in sheet1", [], false, true);
+    }
+
+    if (!sheet2 || !Array.isArray(sheet2) || sheet2.length === 0) {
+      return createResponse(res, 400, "No data provided for insertion in sheet2", [], false, true);
+    }
+ 
+    const formattedSheet1: any = sheet1.map(item => ({
+      vin: item?.vin || null,
+      titleStatus: item?.titleStatus || null,
+      brand: item?.brand || null,
+      insurance: item?.insurance || null,
+      junkSalvage: item?.junkSalvage || null,
+    })); 
+    const formattedSheet2: any = sheet2.map(item => ({
+      vin: item?.vin || null,
+      vinId: item?.vinId || null,
+      status: item?.status || null,
+      state: item?.state || null,
+      brand: item?.brand || null,
+      model: item?.model || null,
+      modelYear: item?.modelYear || null,
+      alertDate: item?.titleBrandDate ? item?.titleBrandDate : null,
+      member: item?.member || null,
+    }));
+    // Insert data into the respective tables
+    const result1 = await VehicleData.save(formattedSheet2);
+
+    const result2 = await VehicleInfo.save(formattedSheet1);
+
+    return createResponse(res, 201, MESSAGES.DATA_SAVED, { result1, result2 });
+  } catch (error) {
+       // tslint:disable-next-line:no-console
+    console.error("Error during data insertion:", error);
+
+    return createResponse(res, 500, MESSAGES.INTERNAL_SERVER_ERROR, [], false, true);
+  }
+};
