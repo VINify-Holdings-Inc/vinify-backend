@@ -39,8 +39,8 @@ export class VehicleDataTemp extends BaseEntity {
   @Column({ name: "alertDate", type: "varchar", nullable: true })
   alertDate: string;   
 
-  @Column({ name: "titleBrandDate", type: "timestamptz", default: () => "CURRENT_TIMESTAMP" , nullable: true })
-  titleBrandDate: Date; 
+  @Column({ name: "titleBrandDate", type: "varchar", nullable: true})
+  titleBrandDate: string;
 
   @Column({ name: "modelYear", type: "varchar", nullable: true })
   modelYear: string;
@@ -51,7 +51,7 @@ export class VehicleDataTemp extends BaseEntity {
   @Column({ name: "isRead", type: "varchar", default: false,nullable: true, })
   isRead: string;
 
-  @Column({ name: "isOld", type: "varchar",  default: false,nullable: true })
+  @Column({ name: "isOld", type: "varchar",  default: true,nullable: true })
   isOld: string;
 
   @Column({
