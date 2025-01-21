@@ -1,7 +1,7 @@
 export const MESSAGES = {
     DATA_FETCH_SUCCESS: "Data fetched successfully.",
     LOGIN_SUCCESS: "Login successful.",
-    DATA_SAVED: "Data successfully.",
+    DATA_SAVED: "Data saved successfully.",
     USER_NOT_FOUND: "User not found.",
     INVALID_CREDENTIALS: "Invalid credentials.",
     INTERNAL_SERVER_ERROR: "Internal server error.",

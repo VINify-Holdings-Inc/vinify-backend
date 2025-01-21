@@ -4,41 +4,48 @@ import { createResponse } from "../helpers/response";
 import { VehicleData } from "../Entities/vehicle_data";
 import { findDifferencesFromTemData, truncateTable } from "../helpers/Compare";
 import { VehicleDataTemp } from "../Entities/vehicle_data_temp";
-
+import { MasterState } from "../Entities/master_state";
+import { MasterBrand } from "../Entities/master_brand";
 export const insertBulkSheetData = async (req: any, res: any) => {
   try {
     const { sheet1, sheet2 } = req.body;
-     if (!sheet1 || !Array.isArray(sheet1) || sheet1.length === 0) {
+    if (!sheet1 || !Array.isArray(sheet1) || sheet1.length === 0) {
       return createResponse(res, 400, "No data provided for insertion in sheet1", [], false, true);
-    }  
+    }
     if (!sheet2 || !Array.isArray(sheet2) || sheet2.length === 0) {
       return createResponse(res, 400, "No data provided for insertion in sheet2", [], false, true);
     }
-    const vehicleTemData = await VehicleDataTemp.find() 
 
-    const formattedSheet1: any = sheet1?.map(item => ({
+    const vehicleTemData = await VehicleDataTemp.find();
+
+    const formattedSheet1 = sheet1.map(item => ({
       vin: item?.vin || null,
       titleStatus: item?.titleStatus || null,
       brand: item?.brand || null,
       insurance: item?.insurance || null,
       junkSalvage: item?.junkSalvage || null,
-    })); 
-    const formattedSheet2: any = sheet2?.map(item => ({
-      vin: item?.vin || null,
-      vinId: item?.vinId || null,
-      status: item?.status || null,
-      state: item?.state || null,
-      brand: item?.brand || null,
-      model: item?.model || null,
-      modelYear: item?.modelYear || null,
-      titleBrandDate: item?.titleBrandDate || null ,
-      member: item?.member || null,
     }));
-    
-   const NewData=await findDifferencesFromTemData(vehicleTemData,formattedSheet2)
-    await truncateTable(VehicleData)
-    await truncateTable(VehicleDataTemp)
-    const newDataToInsert: any =NewData.length >0 && NewData?.map((item:any) => ({
+
+    const formattedSheet2 = sheet2
+      .filter(item => item?.vin)
+      .map(item => ({
+        vin: item.vin,
+        vinId: item?.vinId || null,
+        status: item?.status || null,
+        state: item?.state || null,
+        brand: item?.brand || null,
+        model: item?.model || null,
+        modelYear: item?.modelYear || null,
+        titleBrandDate: item?.titleBrandDate || null,
+        member: item?.member || null,
+      }));
+
+    const NewData = await findDifferencesFromTemData(vehicleTemData, formattedSheet2);
+
+    await truncateTable(VehicleData);
+    await truncateTable(VehicleDataTemp);
+
+    const newDataToInsert = NewData.length > 0 ? NewData.map((item: any) => ({
       vin: item?.vin || null,
       vinId: item?.vinId || null,
       status: item?.status || null,
@@ -48,22 +55,31 @@ export const insertBulkSheetData = async (req: any, res: any) => {
       modelYear: item?.modelYear || null,
       titleBrandDate: item?.titleBrandDate || null,
       member: item?.member || null,
+      isOld: false
+    })) : [];
+    const updatedOldData = vehicleTemData.map(item => ({
+      ...item,
+      isOld: true
     }));
-    const finalData={...formattedSheet2,newDataToInsert}
-    // Insert data into the respective tables
-    await VehicleDataTemp.save(finalData);
+    const finalData = [...updatedOldData, ...newDataToInsert];
+    let result1;
+    let result2;
+    if (finalData.length > 0) {
+      result1 = await VehicleDataTemp.save(finalData);
       await VehicleData.save(finalData);
+    }
 
-    await VehicleInfo.save(formattedSheet1);
-   
-    // return createResponse(res, 201, MESSAGES.DATA_SAVED, { result1, result2 });
+    if (formattedSheet1.length > 0) {
+      result2 = await VehicleInfo.save(formattedSheet1);
+    }
+
+    return createResponse(res, 201, MESSAGES.DATA_SAVED, { result1, result2, newDataToInsert });
   } catch (error) {
-    // tslint:disable-next-line:no-console
     console.error("Error during data insertion:", error);
-
     return createResponse(res, 500, MESSAGES.INTERNAL_SERVER_ERROR, [], false, true);
   }
 };
+
 export const getBulkSheetData = async (req: any, res: any) => {
   try {
     const { page = 1, limit = 10, ...filters } = req.query;
@@ -152,84 +168,33 @@ export const getBulkSheetDataSheet2 = async (req: any, res: any) => {
     return createResponse(res, 500, MESSAGES?.INTERNAL_SERVER_ERROR, [], false, true);
   }
 };
-export const getSearchVinPop = async (req: any, res: any) => {
-  try {
-    const { page = 1, limit = 10, ...filters } = req.query;
-    const queryBuilder = VehicleData.createQueryBuilder("VehicleData");
-
-    // Iterate over filters and apply exact or partial match conditions
-    Object.entries(filters).forEach(([key, value]) => {
-      if (value && key !== "page" && key !== "limit") {
-        // Check if the key requires exact matching
-        if (["vin", "alertDate"].includes(key)) {
-          queryBuilder.andWhere(`VehicleData.${key} = :${key}`, { [key]: value });
-        } else {
-          // Apply partial match for other fields
-          queryBuilder.andWhere(`LOWER(VehicleData.${key}) LIKE LOWER(:${key})`, {
-            [key]: `%${value}%`,
-          });
-        }
-      }
-    });
-
-    const offset = (parseInt(page, 10) - 1) * parseInt(limit, 10);
-
-    const [items, totalItems] = await queryBuilder
-      .skip(offset)
-      .take(parseInt(limit, 10))
-      .getManyAndCount();
-
-    const totalPages = Math.ceil(totalItems / parseInt(limit, 10));
-
-    // Handle empty results
-    if (items.length === 0) {
-      return createResponse(res, 404, MESSAGES?.VIN_NOT_FOUND, [], false, true);
-    }
-
-    // Return successful response with paginated data
-    return createResponse(res, 200, MESSAGES?.DATA_FETCH_SUCCESS, {
-      page: parseInt(page, 10),
-      limit: parseInt(limit, 10),
-      totalItems,
-      totalPages,
-      items,
-    });
-  } catch (error) {
-    console.error(MESSAGES?.INTERNAL_SERVER_ERROR, error);
-
-    return createResponse(res, 500, MESSAGES?.INTERNAL_SERVER_ERROR, [], false, true);
-  }
-};
+ 
 export const getTotalKpiesData = async (req: any, res: any) => {
-  try {
-
-    const totalKpiData = await VehicleData.createQueryBuilder("vehicleData")
-      .select("COUNT(DISTINCT vehicleData.vin)", "uniqueVinCount")
-      .getRawOne();
-
-    if (!totalKpiData || !totalKpiData.uniqueVinCount) {
-      return createResponse(
-        res,
-        404,
-        MESSAGES?.VIN_NOT_FOUND,
-        [],
-        false,
-        true
-      );
-    }
+  try { 
+    const query1 = VehicleData.createQueryBuilder("vehicleData")
+      .select("COUNT(DISTINCT vehicleData.vin)", "uniqueVinCount"); 
+    const totalKpiData = await query1.getRawOne(); 
+    const totalUpdatedData = await VehicleData.createQueryBuilder("vehicleData")
+    .select("COUNT(DISTINCT vehicleData.vin)", "CountData")
+    .where("vehicleData.isOld = :isOld", { isOld: true })
+    .getRawOne(); 
 
     return createResponse(
       res,
       200,
       MESSAGES?.DATA_FETCH_SUCCESS,
-      { uniqueVinCount: totalKpiData.uniqueVinCount },
+      {
+        uniqueVinCount: totalKpiData?.uniqueVinCount,
+        totalUpdatedData: totalUpdatedData?.CountData // Access the 'count' field from the result
+      },
       true,
       false
     );
   } catch (error) {
-    // tslint:disable-next-line:no-console
+    // Log the error
     console.error(MESSAGES?.INTERNAL_SERVER_ERROR, error);
 
+    // Return error response
     return createResponse(
       res,
       500,
@@ -239,7 +204,7 @@ export const getTotalKpiesData = async (req: any, res: any) => {
       true
     );
   }
-};
+}; 
 export const ExportPdfVINData = async (req: any, res: any) => {
   try {
     const { type = "all" } = req.query;
@@ -295,6 +260,66 @@ export const ExportPdfVINData = async (req: any, res: any) => {
     console.error(MESSAGES?.INTERNAL_SERVER_ERROR, error);
     return createResponse(res, 500, MESSAGES?.INTERNAL_SERVER_ERROR, [], false, true);
   }
+};  
+export const DashboardSummaryVINUpdated = async (req: any, res: any) => {
+  try {
+    const { page = 1, limit = 9, ...filters } = req.query;
+    const offset = (Number(page) - 1) * Number(limit);
+
+    // Ensure the correct table name (lowercase "vehicle_data")
+    const queryBuilder = VehicleData.createQueryBuilder("vd") 
+      .select([
+        "vd.*",                // Correct column selection for VehicleData
+        "masterstate.name AS state"  // Add state from MasterState
+      ]) 
+      .leftJoin(MasterState, "masterstate", "vd.state = masterstate.code")  // Correct the join condition
+      .distinctOn(["vd.vin"])  // Only use distinctOn once, with "vd.vin"
+      .where("vd.status = :status", { status: "Current" })
+      .andWhere("vd.isOld = :isOld", { isOld: true })
+      .orderBy("vd.vin")
+      .addOrderBy("vd.titleBrandDate", "DESC")
+      .limit(Number(limit))
+      .offset(offset);
+
+    // Apply exact search filters
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value) {
+        queryBuilder.andWhere(`vd."${key}" = :${key}`, { [key]: value });
+      }
+    });
+
+    const distinctVINs = await queryBuilder.getRawMany();
+
+    // Query to count total distinct VINs
+    const totalQueryBuilder = VehicleData.createQueryBuilder("vd")
+      .select("COUNT(DISTINCT vd.vin)", "total")
+      .where("vd.status = :status", { status: "Current" })
+      .andWhere("vd.isOld = :isOld", { isOld: true });
+
+    // Apply filters to total count query
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value) {
+        totalQueryBuilder.andWhere(`vd."${key}" = :${key}`, { [key]: value });
+      }
+    });
+
+    const totalResult = await totalQueryBuilder.getRawOne();
+    const totalDistinctVINs = parseInt(totalResult?.total || "0", 10);
+    const totalPages = Math.ceil(totalDistinctVINs / Number(limit));
+
+    // Create response
+    return createResponse(res, 200, MESSAGES?.DATA_FETCH_SUCCESS, {
+      currentPage: Number(page),
+      limit,
+      totalPages,
+      totalRecords: totalDistinctVINs,
+      items: distinctVINs,
+    });
+  } catch (error: any) {
+    console.error(MESSAGES?.INTERNAL_SERVER_ERROR, error);
+
+    return createResponse(res, 500, MESSAGES?.INTERNAL_SERVER_ERROR, [], false, true);
+  }
 };
 
 export const DashboardSummaryVIN = async (req: any, res: any) => {
@@ -302,13 +327,17 @@ export const DashboardSummaryVIN = async (req: any, res: any) => {
     const { page = 1, limit = 9, ...filters } = req.query;
     const offset = (page - 1) * limit;
 
-    // Query to fetch distinct VINs with pagination
+    // Query to fetch distinct VINs with pagination and include masterstate.name
     const queryBuilder = VehicleData.createQueryBuilder("vehicle")
-      .select("vehicle.*")
-      .orderBy("vehicle.vin")
+      .select([
+        "vehicle.*",               
+        "masterstate.name AS state"  
+      ]) 
+      .leftJoin(MasterState, "masterstate", "vehicle.state = masterstate.code")
       .distinctOn(["vehicle.vin"])
       .where("vehicle.status = :status", { status: "Current" })
-      .addOrderBy("vehicle.alertDate", "DESC")
+      .orderBy("vehicle.vin")
+      .addOrderBy("vehicle.titleBrandDate", "DESC")
       .limit(limit)
       .offset(offset);
 
@@ -320,12 +349,13 @@ export const DashboardSummaryVIN = async (req: any, res: any) => {
         });
       }
     });
-
+ 
     const distinctVINs = await queryBuilder.getRawMany();
 
     // Query to count total distinct VINs
     const totalQueryBuilder = VehicleData.createQueryBuilder("vehicle")
       .select("COUNT(DISTINCT vehicle.vin)", "total")
+      .leftJoin(MasterState, "masterstate", "vehicle.state = masterstate.code")
       .where("vehicle.status = :status", { status: "Current" });
 
     // Apply exact search filters for total count
@@ -336,7 +366,7 @@ export const DashboardSummaryVIN = async (req: any, res: any) => {
         });
       }
     });
-
+ 
     const totalResult = await totalQueryBuilder.getRawOne();
     const totalDistinctVINs = totalResult?.total || 0;
 
@@ -356,3 +386,80 @@ export const DashboardSummaryVIN = async (req: any, res: any) => {
     return createResponse(res, 500, MESSAGES?.INTERNAL_SERVER_ERROR, [], false, true);
   }
 };
+export const getSearchVinPop = async (req: any, res: any) => {
+  try {
+    // Parse page and limit from query and set default values if they are not provided
+    const { page = 1, limit = 9, ...filters } = req.query;
+    const offset = (page - 1) * limit; // Ensure limit is a number
+
+    // Define the base query builder
+    const queryBuilder = VehicleData.createQueryBuilder("vd")  // Use alias "vd" for VehicleData
+      .select([
+        "vd.*",                
+        "masterbrand.name AS brand",
+        "masterstate.name AS state"
+      ]) 
+      .leftJoin(MasterBrand, "masterbrand", "vd.brand = masterbrand.code")  // Fix the alias for VehicleData in the join
+      .leftJoin(MasterState, "masterstate", "vd.state = masterstate.code");  // Corrected alias here
+
+    // Apply filters for specific fields (exact or partial match)
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value && key !== "page" && key !== "limit") {
+        // Check if the key requires exact matching
+        if (["vin", "titleBrandDate"].includes(key)) {
+          queryBuilder.andWhere(`vd.${key} = :${key}`, { [key]: value });  // Use "vd" as the alias
+        } else {
+          // Apply partial match for other fields
+          queryBuilder.andWhere(`LOWER(vd.${key}) LIKE LOWER(:${key})`, {
+            [key]: `%${value}%`,
+          });
+        }
+      }
+    });
+
+    // Fetch filtered items with pagination
+    const items = await queryBuilder
+      .limit(limit)
+      .offset(offset)
+      .getRawMany();
+
+    // Fetch total count of records matching the filters (this is important for pagination)
+    const totalQueryBuilder = VehicleData.createQueryBuilder("vd")
+      .leftJoin(MasterBrand, "masterbrand", "vd.brand = masterbrand.code")  
+      .leftJoin(MasterState, "masterstate", "vd.state = masterstate.code"); 
+
+    // Apply filters to total count query
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value && key !== "page" && key !== "limit") {
+        if (["vin", "titleBrandDate"].includes(key)) {
+          totalQueryBuilder.andWhere(`vd.${key} = :${key}`, { [key]: value });
+        } else {
+          totalQueryBuilder.andWhere(`LOWER(vd.${key}) LIKE LOWER(:${key})`, {
+            [key]: `%${value}%`,
+          });
+        }
+      }
+    });
+
+    // This will fetch the count of records that match the filters
+    const totalCount = await totalQueryBuilder.getCount();
+
+    // Calculate total pages
+    const totalPages = Math.ceil(totalCount / limit);
+
+    // Create response
+    return createResponse(res, 200, MESSAGES?.DATA_FETCH_SUCCESS, {
+      page: page,
+      limit,
+      totalPages,
+      totalItems: totalCount,
+      items,
+    });
+    
+  } catch (error) {
+    console.error(MESSAGES?.INTERNAL_SERVER_ERROR, error);
+    return createResponse(res, 500, MESSAGES?.INTERNAL_SERVER_ERROR, [], false, true);
+  }
+};
+
+ 
