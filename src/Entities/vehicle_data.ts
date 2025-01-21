@@ -10,7 +10,7 @@ import {
 export class VehicleData extends BaseEntity {
   @PrimaryGeneratedColumn({ name: "id" })
   @Generated("uuid")
-  uuid: string; 
+  uuid: string;
 
   @Column({ name: "vin", type: "varchar", nullable: true })
   vin: string;
@@ -19,8 +19,8 @@ export class VehicleData extends BaseEntity {
   vinId: string;
 
   @Column({ name: "member", type: "varchar", nullable: true })
-  member: string; 
-  
+  member: string;
+
   @Column({ name: "model", type: "varchar", nullable: true })
   model: string;
 
@@ -34,25 +34,25 @@ export class VehicleData extends BaseEntity {
   junkSalvage: string;
 
   @Column({ name: "state", type: "varchar", nullable: true })
-  state: string;  
- 
-  @Column({ name: "alertDate", type: "varchar", nullable: true })
-  alertDate: string;   
+  state: string;
 
-  @Column({ name: "titleBrandDate", type: "varchar", nullable: true})
-  titleBrandDate: string; 
+  @Column({ name: "alertDate", type: "varchar", nullable: true })
+  alertDate: string;
+
+  @Column({ name: "titleBrandDate", type: "varchar", nullable: true })
+  titleBrandDate: string;
 
   @Column({ name: "modelYear", type: "varchar", nullable: true })
   modelYear: string;
-   
+
   @Column({ name: "status", type: "varchar", nullable: true })
   status: string;
 
-  @Column({ name: "isRead", type: "varchar", default: false,nullable: true, })
+  @Column({ name: "isRead", type: "varchar", default: false, nullable: true, })
   isRead: string;
 
-  @Column({ name: "isOld", type: "varchar",  default: true,nullable: true })
-  isOld: string;
+  @Column({ name: "isOld", type: "boolean", default: true })
+  isOld: boolean;
 
   @Column({
     name: "createdAt",
