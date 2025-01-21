@@ -1,7 +1,7 @@
 export const MESSAGES = {
     DATA_FETCH_SUCCESS: "Data fetched successfully.",
     LOGIN_SUCCESS: "Login successful.",
-    DATA_SAVED: "Data successfully.",
+    DATA_SAVED: "Data saved successfully.",
     USER_NOT_FOUND: "User not found.",
     INVALID_CREDENTIALS: "Invalid credentials.",
     INTERNAL_SERVER_ERROR: "Internal server error.",
@@ -21,6 +21,6 @@ export const MESSAGES = {
     NO_FILE_UPLOAD: "No file uploaded",
     PROFILE_UPDATED: "Profile updated successfully.",
     ACCESS_DENIED: "Access Denied. No token provided.",
-    VIN_NOT_FOUND: "We are not monitoring the entered VIN. Do you still want to view its status?"
-};
-// test
+    VIN_NOT_FOUND: "We are not monitoring the entered VIN. Do you want to run a new VIN report?",
+    TEST_MSG:"hi"
+}; 

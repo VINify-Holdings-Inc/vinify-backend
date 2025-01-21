@@ -6,25 +6,38 @@ import { MESSAGES } from "../helpers/constants";
 import { createResponse } from "../helpers/response";
 import upload from "../middleware/multer";
 import { generateToken, profileCompletion } from "../helpers/utils";
-
+ 
+ 
 export const TestRoute = async (req: any, res: any) => {
-    const { email } = req.params;
     try {
-        // Execute the query to fetch the user data with an INNER JOIN
-        const userData = await User.createQueryBuilder("user")
-            .innerJoinAndSelect(Login, "login", "user.emailId = login.emailId")
+        const { email } = req.params; 
+        // Execute the query to fetch the user data with a LEFT JOIN on the Login table
+        const queryBuilder = User.createQueryBuilder("user")
+            .leftJoinAndSelect(Login, "login", "user.emailId = login.emailId")
             .where("user.emailId = :email", { email })
-            .getOne();
+            // .select([
+            //     "user.id",
+            //     "user.emailId",
+            //     "login.password",
+            //     "login.status",
+            // ]); 
+        // Execute the query
+        const userData = await queryBuilder.getRawOne();
         if (!userData) {
-            return createResponse(res, 404, "User not found", null, false, true);
+            return res.status(404).json({ message: "Data not found", success: false });
         }
 
-        return createResponse(res, 200, "Data fetched successfully.", userData, true, false);
+        return res.status(200).json({
+            message: "Data fetched successfully",
+            data: userData,
+            success: true,
+        });
     } catch (error: any) {
-        // tslint:disable-next-line:no-console
-        console.error("Error fetching user data:", error);
-
-        return res.status(500).json({ message: "Internal Server Error", error: error.message });
+        console.error("Error fetching data:", error);
+        return res.status(500).json({
+            message: "Internal Server Error",
+            error: error.message,
+        });
     }
 };
 

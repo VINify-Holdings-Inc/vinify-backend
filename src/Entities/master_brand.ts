@@ -7,7 +7,7 @@ import {
     PrimaryGeneratedColumn,
   } from "typeorm";
   
-  @Entity({ name: "masterBrand" })
+  @Entity({ name: "MasterBrand" })
   export class MasterBrand extends BaseEntity {
   
     @PrimaryGeneratedColumn({ name: "id" })
@@ -20,16 +20,16 @@ import {
     @Column({
       name: "code",
       type: "varchar",
-      length: 50,
+      length: 255,
       nullable: true,
       default: null,
     })
-    code: string;
+    code: number;
   
     @Column({
       name: "name",
       type: "varchar",
-      length: 50,
+      length: 2000,
       nullable: true,
       default: null,
     })
@@ -39,7 +39,7 @@ import {
       name: "status",
       type: "int",
       nullable: true,
-      default: null,
+      default: 1,
     })
     status: number;
   

@@ -9,9 +9,6 @@ import {
 @Entity({ name: "VehicleData" })
 export class VehicleData extends BaseEntity {
   @PrimaryGeneratedColumn({ name: "id" })
-  id: number; 
-
-  @Column({ name: "uuid", type: "varchar", unique: true })
   @Generated("uuid")
   uuid: string;
 
@@ -22,13 +19,13 @@ export class VehicleData extends BaseEntity {
   vinId: string;
 
   @Column({ name: "member", type: "varchar", nullable: true })
-  member: string; 
-  
+  member: string;
+
   @Column({ name: "model", type: "varchar", nullable: true })
   model: string;
 
   @Column({ name: "brand", type: "varchar", nullable: true })
-  brand: string;
+  brand: number;
 
   @Column({ name: "insurance", type: "varchar", nullable: true })
   insurance: string;
@@ -39,47 +36,23 @@ export class VehicleData extends BaseEntity {
   @Column({ name: "state", type: "varchar", nullable: true })
   state: string;
 
-  @Column({ name: "resolutionStatus", type: "varchar", nullable: true })
-  resolutionStatus: string;
-
-  @Column({ name: "fraudState", type: "varchar", nullable: true })
-  fraudState: string;
-
-  @Column({ name: "currentStatus", type: "varchar", nullable: true })
-  currentStatus: string;
-
   @Column({ name: "alertDate", type: "varchar", nullable: true })
   alertDate: string;
 
-  @Column({ name: "actionRequired", type: "varchar", nullable: true })
-  actionRequired: number;
-
-  @Column({ name: "titleStatus", type: "varchar", nullable: true })
-  titleStatus: number;
-
-  @Column({ name: "fuelType", type: "varchar", nullable: true })
-  fuelType: number;
-
-  @Column({ name: "eventTypeId", type: "varchar", nullable: true })
-  eventTypeId: number;
-
-  @Column({ name: "eventDate", type: "timestamptz", default: () => "CURRENT_TIMESTAMP", nullable: true  })
-  eventDate: Date;
-  
-  @Column({ name: "titleBrandDate", type: "timestamptz", default: () => "CURRENT_TIMESTAMP" , nullable: true })
-  titleBrandDate: Date;
-
-  // @Column({ name: "modelYear", type: "timestamptz", default: () => "CURRENT_TIMESTAMP", nullable: true  })
-  // modelYear: Date;
+  @Column({ name: "titleBrandDate", type: "varchar", nullable: true })
+  titleBrandDate: string;
 
   @Column({ name: "modelYear", type: "varchar", nullable: true })
   modelYear: string;
-  
-  @Column({ name: "summary", type: "text", nullable: true })
-  summary: string;
 
   @Column({ name: "status", type: "varchar", nullable: true })
   status: string;
+
+  @Column({ name: "isRead", type: "varchar", default: false, nullable: true, })
+  isRead: string;
+
+  @Column({ name: "isOld", type: "boolean", default: true })
+  isOld: boolean;
 
   @Column({
     name: "createdAt",
@@ -100,7 +73,7 @@ export class VehicleData extends BaseEntity {
     type: "varchar",
     length: 50,
     nullable: true,
-    default: null,
+    default: "system",
   })
   createdBy: string;
 
@@ -109,7 +82,7 @@ export class VehicleData extends BaseEntity {
     type: "varchar",
     length: 50,
     nullable: true,
-    default: null,
+    default: "system",
   })
   updatedBy: string;
 }
