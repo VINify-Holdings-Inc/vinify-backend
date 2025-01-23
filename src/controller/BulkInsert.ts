@@ -176,24 +176,24 @@ export const ExportPdfVINData = async (req: any, res: any) => {
 
     if (type === "single" && vins.length > 0) {
       // Create filters for single type request
-      const filters = vins.map(({ vin, alertDate }: { vin: string; alertDate: string }) => ({
+      const filters = vins.map(({ vin, titleBrandDate }: { vin: string; titleBrandDate: string }) => ({
         vin,
-        alertDate,
+        titleBrandDate,
       }));
 
       // Build dynamic query conditions and parameters
       const conditions = filters
         .map(
           (_: any, index: number) =>
-            `(vehicle.vin = :vin${index} AND vehicle.alertDate = :alertDate${index} AND vehicle.status = :status)`
+            `(vehicle.vin = :vin${index} AND vehicle.titleBrandDate = :titleBrandDate${index} AND vehicle.status = :status)`
         )
         .join(" OR ");
 
       const parameters = {
         ...Object.fromEntries(
-          filters.flatMap(({ vin, alertDate }: any, index: number) => [
+          filters.flatMap(({ vin, titleBrandDate }: any, index: number) => [
             [`vin${index}`, vin],
-            [`alertDate${index}`, alertDate],
+            [`titleBrandDate${index}`, titleBrandDate],
           ])
         ),
         status: "Current",
@@ -202,20 +202,41 @@ export const ExportPdfVINData = async (req: any, res: any) => {
       // Fetch filtered data
       data = await VehicleData.createQueryBuilder("vehicle")
         .where(conditions, parameters)
+        .select([
+          "vehicle.*",                // Correct column selection for VehicleData
+          "masterstate.name AS state"  // Add state from MasterState
+        ])
+        .leftJoin(MasterState, "masterstate", "vehicle.state = masterstate.code")
         .orderBy("vehicle.vin")
         .distinctOn(["vehicle.vin"])
-        .getMany();
+        .getRawMany();
     } else if (type === "all") {
       // Fetch all data with status "Current"
       data = await VehicleData.createQueryBuilder("vehicle")
         .where("vehicle.status = :status", { status: "Current" })
+        .select([
+          "vehicle.*",                // Correct column selection for VehicleData
+          "masterstate.name AS state"  // Add state from MasterState
+        ])
+        .leftJoin(MasterState, "masterstate", "vehicle.state = masterstate.code")
         .orderBy("vehicle.vin")
         .distinctOn(["vehicle.vin"])
         .addOrderBy("vehicle.titleBrandDate", "DESC")
-        .getMany();
-    } else {
+        .getRawMany();
+    } else if(type === "updated") {
       // Handle invalid parameters
-      return createResponse(res, 400, "Invalid parameters", [], false, true);
+      data = await VehicleData.createQueryBuilder("vehicle")
+        .where("vehicle.status = :status", { status: "Current" })
+        .where("vehicle.isOld = :isOld", { isOld: false })
+        .select([
+          "vehicle.*",                // Correct column selection for VehicleData
+          "masterstate.name AS state"  // Add state from MasterState
+        ])
+        .leftJoin(MasterState, "masterstate", "vehicle.state = masterstate.code")
+        .orderBy("vehicle.vin")
+        .distinctOn(["vehicle.vin"])
+        .addOrderBy("vehicle.titleBrandDate", "DESC")
+        .getRawMany();
     }
 
     // Return the fetched data
