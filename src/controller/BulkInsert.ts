@@ -72,8 +72,9 @@ export const insertBulkSheetData = async (req: any, res: any) => {
     if (formattedSheet1.length > 0) {
       result2 = await VehicleInfo.save(formattedSheet1);
     }
+console.log(result2);
 
-    return createResponse(res, 201, MESSAGES.DATA_SAVED, { result1, result2, newDataToInsert });
+    return createResponse(res, 201, MESSAGES.DATA_SAVED, { newDataToInsert,finalData,result1 });
   } catch (error) {
     console.error("Error during data insertion:", error);
     return createResponse(res, 500, MESSAGES.INTERNAL_SERVER_ERROR, [], false, true);
