@@ -467,6 +467,24 @@ export const getTotalKpiesData = async (req: any, res: any) => {
     .orderBy("vehicleData.vin", "ASC")
     .addOrderBy("vehicleData.titleBrandDate", "DESC");
 
+    const currentQueryBuilder = VehicleData.createQueryBuilder("vehicle")
+    .select([
+      "vehicle.*",
+      "masterstate.name AS state",
+      "masterbrand.name AS brand",
+    ])
+    .leftJoin(MasterState, "masterstate", "vehicle.state = masterstate.code")
+    .leftJoin(MasterBrand, "masterbrand", "vehicle.brand = masterbrand.code") 
+    .orderBy("vehicle.vin")
+    .where("vehicle.isOld = :isOld", { isOld: false })
+    .andWhere("vehicle.isRead = :isRead", { isRead: true })  // Use andWhere instead of chaining where again
+    .addOrderBy("vehicle.titleBrandDate", "DESC")
+    .addOrderBy("vehicle.modelYear", "DESC")
+    .limit(3);  // Limit the result to 3
+  
+  const RecentAlert = await currentQueryBuilder.getRawMany();
+  
+
 const totalUpdatedData = await queryBuilder.getCount(); 
     return createResponse(
       res,
@@ -474,7 +492,8 @@ const totalUpdatedData = await queryBuilder.getCount();
       MESSAGES?.DATA_FETCH_SUCCESS,
       {
         uniqueVinCount: totalKpiData?.uniqueVinCount,
-        totalUpdatedData: totalUpdatedData  // Access the 'count' field from the result
+        totalUpdatedData: totalUpdatedData ,
+        RecentAlert // Access the 'count' field from the result
       },
       true,
       false
