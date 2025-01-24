@@ -4,6 +4,7 @@ import { deleteContactUs, insertContactUs, readContactUs} from "../controller/Co
 import { getBulkSheetData, getSearchVinPop, getBulkSheetDataSheet2, insertBulkSheetData, insertBulkSheetDatSheet2, getTotalKpiesData, DashboardSummaryVIN, ExportPdfVINData, DashboardSummaryVINUpdated, NewAlertVIN } from "../controller/BulkInsert";
 import { ForgetPassword, LoginController, ResetPassword, userProfileUpdate , ProfileUpdate, ResetTockenCheck, TestRoute} from "../controller/LoginController";
 import {SoapToken,ValidateVinData} from "../controller/soapController";
+import { CompareHistoryTitalDetails} from "../controller/CompareHistory";
 const routerAdmin = express.Router();
 
 routerAdmin.post("/user-login", LoginController);
@@ -30,4 +31,9 @@ routerAdmin.post("/export-pdf", ExportPdfVINData);
 routerAdmin.post("/test/:email", TestRoute);
 routerAdmin.get("/get-soap-token", SoapToken);
 routerAdmin.post("/validate-vin-data", ValidateVinData);
+
+// history
+routerAdmin.get("/title-detail-history", CompareHistoryTitalDetails); 
+
+
 export default routerAdmin;
