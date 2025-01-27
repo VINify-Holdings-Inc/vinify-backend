@@ -1,7 +1,7 @@
  
 import express from "express";
 import { deleteContactUs, insertContactUs, readContactUs} from "../controller/ContactUs";
-import { getBulkSheetData, getSearchVinPop, getBulkSheetDataSheet2, insertBulkSheetData, insertBulkSheetDatSheet2, getTotalKpiesData, DashboardSummaryVIN, ExportPdfVINData, DashboardSummaryVINUpdated, NewAlertVIN } from "../controller/BulkInsert";
+import { getBulkSheetData, getSearchVinPop, getBulkSheetDataSheet2, insertBulkSheetData, insertBulkSheetDatSheet2, getTotalKpiesData, DashboardSummaryVIN, ExportPdfVINData, DashboardSummaryVINUpdated, NewAlertVIN, TotalUnreadAlerts } from "../controller/BulkInsert";
 import { ForgetPassword, LoginController, ResetPassword, userProfileUpdate , ProfileUpdate, ResetTockenCheck, TestRoute} from "../controller/LoginController";
 import {SoapToken,ValidateVinData} from "../controller/soapController";
 import { CompareHistoryTitalDetails} from "../controller/CompareHistory";
@@ -31,7 +31,7 @@ routerAdmin.post("/export-pdf", ExportPdfVINData);
 routerAdmin.post("/test/:email", TestRoute);
 routerAdmin.get("/get-soap-token", SoapToken);
 routerAdmin.post("/validate-vin-data", ValidateVinData);
-
+routerAdmin.get("/total-unread-alert", TotalUnreadAlerts);
 // history
 routerAdmin.get("/title-detail-history", CompareHistoryTitalDetails); 
 
