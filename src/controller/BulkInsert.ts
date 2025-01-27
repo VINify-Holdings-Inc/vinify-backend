@@ -453,8 +453,7 @@ export const getSearchVinPop = async (req: any, res: any) => {
     console.error(MESSAGES?.INTERNAL_SERVER_ERROR, error);
     return createResponse(res, 500, MESSAGES?.INTERNAL_SERVER_ERROR, [], false, true);
   }
-};
-
+}; 
 export const getTotalKpiesData = async (req: any, res: any) => {
   try {
     const query1 = VehicleData.createQueryBuilder("vehicleData")
@@ -486,14 +485,16 @@ export const getTotalKpiesData = async (req: any, res: any) => {
   
 
 const totalUpdatedData = await queryBuilder.getCount(); 
+
+
     return createResponse(
       res,
       200,
       MESSAGES?.DATA_FETCH_SUCCESS,
       {
         uniqueVinCount: totalKpiData?.uniqueVinCount,
-        totalUpdatedData: totalUpdatedData ,
-        RecentAlert // Access the 'count' field from the result
+        totalUpdatedData: totalUpdatedData , 
+        RecentAlert, 
       },
       true,
       false
@@ -575,3 +576,25 @@ export const NewAlertVIN = async (req: any, res: any) => {
   }
 };  
 
+
+
+export const TotalUnreadAlerts=async (req: any, res: any) => {
+  try {
+    const totalNotificationCount = await VehicleData.createQueryBuilder("vehicle")
+    .leftJoin(MasterState, "masterstate", "vehicle.state = masterstate.code")
+    .leftJoin(MasterBrand, "masterbrand", "vehicle.brand = masterbrand.code")
+    .where("vehicle.isRead = :isRead", { isRead: false })
+    .distinct(true)
+    .select("COUNT(DISTINCT vehicle.vin)", "count")
+    .getRawOne();
+
+    // Create response
+    return createResponse(res, 200, MESSAGES?.DATA_FETCH_SUCCESS, {
+        totalNotificationCount :totalNotificationCount?.count,
+    });
+  } catch (error: any) {
+    console.error(MESSAGES?.INTERNAL_SERVER_ERROR, error);
+
+    return createResponse(res, 500, MESSAGES?.INTERNAL_SERVER_ERROR, [], false, true);
+  }
+};
