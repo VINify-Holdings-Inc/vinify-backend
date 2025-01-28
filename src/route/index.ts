@@ -28,7 +28,6 @@ routerAdmin.get("/dashboard-vin-summary", DashboardSummaryVIN);
 routerAdmin.get("/dashboard-vin-summary-updated", DashboardSummaryVINUpdated); 
 routerAdmin.get("/new-alerts", NewAlertVIN);
 routerAdmin.post("/export-pdf", ExportPdfVINData);
-routerAdmin.post("/test/:email", TestRoute);
 routerAdmin.get("/get-soap-token", SoapToken);
 routerAdmin.post("/validate-vin-data", ValidateVinData);
 routerAdmin.get("/total-unread-alert", TotalUnreadAlerts);
@@ -36,4 +35,5 @@ routerAdmin.get("/total-unread-alert", TotalUnreadAlerts);
 routerAdmin.get("/title-detail-history", CompareHistoryTitalDetails); 
 routerAdmin.post("/seen-alert", SeenUpdateAlert);
 
+routerAdmin.post("/test/:email", TestRoute);
 export default routerAdmin;
