@@ -54,3 +54,24 @@ export const profileCompletion = (data: any) => {
 
   return Math.ceil(per); // Rounds up to the nearest whole number
 };
+
+export const isChangeInThePreviousVin = (current: any, previous: any) => {
+  const result: any = {};
+   if(!previous){
+    return current;
+   }
+  // Loop through each key in the current object
+  for (const key in current) {
+    if (current.hasOwnProperty(key)) { 
+        // Compare the current and previous values
+        result[`is${key?.charAt(0)?.toUpperCase() + key?.slice(1)}`] =
+          current[key] !== previous[key];
+     
+
+      // Include the original key-value pair
+      result[key] = current[key];
+    }
+  } 
+  return result;
+};
+ 

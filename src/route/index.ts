@@ -1,10 +1,10 @@
  
 import express from "express";
 import { deleteContactUs, insertContactUs, readContactUs} from "../controller/ContactUs";
-import { getBulkSheetData, getSearchVinPop, getBulkSheetDataSheet2, insertBulkSheetData, insertBulkSheetDatSheet2, getTotalKpiesData, DashboardSummaryVIN, ExportPdfVINData, DashboardSummaryVINUpdated, NewAlertVIN } from "../controller/BulkInsert";
+import { getBulkSheetData, getSearchVinPop, getBulkSheetDataSheet2, insertBulkSheetData, insertBulkSheetDatSheet2, getTotalKpiesData, DashboardSummaryVIN, ExportPdfVINData, DashboardSummaryVINUpdated, NewAlertVIN, TotalUnreadAlerts } from "../controller/BulkInsert";
 import { ForgetPassword, LoginController, ResetPassword, userProfileUpdate , ProfileUpdate, ResetTockenCheck, TestRoute} from "../controller/LoginController";
 import {SoapToken,ValidateVinData} from "../controller/soapController";
-import { CompareHistoryTitalDetails} from "../controller/CompareHistory";
+import { CompareHistoryTitalDetails, SeenUpdateAlert} from "../controller/CompareHistory";
 const routerAdmin = express.Router();
 
 routerAdmin.post("/user-login", LoginController);
@@ -24,16 +24,16 @@ routerAdmin.post("/csv-import-sheet2", insertBulkSheetDatSheet2);
 routerAdmin.get("/csv-import-sheet2",  getBulkSheetDataSheet2);
 routerAdmin.get("/search-pop-vin",  getSearchVinPop);
 routerAdmin.get("/kpi-data", getTotalKpiesData); 
-routerAdmin.get("/dashboard-vin-summary", DashboardSummaryVIN);//dashboard me current table data dikhta hai
-routerAdmin.get("/dashboard-vin-summary-updated", DashboardSummaryVINUpdated);//dashboard updated me current table data dikhta hai
+routerAdmin.get("/dashboard-vin-summary", DashboardSummaryVIN); 
+routerAdmin.get("/dashboard-vin-summary-updated", DashboardSummaryVINUpdated); 
 routerAdmin.get("/new-alerts", NewAlertVIN);
 routerAdmin.post("/export-pdf", ExportPdfVINData);
 routerAdmin.post("/test/:email", TestRoute);
 routerAdmin.get("/get-soap-token", SoapToken);
 routerAdmin.post("/validate-vin-data", ValidateVinData);
-
+routerAdmin.get("/total-unread-alert", TotalUnreadAlerts);
 // history
 routerAdmin.get("/title-detail-history", CompareHistoryTitalDetails); 
-
+routerAdmin.post("/seen-alert", SeenUpdateAlert);
 
 export default routerAdmin;
