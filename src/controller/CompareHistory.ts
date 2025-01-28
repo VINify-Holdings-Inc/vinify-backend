@@ -114,9 +114,9 @@ export const CompareHistoryTitalDetails = async (req: any, res: any) => {
   }; 
   export const SeenUpdateAlert = async (req: any, res: any) => {
     try {
-      const { uuid } = req.query; 
-      // Check if UUID is provided
-      if (!uuid) {
+      const { id } = req.query; 
+      // Check if id is provided
+      if (!id) {
         return createResponse(res, 400, MESSAGES?.VIN_NOT_FOUND, [], false, true);
       }
   
@@ -124,7 +124,7 @@ export const CompareHistoryTitalDetails = async (req: any, res: any) => {
       const updateResult = await VehicleData.createQueryBuilder('vehicleData')
         .update()
         .set({ isRead: "true" }) // Update operation
-        .where('uuid = :uuid', { uuid }) // Condition to match the record
+        .where('id = :id', { id }) // Condition to match the record
         .execute();
   
       if (updateResult.affected === 0) {
