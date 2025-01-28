@@ -574,9 +574,7 @@ export const NewAlertVIN = async (req: any, res: any) => {
 
     return createResponse(res, 500, MESSAGES?.INTERNAL_SERVER_ERROR, [], false, true);
   }
-};  
-
-
+};   
 
 export const TotalUnreadAlerts=async (req: any, res: any) => {
   try {

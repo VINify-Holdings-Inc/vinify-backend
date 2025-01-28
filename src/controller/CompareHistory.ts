@@ -3,6 +3,7 @@ import { MasterState } from "../Entities/master_state";
 import { VehicleData } from "../Entities/vehicle_data";
 import { MESSAGES } from "../helpers/constants";
 import { createResponse } from "../helpers/response";
+import { isChangeInThePreviousVin } from "../helpers/utils";
 
 export const CompareHistoryTitalDetails = async (req: any, res: any) => {
     try {
@@ -15,6 +16,7 @@ export const CompareHistoryTitalDetails = async (req: any, res: any) => {
           "masterstate.name AS state",
           "masterbrand.name AS brand",
         ])
+        .where("vehicle.isOld = :isOld", { isOld: false })
         .leftJoin(MasterState, "masterstate", "vehicle.state = masterstate.code")
         .leftJoin(MasterBrand, "masterbrand", "vehicle.brand = masterbrand.code") 
         .orderBy("vehicle.vin")
@@ -33,6 +35,7 @@ export const CompareHistoryTitalDetails = async (req: any, res: any) => {
   
       // Query to count total VINs for current data
       const totalCurrentQueryBuilder = VehicleData.createQueryBuilder("vehicle")
+      .where("vehicle.isOld = :isOld", { isOld: false })
         .select("COUNT(vehicle.vin)", "total")
         .leftJoin(MasterState, "masterstate", "vehicle.state = masterstate.code") ;
   
@@ -86,11 +89,12 @@ export const CompareHistoryTitalDetails = async (req: any, res: any) => {
       });
   
       const totalHistoryResult = await totalHistoryQueryBuilder.getRawOne();
-      const totalHistoryRecords = totalHistoryResult?.total || 0;
-  
+      const totalHistoryRecords = totalHistoryResult?.total || 0; 
+      const changeData=await isChangeInThePreviousVin(currentData[0],historyData[0]); 
+      currentData.unshift(changeData)
       // Create response with current and history data
       return createResponse(res, 200, MESSAGES?.DATA_FETCH_SUCCESS, {
-        current: {
+        current: { 
           totalRecords: totalCurrentRecords,
           items: currentData,
         },
@@ -104,7 +108,35 @@ export const CompareHistoryTitalDetails = async (req: any, res: any) => {
   
       return createResponse(res, 500, MESSAGES?.INTERNAL_SERVER_ERROR, [], false, true);
     }
+  }; 
+  export const SeenUpdateAlert = async (req: any, res: any) => {
+    try {
+      const { uuid } = req.query; 
+      // Check if UUID is provided
+      if (!uuid) {
+        return createResponse(res, 400, MESSAGES?.VIN_NOT_FOUND, [], false, true);
+      }
+  
+      // Update the isRead status to true
+      const updateResult = await VehicleData.createQueryBuilder('vehicleData')
+        .update()
+        .set({ isRead: "true" }) // Update operation
+        .where('uuid = :uuid', { uuid }) // Condition to match the record
+        .execute();
+  
+      if (updateResult.affected === 0) {
+        return createResponse(res, 404, MESSAGES?.ACCESS_DENIED, [], false, true);
+      }
+  
+      // Create response with success message
+      return createResponse(res, 200, MESSAGES?.DATA_FETCH_SUCCESS, { updated: true });
+    } catch (error) {
+      console.error(MESSAGES?.INTERNAL_SERVER_ERROR, error);
+      return createResponse(res, 500, MESSAGES?.INTERNAL_SERVER_ERROR, [], false, true);
+    }
   };
+  
 
+  
   
   
