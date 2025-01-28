@@ -91,7 +91,10 @@ export const CompareHistoryTitalDetails = async (req: any, res: any) => {
       const totalHistoryResult = await totalHistoryQueryBuilder.getRawOne();
       const totalHistoryRecords = totalHistoryResult?.total || 0; 
       const changeData=await isChangeInThePreviousVin(currentData[0],historyData[0]); 
+      if(currentData?.length>0){
+        currentData.shift()
       currentData.unshift(changeData)
+      }
       // Create response with current and history data
       return createResponse(res, 200, MESSAGES?.DATA_FETCH_SUCCESS, {
         current: { 
