@@ -582,8 +582,7 @@ export const TotalUnreadAlerts=async (req: any, res: any) => {
     .leftJoin(MasterState, "masterstate", "vehicle.state = masterstate.code")
     .leftJoin(MasterBrand, "masterbrand", "vehicle.brand = masterbrand.code")
     .where("vehicle.isRead = :isRead", { isRead: false })
-    .distinct(true)
-    .select("COUNT(DISTINCT vehicle.vin)", "count")
+    .select("COUNT(vehicle.vin)", "count") // Removed DISTINCT
     .getRawOne();
 
     // Create response

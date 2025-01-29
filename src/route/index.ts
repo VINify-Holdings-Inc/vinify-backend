@@ -34,6 +34,8 @@ routerAdmin.get("/total-unread-alert", TotalUnreadAlerts);
 // history
 routerAdmin.get("/title-detail-history", CompareHistoryTitalDetails); 
 routerAdmin.post("/seen-alert", SeenUpdateAlert);
-
+// unread notification
+routerAdmin.get("/unread-notification", DashboardSummaryVIN);
+// dashboard-vin-summary
 routerAdmin.post("/test/:email", TestRoute);
 export default routerAdmin;
