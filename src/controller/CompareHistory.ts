@@ -123,7 +123,7 @@ export const CompareHistoryTitalDetails = async (req: any, res: any) => {
       // Update the isRead status to true
       const updateResult = await VehicleData.createQueryBuilder('vehicleData')
         .update()
-        .set({ isRead: "true" }) // Update operation
+        .set({ isRead: true }) // Update operation
         .where('id = :id', { id }) // Condition to match the record
         .execute();
   
