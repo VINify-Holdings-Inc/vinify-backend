@@ -5,6 +5,7 @@ import { getBulkSheetData, getSearchVinPop, getBulkSheetDataSheet2, insertBulkSh
 import { ForgetPassword, LoginController, ResetPassword, userProfileUpdate , ProfileUpdate, ResetTockenCheck, TestRoute} from "../controller/LoginController";
 import {SoapToken,ValidateVinData} from "../controller/soapController";
 import { CompareHistoryTitalDetails, SeenUpdateAlert} from "../controller/CompareHistory";
+import { UnreadNotificationsAlert } from "../controller/Notification";
 const routerAdmin = express.Router();
 
 routerAdmin.post("/user-login", LoginController);
@@ -35,7 +36,7 @@ routerAdmin.get("/total-unread-alert", TotalUnreadAlerts);
 routerAdmin.get("/title-detail-history", CompareHistoryTitalDetails); 
 routerAdmin.post("/seen-alert", SeenUpdateAlert);
 // unread notification
-routerAdmin.get("/unread-notification", DashboardSummaryVIN);
+routerAdmin.get("/unread-notification", UnreadNotificationsAlert);
 // dashboard-vin-summary
 routerAdmin.post("/test/:email", TestRoute);
 export default routerAdmin;
