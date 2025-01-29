@@ -17,8 +17,7 @@ export const UnreadNotificationsAlert = async (req: any, res: any) => {
           "masterbrand.name AS brand"
         ])
         .leftJoin(MasterState, "masterstate", "vehicle.state = masterstate.code")
-        .leftJoin(MasterBrand, "masterbrand", "vehicle.brand = masterbrand.code")
-        .where("vehicle.isRead = :isRead", { isRead: false })
+        .leftJoin(MasterBrand, "masterbrand", "vehicle.brand = masterbrand.code") 
         .orderBy("vehicle.vin")
         .addOrderBy("vehicle.titleBrandDate", "DESC")
         .limit(limit)
@@ -35,12 +34,10 @@ export const UnreadNotificationsAlert = async (req: any, res: any) => {
   
       const vehicles = await queryBuilder.getRawMany();
   
-      // Query to count total records
+      // Query to count total records 
       const totalQueryBuilder = VehicleData.createQueryBuilder("vehicle")
         .select("COUNT(vehicle.vin)", "total")
-        .leftJoin(MasterState, "masterstate", "vehicle.state = masterstate.code")
-        .where("vehicle.isRead = :isRead", { isRead: false });
-  
+        .leftJoin(MasterState, "masterstate", "vehicle.state = masterstate.code") 
       // Apply exact search filters for total count
       Object.entries(filters).forEach(([key, value]) => {
         if (value) {

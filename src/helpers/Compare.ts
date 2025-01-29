@@ -1,3 +1,4 @@
+ 
 import { AppDataSource } from "../DbConfig/TypeOrm"; 
 // Function to format data for sheet1
 export const formatSheet1 = (sheet1: any[]) => {
@@ -34,27 +35,29 @@ export const truncateTable = async (entity: any) => {
   }
 };
 
-  export const findDifferencesFromTemData = (data:any, data2:any) => {
+export const findDifferencesFromTemData = (data: any, data2: any) => {
   // Normalize the data by mapping them to a consistent structure for comparison
-  const normalize = (item:any) => ({
-    vin:item?.vin, // Trimming whitespace from vin
+  const normalize = (item: any) => ({
+    vin: item?.vin, // Trimming whitespace from vin
+    model: item?.model, // Include model in comparison
     titleBrandDate: item?.titleBrandDate, // Stripping time part from titleBrandDate
     status: item?.status,
   });
 
-  // Find records in data2 that are different from data based on vin, titleBrandDate, and status
-  return data2.filter((item2:any) => {
+  // Find records in data2 that are different from data based on vin, model, titleBrandDate, and status
+  return data2.filter((item2: any) => {
     const normalizedItem2 = normalize(item2);
 
-    return !data.some((item1:any) => {
+    return !data.some((item1: any) => {
       const normalizedItem1 = normalize(item1);
 
       // Compare values
-      return normalizedItem1.vin == normalizedItem2.vin &&
-             normalizedItem1.titleBrandDate == normalizedItem2.titleBrandDate &&
-             normalizedItem1.status == normalizedItem2.status;
+      return (
+        normalizedItem1.vin === normalizedItem2.vin &&
+        normalizedItem1.model === normalizedItem2.model &&
+        normalizedItem1.titleBrandDate === normalizedItem2.titleBrandDate &&
+        normalizedItem1.status === normalizedItem2.status
+      );
     });
   });
 };
-
-
