@@ -456,20 +456,16 @@ export const getSearchVinPop = async (req: any, res: any) => {
 }; 
 export const getTotalKpiesData = async (req: any, res: any) => {
   try {
-    // total vins
     const query1 = VehicleData.createQueryBuilder("vehicleData")
       .select("COUNT(DISTINCT vehicleData.vin)", "uniqueVinCount");
     const totalKpiData = await query1.getRawOne();
-    // total updated
     const queryBuilder = VehicleData.createQueryBuilder("vehicleData")
     .select("vehicleData.vin")  // Select the VIN to apply distinct
     .distinct(true)
     .where("vehicleData.isOld = :isOld", { isOld: false })
     .orderBy("vehicleData.vin", "ASC")
     .addOrderBy("vehicleData.titleBrandDate", "DESC");
-    const totalUpdatedData = await queryBuilder.getCount(); 
 
-   // 3 top most vin data
     const currentQueryBuilder = VehicleData.createQueryBuilder("vehicle")
     .select([
       "vehicle.*",
@@ -485,7 +481,11 @@ export const getTotalKpiesData = async (req: any, res: any) => {
     .addOrderBy("vehicle.modelYear", "DESC")
     .limit(3);  // Limit the result to 3
   
-  const RecentAlert = await currentQueryBuilder.getRawMany(); 
+  const RecentAlert = await currentQueryBuilder.getRawMany();
+  
+
+const totalUpdatedData = await queryBuilder.getCount(); 
+
 
     return createResponse(
       res,
