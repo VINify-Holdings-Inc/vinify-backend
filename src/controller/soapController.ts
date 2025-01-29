@@ -52,28 +52,31 @@ export const ValidateVinData = async (req: any, res: any) => {
         console.log("test",req.body);
         const token = req.body.token;
         const vin = req.body.vin;
-       const soapUrl = "https://vehiclesystems-cert.aamva.org/Vehicles/NMVTIS/ConsumerAccess/search"; // Replace with the actual SOAP service URL
-       const soapRequestXml = `<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ca="http://schemas.aamva.org/Vehicles/NMVTIS/ConsumerAccess">
-                                <soapenv:Header>
-                                    <ca:AuthenticationToken>
-                                        <ca:Token>${token}</ca:Token>
-                                    </ca:AuthenticationToken>
-                                </soapenv:Header>
-                                <soapenv:Body>
-                                    <ca:Search>
-                                        <ca:SearchRequest>
-                                            <ca:VehicleIdentification>${vin}</ca:VehicleIdentification>
-                                        </ca:SearchRequest>
-                                    </ca:Search>
-                                </soapenv:Body>
-                                </soapenv:Envelope>`; 
+       const soapUrl = "https://vehiclesystems-cert.aamva.org/Vehicles/ConsumerAccess/2.0/GetData.svc"; // Replace with the actual SOAP service URL
+       const soapRequestXml = ` <soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope" xmlns:ns="http://aamva.org/nmvtis/ews/3.1.0" xmlns:ns1="http://niem.gov/niem/niem-core/2.0" xmlns:ns2="http://aamva.org/xsd/aamva/extensionsExt/1.0">
+                                    <soap:Header/>
+                                    <soap:Body>
+                                        <ns:GetConsumerVehicleData>
+                                            <ns:token>${token}</ns:token>
+                                            <ns:GetConsumerVehicleDataRequest>
+                                                <ns1:VehicleIdentification>
+                                                <ns1:IdentificationID>${vin}</ns1:IdentificationID>
+                                                </ns1:VehicleIdentification>
+                                                <ns2:ConsumerIdentification>
+                                                <ns1:IdentificationID>tzPlG$3$yypqX#oOGkSi</ns1:IdentificationID>
+                                                </ns2:ConsumerIdentification>
+                                                <ns2:MessageOriginatorID>MY</ns2:MessageOriginatorID>
+                                            </ns:GetConsumerVehicleDataRequest>
+                                        </ns:GetConsumerVehicleData>
+                                    </soap:Body>
+                                    </soap:Envelope>`; 
 
       
        // Make the SOAP request
        const response = await axios.post(soapUrl,soapRequestXml, {
            headers: {
-               "Content-Type": "text/xml;charset=UTF-8",
-               "SOAPAction": "https://vehiclesystems-cert.aamva.org/Vehicles/NMVTIS/ConsumerAccess/search", // Replace with the appropriate SOAPAction if needed
+               "Content-Type": "application/soap+xml",
+               "SOAPAction": "https://vehiclesystems-cert.aamva.org/Vehicles/ConsumerAccess/2.0/GetData.svc", // Replace with the appropriate SOAPAction if needed
             },
           
        });
