@@ -71,16 +71,14 @@ export const insertBulkSheetData = async (req: any, res: any) => {
 
     if (formattedSheet1.length > 0) {
       result2 = await VehicleInfo.save(formattedSheet1);
-    }
-console.log(result2);
+    } 
 
-    return createResponse(res, 201, MESSAGES.DATA_SAVED, { newDataToInsert,finalData,result1 });
+    return createResponse(res, 201, MESSAGES.DATA_SAVED, { newDataToInsert,finalData,result1,result2 });
   } catch (error) {
     console.error("Error during data insertion:", error);
     return createResponse(res, 500, MESSAGES.INTERNAL_SERVER_ERROR, [], false, true);
   }
-};
-
+}; 
 export const getBulkSheetData = async (req: any, res: any) => {
   try {
     const { page = 1, limit = 10, ...filters } = req.query;
@@ -278,9 +276,9 @@ export const DashboardSummaryVINUpdated = async (req: any, res: any) => {
 
     // Query to count total distinct VINs
     const totalQueryBuilder = VehicleData.createQueryBuilder("vd")
-      .select("COUNT(*)", "total")
+      .select("COUNT(DISTINCT vd.vin)", "total")  // Fixed to count distinct VINs
       .where("vd.status = :status", { status: "Current" })
-      .andWhere("vd.isOld = :isOld", { isOld: false });  // Fixed isOld condition to match the main query
+      .andWhere("vd.isOld = :isOld", { isOld: false });
 
     // Apply filters to total count query
     Object.entries(filters).forEach(([key, value]) => {
@@ -306,7 +304,7 @@ export const DashboardSummaryVINUpdated = async (req: any, res: any) => {
 
     return createResponse(res, 500, MESSAGES?.INTERNAL_SERVER_ERROR, [], false, true);
   }
-};  
+}; 
 export const DashboardSummaryVIN = async (req: any, res: any) => {
   try {
     const { page = 1, limit = 9, ...filters } = req.query;
@@ -460,11 +458,17 @@ export const getTotalKpiesData = async (req: any, res: any) => {
       .select("COUNT(DISTINCT vehicleData.vin)", "uniqueVinCount");
     const totalKpiData = await query1.getRawOne();
     const queryBuilder = VehicleData.createQueryBuilder("vehicleData")
-    .select("vehicleData.vin")  // Select the VIN to apply distinct
-    .distinct(true)
-    .where("vehicleData.isOld = :isOld", { isOld: false })
-    .orderBy("vehicleData.vin", "ASC")
-    .addOrderBy("vehicleData.titleBrandDate", "DESC");
+    .select([
+        'vehicleData.id', 
+        'vehicleData.vin',  
+    ])
+    .distinctOn(['vehicleData.vin']) // Apply DISTINCT ON "vin"
+    .where("vehicleData.isOld = :isOld", { isOld: false }) 
+    .orderBy("vehicleData.vin", "ASC") // First order by "vin"
+    .addOrderBy("vehicleData.titleBrandDate", "DESC"); // Then order by "titleBrandDate" in descending order
+
+ const rawUpdated= await queryBuilder.getMany();
+ const totalUpdatedData=rawUpdated?.length;
 
     const currentQueryBuilder = VehicleData.createQueryBuilder("vehicle")
     .select([
@@ -476,16 +480,12 @@ export const getTotalKpiesData = async (req: any, res: any) => {
     .leftJoin(MasterBrand, "masterbrand", "vehicle.brand = masterbrand.code") 
     .orderBy("vehicle.vin")
     .where("vehicle.isOld = :isOld", { isOld: false })
-    .andWhere("vehicle.isRead = :isRead", { isRead: true })  // Use andWhere instead of chaining where again
+    .andWhere("vehicle.isRead = :isRead", { isRead: false })
     .addOrderBy("vehicle.titleBrandDate", "DESC")
     .addOrderBy("vehicle.modelYear", "DESC")
     .limit(3);  // Limit the result to 3
   
-  const RecentAlert = await currentQueryBuilder.getRawMany();
-  
-
-const totalUpdatedData = await queryBuilder.getCount(); 
-
+  const RecentAlert = await currentQueryBuilder.getRawMany(); 
 
     return createResponse(
       res,
