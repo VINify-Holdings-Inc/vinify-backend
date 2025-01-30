@@ -1,11 +1,12 @@
  
 import express from "express";
 import { deleteContactUs, insertContactUs, readContactUs} from "../controller/ContactUs";
-import { getBulkSheetData, getSearchVinPop, getBulkSheetDataSheet2, insertBulkSheetData, insertBulkSheetDatSheet2, getTotalKpiesData, DashboardSummaryVIN, ExportPdfVINData, DashboardSummaryVINUpdated, NewAlertVIN, TotalUnreadAlerts } from "../controller/BulkInsert";
+import { getBulkSheetData, getSearchVinPop, getBulkSheetDataSheet2,   insertBulkSheetDatSheet2, getTotalKpiesData, DashboardSummaryVIN, ExportPdfVINData, DashboardSummaryVINUpdated, NewAlertVIN, TotalUnreadAlerts } from "../controller/BulkInsert";
 import { ForgetPassword, LoginController, ResetPassword, userProfileUpdate , ProfileUpdate, ResetTockenCheck, TestRoute} from "../controller/LoginController";
 import {SoapToken,ValidateVinData} from "../controller/soapController";
 import { CompareHistoryTitalDetails, SeenUpdateAlert} from "../controller/CompareHistory";
 import { UnreadNotificationsAlert } from "../controller/Notification";
+import { insertBulkSheetData } from "../controller/StoreNewPreviousData";
 const routerAdmin = express.Router();
 
 routerAdmin.post("/user-login", LoginController);
