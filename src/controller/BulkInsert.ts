@@ -511,9 +511,13 @@ export const TotalUnreadAlerts=async (req: any, res: any) => {
     .select("COUNT(vehicle.vin)", "count") // Removed DISTINCT
     .getRawOne();
 
+    const lastUpdatedDate=await VehicleData.createQueryBuilder("vehicle")
+    .orderBy("vehicle.titleBrandDate", "DESC")
+    .getRawOne();
     // Create response
     return createResponse(res, 200, MESSAGES?.DATA_FETCH_SUCCESS, {
         totalNotificationCount :totalNotificationCount?.count,
+        lastUpdatedDate:lastUpdatedDate?.vehicle_createdAt
     });
   } catch (error: any) {
     console.error(MESSAGES?.INTERNAL_SERVER_ERROR, error);
