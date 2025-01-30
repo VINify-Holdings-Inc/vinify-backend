@@ -34,6 +34,20 @@ export const truncateTable = async (entity: any) => {
     throw new Error("Failed to truncate table.");
   }
 };
+export const updateIsNotFound=(oldArray:any, newArray:any)=> {
+  return oldArray?.map((oldItem:any) => {
+      const exists = newArray?.some((newItem:any) => 
+          newItem?.vin === oldItem?.vin &&
+          newItem?.model === oldItem?.model &&
+          newItem?.titleBrandDate === oldItem?.titleBrandDate &&
+          newItem?.status === oldItem?.status
+      );
+      
+      return { ...oldItem, isNotFound: !exists };
+  });
+}
+
+ 
 
 export const findDifferencesFromTemData = (data: any, data2: any) => {
   // Normalize the data by mapping them to a consistent structure for comparison
