@@ -20,7 +20,6 @@ export const AppDataSource = new DataSource({
     subscribers: ["src/Entities/subscriber/**/*.ts"],
 });
 
-
 // export const AppDataSource = new DataSource({
 //   type: "postgres",  
 //   host: "127.0.0.1", 
@@ -33,7 +32,4 @@ export const AppDataSource = new DataSource({
 //   entities: ["src/Entities/**/*.ts"],
 //   migrations: ["src/Entities/migration/**/*.ts"],
 //   subscribers: ["src/Entities/subscriber/**/*.ts"],
-// });
-
-
- 
+// }); 
