@@ -7,14 +7,13 @@ import { createResponse } from "../helpers/response";
 import upload from "../middleware/multer";
 import { generateToken, profileCompletion } from "../helpers/utils";
  
- 
 export const TestRoute = async (req: any, res: any) => {
     try {
         const { email } = req.params; 
         // Execute the query to fetch the user data with a LEFT JOIN on the Login table
         const queryBuilder = User.createQueryBuilder("user")
             .leftJoinAndSelect(Login, "login", "user.emailId = login.emailId")
-            .where("user.emailId = :email", { email })
+            .where("user.emailId = :email", { email });
             // .select([
             //     "user.id",
             //     "user.emailId",
@@ -33,7 +32,9 @@ export const TestRoute = async (req: any, res: any) => {
             success: true,
         });
     } catch (error: any) {
+          // tslint:disable-next-line:no-console
         console.error("Error fetching data:", error);
+
         return res.status(500).json({
             message: "Internal Server Error",
             error: error.message,

@@ -22,5 +22,5 @@ export const MESSAGES = {
     PROFILE_UPDATED: "Profile updated successfully.",
     ACCESS_DENIED: "Access Denied. No token provided.",
     VIN_NOT_FOUND: "We are not monitoring the entered VIN. Do you want to run a new VIN report?",
-    TEST_MSG:"hi"
+    TEST_MSG: "hi"
 }; 

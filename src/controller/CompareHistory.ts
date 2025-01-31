@@ -90,11 +90,12 @@ export const CompareHistoryTitalDetails = async (req: any, res: any) => {
   
       const totalHistoryResult = await totalHistoryQueryBuilder.getRawOne();
       const totalHistoryRecords = totalHistoryResult?.total || 0; 
-      const changeData=await isChangeInThePreviousVin(currentData[0],historyData[0]); 
-      if(currentData?.length>0){
-        currentData.shift()
-      currentData.unshift(changeData)
+      const changeData = await isChangeInThePreviousVin(currentData[0], historyData[0]); 
+      if (currentData?.length > 0) {
+        currentData.shift();
+      currentData.unshift(changeData);
       }
+
       // Create response with current and history data
       return createResponse(res, 200, MESSAGES?.DATA_FETCH_SUCCESS, {
         current: { 
@@ -107,6 +108,7 @@ export const CompareHistoryTitalDetails = async (req: any, res: any) => {
         },
       });
     } catch (error: any) {
+        // tslint:disable-next-line:no-console
       console.error(MESSAGES?.INTERNAL_SERVER_ERROR, error);
   
       return createResponse(res, 500, MESSAGES?.INTERNAL_SERVER_ERROR, [], false, true);
@@ -121,10 +123,10 @@ export const CompareHistoryTitalDetails = async (req: any, res: any) => {
       }
   
       // Update the isRead status to true
-      const updateResult = await VehicleData.createQueryBuilder('vehicleData')
+      const updateResult = await VehicleData.createQueryBuilder("vehicleData")
         .update()
-        .set({ isRead: "true" }) // Update operation
-        .where('id = :id', { id }) // Condition to match the record
+        .set({ isRead: true }) // Update operation
+        .where("id = :id", { id }) // Condition to match the record
         .execute();
   
       if (updateResult.affected === 0) {
@@ -134,12 +136,10 @@ export const CompareHistoryTitalDetails = async (req: any, res: any) => {
       // Create response with success message
       return createResponse(res, 200, MESSAGES?.DATA_FETCH_SUCCESS, { updated: true });
     } catch (error) {
+        // tslint:disable-next-line:no-console
       console.error(MESSAGES?.INTERNAL_SERVER_ERROR, error);
+
       return createResponse(res, 500, MESSAGES?.INTERNAL_SERVER_ERROR, [], false, true);
     }
   };
-  
-
-  
-  
   
