@@ -41,9 +41,11 @@ export const ExportPdfVINData = async (req: any, res: any) => {
         .where(conditions, parameters)
         .select([
           "vehicle.*",                // Correct column selection for VehicleData
-          "masterstate.name AS state"  // Add state from MasterState
+          "masterstate.name AS state",
+          "masterstate.name AS brand" // Add state from MasterState
         ])
         .leftJoin(MasterState, "masterstate", "vehicle.state = masterstate.code")
+        .leftJoin(MasterBrand, "masterbrand", "vehicle.brand = masterbrand.code")
         .orderBy("vehicle.vin")
         .distinctOn(["vehicle.vin"])
         .getRawMany();
@@ -53,9 +55,11 @@ export const ExportPdfVINData = async (req: any, res: any) => {
         .where("vehicle.status = :status", { status: "Current" })
         .select([
           "vehicle.*",                // Correct column selection for VehicleData
-          "masterstate.name AS state"  // Add state from MasterState
+          "masterstate.name AS state",
+          "masterstate.name AS brand"  // Add state from MasterState
         ])
         .leftJoin(MasterState, "masterstate", "vehicle.state = masterstate.code")
+        .leftJoin(MasterBrand, "masterbrand", "vehicle.brand = masterbrand.code")
         .orderBy("vehicle.vin")
         .distinctOn(["vehicle.vin"])
         .addOrderBy("vehicle.titleBrandDate", "DESC")
@@ -67,9 +71,11 @@ export const ExportPdfVINData = async (req: any, res: any) => {
         .where("vehicle.isOld = :isOld", { isOld: false })
         .select([
           "vehicle.*",                // Correct column selection for VehicleData
-          "masterstate.name AS state"  // Add state from MasterState
+          "masterstate.name AS state" ,
+          "masterstate.name AS brand" // Add state from MasterState
         ])
         .leftJoin(MasterState, "masterstate", "vehicle.state = masterstate.code")
+        .leftJoin(MasterBrand, "masterbrand", "vehicle.brand = masterbrand.code")
         .orderBy("vehicle.vin")
         .distinctOn(["vehicle.vin"])
         .addOrderBy("vehicle.titleBrandDate", "DESC")
@@ -92,9 +98,11 @@ export const DashboardSummaryVINUpdated = async (req: any, res: any) => {
     const queryBuilder = VehicleData.createQueryBuilder("vd")
       .select([
         "vd.*",                // Correct column selection for VehicleData
-        "masterstate.name AS state"  // Add state from MasterState
+        "masterstate.name AS state" ,
+        "masterbrand.name AS brand" // Add state from MasterState
       ])
-      .leftJoin(MasterState, "masterstate", "vd.state = masterstate.code")  // Correct the join condition
+      .leftJoin(MasterState, "masterstate", "vd.state = masterstate.code") 
+      .leftJoin(MasterBrand, "masterbrand", "vd.brand = masterbrand.code")
       .distinctOn(["vd.vin"])  // Only use distinctOn once, with "vd.vin"
       .where("vd.status = :status", { status: "Current" })
       .andWhere("vd.isOld = :isOld", { isOld: false })
@@ -152,9 +160,11 @@ export const DashboardSummaryVIN = async (req: any, res: any) => {
     const queryBuilder = VehicleData.createQueryBuilder("vehicle")
       .select([
         "vehicle.*",
-        "masterstate.name AS state"
+        "masterstate.name AS state",
+         "masterbrand.name AS brand"
       ])
       .leftJoin(MasterState, "masterstate", "vehicle.state = masterstate.code")
+      .leftJoin(MasterBrand, "masterbrand", "vehicle.brand = masterbrand.code")
       .distinctOn(["vehicle.vin"])
       .where("vehicle.status = :status", { status: "Current" })
       .orderBy("vehicle.vin")

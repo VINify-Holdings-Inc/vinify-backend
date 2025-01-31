@@ -34,6 +34,23 @@ export const truncateTable = async (entity: any) => {
     throw new Error("Failed to truncate table.");
   }
 };
+
+export const formatSheetData = (sheetData:any) => {
+  return sheetData
+    .filter((item:any) => item?.vin)
+    .map((item:any) => ({
+      vin: item.vin,
+      vinId: item?.vinId || null,
+      status: item?.status || null,
+      state: item?.state || null,
+      brand: item?.brand || null,
+      model: item?.model || null,
+      modelYear: item?.modelYear || null,
+      titleBrandDate: item?.titleBrandDate || null,
+      member: item?.member || null,
+    }));
+}; 
+
 export const updateIsNotFound=(oldArray:any, newArray:any)=> {
   return oldArray?.map((oldItem:any) => {
       const exists = newArray?.some((newItem:any) => 
@@ -45,9 +62,7 @@ export const updateIsNotFound=(oldArray:any, newArray:any)=> {
       
       return { ...oldItem, isNotFound: !exists };
   });
-}
-
- 
+} 
 
 export const findDifferencesFromTemData = (data: any, data2: any) => {
   // Normalize the data by mapping them to a consistent structure for comparison
