@@ -1,98 +1,10 @@
-import { VehicleInfo } from "../Entities/vehicle_info";
+ 
 import { MESSAGES } from "../helpers/constants";
 import { createResponse } from "../helpers/response";
 import { VehicleData } from "../Entities/vehicle_data"; 
 import { MasterState } from "../Entities/master_state";
 import { MasterBrand } from "../Entities/master_brand";
-
-export const getBulkSheetData = async (req: any, res: any) => {
-  try {
-    const { page = 1, limit = 10, ...filters } = req.query;
-    const queryBuilder = VehicleInfo.createQueryBuilder("VehicleInfo");
-    Object.entries(filters).forEach(([key, value]) => {
-      if (value && key !== "page" && key !== "limit") {
-        queryBuilder.andWhere(`LOWER(VehicleInfo.${key}) LIKE LOWER(:${key})`, {
-          [key]: `%${value}%`
-        });
-      }
-    });
-
-    const offset = (parseInt(page as string) - 1) * parseInt(limit as string);
-    const [items, totalItems] = await queryBuilder
-      .skip(offset)
-      .take(parseInt(limit as string))
-      .getManyAndCount();
-
-    const totalPages = Math.ceil(totalItems / parseInt(limit as string));
-
-    return createResponse(res, 200, MESSAGES?.DATA_FETCH_SUCCESS, {
-      currentPage: parseInt(page as string),
-      totalPages,
-      totalItems,
-      items,
-    }, true, false);
-
-  } catch (error: any) {
-    // tslint:disable-next-line:no-console
-    console.error(MESSAGES?.INTERNAL_SERVER_ERROR, error);
-
-    return createResponse(res, 500, MESSAGES?.INTERNAL_SERVER_ERROR, [], false, true);
-  }
-};
-export const insertBulkSheetDatSheet2 = async (req: any, res: any) => {
-  try {
-    const { sheet1, shhet2 } = req.body;
-    if (!sheet1 || !Array.isArray(sheet1) || sheet1.length === 0) {
-
-      return createResponse(res, 400, "No data provided for insertion sheet1", [], false, true);
-    }
-
-    if (!shhet2 || !Array.isArray(shhet2) || shhet2.length === 0) {
-
-      return createResponse(res, 400, "No data provided for insertion sheet2", [], false, true);
-    }
-
-    const result = await VehicleData.insert(sheet1);
-    const result2 = await VehicleInfo.insert(sheet1);
-
-    return createResponse(res, 201, MESSAGES?.CONTACT_SAVED, { result2, result });
-  } catch (error) {
-    // tslint:disable-next-line:no-console
-    console.error(MESSAGES?.INTERNAL_SERVER_ERROR, error);
-
-    return createResponse(res, 500, MESSAGES?.INTERNAL_SERVER_ERROR, [], false, true);
-  }
-};
-export const getBulkSheetDataSheet2 = async (req: any, res: any) => {
-  try {
-    const { page = 1, limit = 10, ...filters } = req.query;
-    const queryBuilder = VehicleData.createQueryBuilder("VehicleData");
-    Object.entries(filters).forEach(([key, value]) => {
-      if (value && key !== "page" && key !== "limit") {
-        queryBuilder.andWhere(`LOWER(VehicleData.${key}) LIKE LOWER(:${key})`, {
-          [key]: `%${value}%`
-        });
-      }
-    });
-
-    const offset = (parseInt(page as string) - 1) * parseInt(limit as string);
-    const [items, totalItems] = await queryBuilder.skip(offset).take(parseInt(limit as string)).getManyAndCount();
-    const totalPages = Math.ceil(totalItems / parseInt(limit as string));
-
-    return createResponse(res, 200, MESSAGES?.DATA_FETCH_SUCCESS, {
-      currentPage: parseInt(page as string),
-      totalPages,
-      totalItems,
-      items,
-    }, true, false);
-
-  } catch (error: any) {
-    // tslint:disable-next-line:no-console
-    console.error(MESSAGES?.INTERNAL_SERVER_ERROR, error);
-
-    return createResponse(res, 500, MESSAGES?.INTERNAL_SERVER_ERROR, [], false, true);
-  }
-}; 
+ 
 export const ExportPdfVINData = async (req: any, res: any) => {
   try {
     const { type = "all" } = req.query;

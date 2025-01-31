@@ -1,9 +1,9 @@
  
 import express from "express";
 import { deleteContactUs, insertContactUs, readContactUs} from "../controller/ContactUs";
-import { getBulkSheetData, getSearchVinPop, getBulkSheetDataSheet2,   insertBulkSheetDatSheet2, getTotalKpiesData, DashboardSummaryVIN, ExportPdfVINData, DashboardSummaryVINUpdated, NewAlertVIN, TotalUnreadAlerts } from "../controller/BulkInsert";
+import {   getSearchVinPop,getTotalKpiesData, DashboardSummaryVIN, ExportPdfVINData, DashboardSummaryVINUpdated, NewAlertVIN, TotalUnreadAlerts } from "../controller/BulkInsert";
 import { ForgetPassword, LoginController, ResetPassword, userProfileUpdate , ProfileUpdate, ResetTockenCheck, TestRoute} from "../controller/LoginController";
-import {SoapToken,ValidateVinData} from "../controller/soapController";
+import {NewValidateVinData, SoapToken,ValidateVinData} from "../controller/soapController";
 import { CompareHistoryTitalDetails, SeenUpdateAlert} from "../controller/CompareHistory";
 import { UnreadNotificationsAlert } from "../controller/Notification";
 import { insertBulkSheetData } from "../controller/StoreNewPreviousData";
@@ -20,10 +20,7 @@ routerAdmin.post("/contact-us",  insertContactUs);
 routerAdmin.get("/contact-us",  readContactUs);
 routerAdmin.delete("/contact-us/:id",  deleteContactUs); 
 
-routerAdmin.post("/csv-import", insertBulkSheetData);  
-routerAdmin.get("/csv-import",  getBulkSheetData); 
-routerAdmin.post("/csv-import-sheet2", insertBulkSheetDatSheet2);
-routerAdmin.get("/csv-import-sheet2",  getBulkSheetDataSheet2);
+routerAdmin.post("/csv-import", insertBulkSheetData); 
 routerAdmin.get("/search-pop-vin",  getSearchVinPop);
 routerAdmin.get("/kpi-data", getTotalKpiesData); 
 routerAdmin.get("/dashboard-vin-summary", DashboardSummaryVIN); 
@@ -33,6 +30,7 @@ routerAdmin.post("/export-pdf", ExportPdfVINData);
 //soap data
 routerAdmin.get("/get-soap-token", SoapToken);
 routerAdmin.post("/validate-vin-data", ValidateVinData);
+routerAdmin.post("/new-validate-vin-data", NewValidateVinData);
 // history
 routerAdmin.get("/title-detail-history", CompareHistoryTitalDetails); 
 routerAdmin.post("/seen-alert", SeenUpdateAlert);

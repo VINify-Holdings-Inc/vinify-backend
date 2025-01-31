@@ -75,3 +75,14 @@ export const findDifferencesFromTemData = (data: any, data2: any) => {
     });
   });
 };
+
+export const changedDataToComapreData = (oldArray: any, newArray: any) =>  {
+  return newArray.filter((newItem:any) => 
+      oldArray.some((oldItem:any) => 
+          newItem.vin == oldItem.vin &&
+          newItem.model == oldItem.model &&
+          newItem.titleBrandDate ==oldItem.titleBrandDate &&
+          newItem.status == oldItem.status
+      )
+  );
+}
