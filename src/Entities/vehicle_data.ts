@@ -48,12 +48,15 @@ export class VehicleData extends BaseEntity {
   @Column({ name: "status", type: "varchar", nullable: true })
   status: string;
 
-  @Column({ name: "isRead", type: "varchar", default: false, nullable: true, })
-  isRead: string;
+  @Column({ name: "isRead", type: "boolean", default: false })
+  isRead: boolean;
 
   @Column({ name: "isOld", type: "boolean", default: true })
   isOld: boolean;
 
+  @Column({ name: "isNotFound", type: "boolean", default: false })
+  isNotFound: boolean; 
+  
   @Column({
     name: "createdAt",
     type: "timestamptz",
