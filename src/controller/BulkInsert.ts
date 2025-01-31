@@ -124,7 +124,7 @@ export const DashboardSummaryVINUpdated = async (req: any, res: any) => {
 
     // Query to count total distinct VINs
     const totalQueryBuilder = VehicleData.createQueryBuilder("vd")
-      .select("COUNT(DISTINCT vd.vin)", "total")  // Fixed to count distinct VINs
+      .select("COUNT(DISTINCT vd.vin)", "total")   
       .where("vd.status = :status", { status: "Current" })
       .andWhere("vd.isOld = :isOld", { isOld: false });
 
@@ -320,10 +320,10 @@ export const getTotalKpiesData = async (req: any, res: any) => {
         "vehicleData.id", 
         "vehicleData.vin",  
     ])
-    .distinctOn(["vehicleData.vin"]) // Apply DISTINCT ON "vin"
+    .distinctOn(["vehicleData.vin"])  
     .where("vehicleData.isOld = :isOld", { isOld: false }) 
-    .orderBy("vehicleData.vin", "ASC") // First order by "vin"
-    .addOrderBy("vehicleData.titleBrandDate", "DESC"); // Then order by "titleBrandDate" in descending order
+    .orderBy("vehicleData.vin", "ASC")  
+    .addOrderBy("vehicleData.titleBrandDate", "DESC"); 
 
  const rawUpdated = await queryBuilder.getMany();
  const totalUpdatedData = rawUpdated?.length;
