@@ -57,7 +57,8 @@ export const profileCompletion = (data: any) => {
 
 export const isChangeInThePreviousVin = (current: any, previous: any) => {
   const result: any = {};
-   if(!previous){
+   if (!previous) {
+
     return current;
    }
   // Loop through each key in the current object
@@ -67,11 +68,11 @@ export const isChangeInThePreviousVin = (current: any, previous: any) => {
         result[`is${key?.charAt(0)?.toUpperCase() + key?.slice(1)}`] =
           current[key] !== previous[key];
      
-
       // Include the original key-value pair
       result[key] = current[key];
     }
   } 
+  
   return result;
 };
  

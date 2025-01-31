@@ -37,7 +37,7 @@ export const UnreadNotificationsAlert = async (req: any, res: any) => {
       // Query to count total records 
       const totalQueryBuilder = VehicleData.createQueryBuilder("vehicle")
         .select("COUNT(vehicle.vin)", "total")
-        .leftJoin(MasterState, "masterstate", "vehicle.state = masterstate.code") 
+        .leftJoin(MasterState, "masterstate", "vehicle.state = masterstate.code"); 
       // Apply exact search filters for total count
       Object.entries(filters).forEach(([key, value]) => {
         if (value) {
@@ -61,6 +61,7 @@ export const UnreadNotificationsAlert = async (req: any, res: any) => {
         items: vehicles,
       });
     } catch (error: any) {
+        // tslint:disable-next-line:no-console
       console.error(MESSAGES?.INTERNAL_SERVER_ERROR, error);
   
       return createResponse(res, 500, MESSAGES?.INTERNAL_SERVER_ERROR, [], false, true);

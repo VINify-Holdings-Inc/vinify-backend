@@ -64,7 +64,7 @@ export const ExportPdfVINData = async (req: any, res: any) => {
         .distinctOn(["vehicle.vin"])
         .addOrderBy("vehicle.titleBrandDate", "DESC")
         .getRawMany();
-    } else if(type === "updated") {
+    } else if (type === "updated") {
       // Handle invalid parameters
       data = await VehicleData.createQueryBuilder("vehicle")
         .where("vehicle.status = :status", { status: "Current" })
@@ -85,7 +85,9 @@ export const ExportPdfVINData = async (req: any, res: any) => {
     // Return the fetched data
     return createResponse(res, 200, MESSAGES?.DATA_FETCH_SUCCESS, { items: data });
   } catch (error: any) {
+    // tslint:disable-next-line:no-console
     console.error(MESSAGES?.INTERNAL_SERVER_ERROR, error);
+
     return createResponse(res, 500, MESSAGES?.INTERNAL_SERVER_ERROR, [], false, true);
   }
 };
@@ -146,6 +148,7 @@ export const DashboardSummaryVINUpdated = async (req: any, res: any) => {
       items: distinctVINs,
     });
   } catch (error: any) {
+    // tslint:disable-next-line:no-console
     console.error(MESSAGES?.INTERNAL_SERVER_ERROR, error);
 
     return createResponse(res, 500, MESSAGES?.INTERNAL_SERVER_ERROR, [], false, true);
@@ -212,6 +215,7 @@ export const DashboardSummaryVIN = async (req: any, res: any) => {
       items: distinctVINs,
     });
   } catch (error: any) {
+    // tslint:disable-next-line:no-console
     console.error(MESSAGES?.INTERNAL_SERVER_ERROR, error);
 
     return createResponse(res, 500, MESSAGES?.INTERNAL_SERVER_ERROR, [], false, true);
@@ -219,28 +223,30 @@ export const DashboardSummaryVIN = async (req: any, res: any) => {
 };
 export const getSearchVinPop = async (req: any, res: any) => {
   try {
-    // Parse page and limit from query and set default values if they are not provided
     const { page = 1, limit = 9, ...filters } = req.query;
-    const offset = (page - 1) * limit; // Ensure limit is a number
-
-    // Define the base query builder
-    const queryBuilder = VehicleData.createQueryBuilder("vd")  // Use alias "vd" for VehicleData
+    const offset = (page - 1) * limit;
+    const queryBuilder = VehicleData.createQueryBuilder("vd")
       .select([
         "vd.*",
         "masterbrand.name AS brand",
         "masterstate.name AS state"
       ])
-      .leftJoin(MasterBrand, "masterbrand", "vd.brand = masterbrand.code")  // Fix the alias for VehicleData in the join
-      .leftJoin(MasterState, "masterstate", "vd.state = masterstate.code");  // Corrected alias here
+      .leftJoin(MasterBrand, "masterbrand", "vd.brand = masterbrand.code")
+      .leftJoin(MasterState, "masterstate", "vd.state = masterstate.code");
 
-    // Apply filters for specific fields (exact or partial match)
     Object.entries(filters).forEach(([key, value]) => {
       if (value && key !== "page" && key !== "limit") {
-        // Check if the key requires exact matching
-        if (["vin", "titleBrandDate"].includes(key)) {
-          queryBuilder.andWhere(`vd.${key} = :${key}`, { [key]: value });  // Use "vd" as the alias
+        if (["vin", "isRead", "titleBrandDate"].includes(key)) {
+          if (key === "isRead") {
+            // Check if isRead is a boolean and handle it accordingly
+            queryBuilder.andWhere(`vd.${key} = :${key}`, { [key]: value === "true" ? 
+               true : value === "false" ? false : value });
+          } else {
+            queryBuilder.andWhere(`LOWER(vd.${key}) LIKE LOWER(:${key})`, {
+              [key]: `%${value}%`,
+            });
+          }
         } else {
-          // Apply partial match for other fields
           queryBuilder.andWhere(`LOWER(vd.${key}) LIKE LOWER(:${key})`, {
             [key]: `%${value}%`,
           });
@@ -248,22 +254,26 @@ export const getSearchVinPop = async (req: any, res: any) => {
       }
     });
 
-    // Fetch filtered items with pagination
     const items = await queryBuilder
       .limit(limit)
       .offset(offset)
       .getRawMany();
 
-    // Fetch total count of records matching the filters (this is important for pagination)
     const totalQueryBuilder = VehicleData.createQueryBuilder("vd")
       .leftJoin(MasterBrand, "masterbrand", "vd.brand = masterbrand.code")
       .leftJoin(MasterState, "masterstate", "vd.state = masterstate.code");
 
-    // Apply filters to total count query
     Object.entries(filters).forEach(([key, value]) => {
       if (value && key !== "page" && key !== "limit") {
-        if (["vin", "titleBrandDate"].includes(key)) {
-          totalQueryBuilder.andWhere(`vd.${key} = :${key}`, { [key]: value });
+        if (["vin", "isRead", "titleBrandDate"].includes(key)) {
+          if (key === "isRead") {
+            totalQueryBuilder.andWhere(`vd.${key} = :${key}`, { [key]: value === "true" ?  
+              true : value === "false" ? false : value });
+          } else {
+            totalQueryBuilder.andWhere(`LOWER(vd.${key}) LIKE LOWER(:${key})`, {
+              [key]: `%${value}%`,
+            });
+          }
         } else {
           totalQueryBuilder.andWhere(`LOWER(vd.${key}) LIKE LOWER(:${key})`, {
             [key]: `%${value}%`,
@@ -272,21 +282,18 @@ export const getSearchVinPop = async (req: any, res: any) => {
       }
     });
 
-    // This will fetch the count of records that match the filters
     const totalCount = await totalQueryBuilder.getCount();
-
-    // Calculate total pages
     const totalPages = Math.ceil(totalCount / limit);
-    if (items?.length == 0) {
+    if (items?.length === 0) {
       return createResponse(res, 200, MESSAGES?.VIN_NOT_FOUND, {
         page: page,
         limit,
         totalPages,
         totalItems: totalCount,
         items,
-      }, false, true)
+      }, false, true);
     }
-    // Create response
+
     return createResponse(res, 200, MESSAGES?.DATA_FETCH_SUCCESS, {
       page: page,
       limit,
@@ -296,10 +303,13 @@ export const getSearchVinPop = async (req: any, res: any) => {
     });
 
   } catch (error) {
+    // tslint:disable-next-line:no-console
     console.error(MESSAGES?.INTERNAL_SERVER_ERROR, error);
+
     return createResponse(res, 500, MESSAGES?.INTERNAL_SERVER_ERROR, [], false, true);
   }
-}; 
+};
+
 export const getTotalKpiesData = async (req: any, res: any) => {
   try {
     const query1 = VehicleData.createQueryBuilder("vehicleData")
@@ -307,16 +317,16 @@ export const getTotalKpiesData = async (req: any, res: any) => {
     const totalKpiData = await query1.getRawOne();
     const queryBuilder = VehicleData.createQueryBuilder("vehicleData")
     .select([
-        'vehicleData.id', 
-        'vehicleData.vin',  
+        "vehicleData.id", 
+        "vehicleData.vin",  
     ])
-    .distinctOn(['vehicleData.vin']) // Apply DISTINCT ON "vin"
+    .distinctOn(["vehicleData.vin"]) // Apply DISTINCT ON "vin"
     .where("vehicleData.isOld = :isOld", { isOld: false }) 
     .orderBy("vehicleData.vin", "ASC") // First order by "vin"
     .addOrderBy("vehicleData.titleBrandDate", "DESC"); // Then order by "titleBrandDate" in descending order
 
- const rawUpdated= await queryBuilder.getMany();
- const totalUpdatedData=rawUpdated?.length;
+ const rawUpdated = await queryBuilder.getMany();
+ const totalUpdatedData = rawUpdated?.length;
 
     const currentQueryBuilder = VehicleData.createQueryBuilder("vehicle")
     .select([
@@ -348,10 +358,9 @@ export const getTotalKpiesData = async (req: any, res: any) => {
       false
     );
   } catch (error) {
-    // Log the error
+   // tslint:disable-next-line:no-console
     console.error(MESSAGES?.INTERNAL_SERVER_ERROR, error);
-
-    // Return error response
+ 
     return createResponse(
       res,
       500,
@@ -361,8 +370,7 @@ export const getTotalKpiesData = async (req: any, res: any) => {
       true
     );
   }
-};
-
+}; 
 export const NewAlertVIN = async (req: any, res: any) => {
   try {
     const { page = 1, limit = 9, ...filters } = req.query;
@@ -372,9 +380,11 @@ export const NewAlertVIN = async (req: any, res: any) => {
     const queryBuilder = VehicleData.createQueryBuilder("vd")
       .select([
         "vd.*",                // Correct column selection for VehicleData
-        "masterstate.name AS state"  // Add state from MasterState
+        "masterstate.name AS state" ,
+        "masterstate.name AS brand" // Add state from MasterState
       ])
-      .leftJoin(MasterState, "masterstate", "vd.state = masterstate.code")  // Correct the join condition
+      .leftJoin(MasterState, "masterstate", "vd.state = masterstate.code") 
+      .leftJoin(MasterBrand, "masterbrand", "vd.brand = masterbrand.code") // Correct the join condition
       .distinctOn(["vd.vin"])  // Only use distinctOn once, with "vd.vin"
       .where("vd.status = :status", { status: "Current" })
       .andWhere("vd.isOld = :isOld", { isOld: false })
@@ -418,13 +428,13 @@ export const NewAlertVIN = async (req: any, res: any) => {
       items: distinctVINs,
     });
   } catch (error: any) {
+    // tslint:disable-next-line:no-console
     console.error(MESSAGES?.INTERNAL_SERVER_ERROR, error);
 
     return createResponse(res, 500, MESSAGES?.INTERNAL_SERVER_ERROR, [], false, true);
   }
 };   
-
-export const TotalUnreadAlerts=async (req: any, res: any) => {
+export const TotalUnreadAlerts = async (req: any, res: any) => {
   try {
     const totalNotificationCount = await VehicleData.createQueryBuilder("vehicle")
     .leftJoin(MasterState, "masterstate", "vehicle.state = masterstate.code")
@@ -433,15 +443,17 @@ export const TotalUnreadAlerts=async (req: any, res: any) => {
     .select("COUNT(vehicle.vin)", "count") // Removed DISTINCT
     .getRawOne();
 
-    const lastUpdatedDate=await VehicleData.createQueryBuilder("vehicle")
+    const lastUpdatedDate = await VehicleData.createQueryBuilder("vehicle")
     .orderBy("vehicle.titleBrandDate", "DESC")
     .getRawOne();
+
     // Create response
     return createResponse(res, 200, MESSAGES?.DATA_FETCH_SUCCESS, {
-        totalNotificationCount :totalNotificationCount?.count,
-        lastUpdatedDate:lastUpdatedDate?.vehicle_createdAt
+        totalNotificationCount : totalNotificationCount?.count,
+        lastUpdatedDate: lastUpdatedDate?.vehicle_createdAt
     });
   } catch (error: any) {
+    // tslint:disable-next-line:no-console
     console.error(MESSAGES?.INTERNAL_SERVER_ERROR, error);
 
     return createResponse(res, 500, MESSAGES?.INTERNAL_SERVER_ERROR, [], false, true);
