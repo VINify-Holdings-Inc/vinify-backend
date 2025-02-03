@@ -1,7 +1,7 @@
 import { VehicleData } from "../Entities/vehicle_data";
 import { VehicleDataTemp } from "../Entities/vehicle_data_temp";
 import { VehicleInfo } from "../Entities/vehicle_info";
-import { findDifferencesFromTemData, truncateTable, updateIsNotFound } from "../helpers/CompareHelpers";
+import { changedDataToComapreData, findDifferencesFromTemData, truncateTable } from "../helpers/CompareHelpers";
 import { MESSAGES } from "../helpers/constants";
 import { createResponse } from "../helpers/response";
 
@@ -38,12 +38,9 @@ export const insertBulkSheetData = async (req: any, res: any) => {
         titleBrandDate: item?.titleBrandDate || null,
         member: item?.member || null,
       }));
-
       
-     const RemovedvehicleTemData =await vehicleTemData.filter(vehicle => !vehicle.isNotFound);
-
-    const previousDataToProcess= await updateIsNotFound(RemovedvehicleTemData, formattedSheet2); 
-    const NewData = await findDifferencesFromTemData(RemovedvehicleTemData, formattedSheet2);
+ const changedDataToComapre=await changedDataToComapreData(vehicleTemData, formattedSheet2)
+ const NewData = await findDifferencesFromTemData(changedDataToComapre, formattedSheet2);
 
     await truncateTable(VehicleData);
     await truncateTable(VehicleDataTemp);
@@ -60,10 +57,10 @@ export const insertBulkSheetData = async (req: any, res: any) => {
       member: item?.member || null,
       isOld: false
     })) : [];
-    const updatedOldData = previousDataToProcess.map((item:any) => ({
+    const updatedOldData = changedDataToComapre.map((item:any) => ({
       ...item,
       isOld: true
-    }));
+    })); 
     const finalData = [...updatedOldData, ...newDataToInsert];
     let result1;
     let result2;
