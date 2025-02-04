@@ -113,10 +113,10 @@ export const DashboardSummaryVINUpdated = async (req: any, res: any) => {
       .limit(Number(limit))
       .offset(offset);
 
-    // Apply exact search filters
+    // Apply LIKE search filters instead of exact matches
     Object.entries(filters).forEach(([key, value]) => {
       if (value) {
-        queryBuilder.andWhere(`vd."${key}" = :${key}`, { [key]: value });
+        queryBuilder.andWhere(`vd."${key}" ILIKE :${key}`, { [key]: `%${value}%` });
       }
     });
 
@@ -128,10 +128,10 @@ export const DashboardSummaryVINUpdated = async (req: any, res: any) => {
       .where("vd.status = :status", { status: "Current" })
       .andWhere("vd.isOld = :isOld", { isOld: false });
 
-    // Apply filters to total count query
+    // Apply LIKE filters to total count query
     Object.entries(filters).forEach(([key, value]) => {
       if (value) {
-        totalQueryBuilder.andWhere(`vd."${key}" = :${key}`, { [key]: value });
+        totalQueryBuilder.andWhere(`vd."${key}" ILIKE :${key}`, { [key]: `%${value}%` });
       }
     });
 
@@ -154,6 +154,7 @@ export const DashboardSummaryVINUpdated = async (req: any, res: any) => {
     return createResponse(res, 500, MESSAGES?.INTERNAL_SERVER_ERROR, [], false, true);
   }
 };
+
 export const DashboardSummaryVIN = async (req: any, res: any) => {
   try {
     const { page = 1, limit = 9, ...filters } = req.query;
@@ -175,11 +176,11 @@ export const DashboardSummaryVIN = async (req: any, res: any) => {
       .limit(limit)
       .offset(offset);
 
-    // Apply exact search filters
+    // Apply LIKE search filters
     Object.entries(filters).forEach(([key, value]) => {
       if (value) {
-        queryBuilder.andWhere(`vehicle.${key} = :${key}`, {
-          [key]: value,
+        queryBuilder.andWhere(`vehicle.${key} LIKE :${key}`, {
+          [key]: `%${value}%`,
         });
       }
     });
@@ -192,11 +193,11 @@ export const DashboardSummaryVIN = async (req: any, res: any) => {
       .leftJoin(MasterState, "masterstate", "vehicle.state = masterstate.code")
       .where("vehicle.status = :status", { status: "Current" });
 
-    // Apply exact search filters for total count
+    // Apply LIKE search filters for total count
     Object.entries(filters).forEach(([key, value]) => {
       if (value) {
-        totalQueryBuilder.andWhere(`vehicle.${key} = :${key}`, {
-          [key]: value,
+        totalQueryBuilder.andWhere(`vehicle.${key} LIKE :${key}`, {
+          [key]: `%${value}%`,
         });
       }
     });
@@ -221,6 +222,7 @@ export const DashboardSummaryVIN = async (req: any, res: any) => {
     return createResponse(res, 500, MESSAGES?.INTERNAL_SERVER_ERROR, [], false, true);
   }
 };
+
 export const getSearchVinPop = async (req: any, res: any) => {
   try {
     const { page = 1, limit = 9, ...filters } = req.query;
@@ -236,9 +238,7 @@ export const getSearchVinPop = async (req: any, res: any) => {
 
     Object.entries(filters).forEach(([key, value]) => {
       if (value && key !== "page" && key !== "limit") {
-        if (key === "vin") {
-          queryBuilder.andWhere(`vd.${key} = :${key}`, { [key]: value });
-        } else if (key === "isRead") {
+        if (key === "isRead") {
           queryBuilder.andWhere(`vd.${key} = :${key}`, {
             [key]: value === "true" ? true : value === "false" ? false : value
           });
@@ -258,9 +258,7 @@ export const getSearchVinPop = async (req: any, res: any) => {
 
     Object.entries(filters).forEach(([key, value]) => {
       if (value && key !== "page" && key !== "limit") {
-        if (key === "vin") {
-          totalQueryBuilder.andWhere(`vd.${key} = :${key}`, { [key]: value });
-        } else if (key === "isRead") {
+        if (key === "isRead") {
           totalQueryBuilder.andWhere(`vd.${key} = :${key}`, {
             [key]: value === "true" ? true : value === "false" ? false : value
           });
@@ -299,12 +297,12 @@ export const getSearchVinPop = async (req: any, res: any) => {
       items,
     });
   } catch (error) {
+     // tslint:disable-next-line:no-console
     console.error(MESSAGES?.INTERNAL_SERVER_ERROR, error);
 
     return createResponse(res, 500, MESSAGES?.INTERNAL_SERVER_ERROR, [], false, true);
   }
-};
-
+};  
 export const getTotalKpiesData = async (req: any, res: any) => {
   try {
     const query1 = VehicleData.createQueryBuilder("vehicleData")
@@ -374,24 +372,24 @@ export const NewAlertVIN = async (req: any, res: any) => {
     // Ensure the correct table name (lowercase "vehicle_data")
     const queryBuilder = VehicleData.createQueryBuilder("vd")
       .select([
-        "vd.*",                   // Correct column selection for VehicleData
+        "vd.*",                   
         "masterstate.name AS state",
-        "masterbrand.name AS brand" // Correct alias for brand
+        "masterbrand.name AS brand"
       ])
       .leftJoin(MasterState, "masterstate", "vd.state = masterstate.code")
-      .leftJoin(MasterBrand, "masterbrand", "vd.brand = masterbrand.code") // Correct join condition
+      .leftJoin(MasterBrand, "masterbrand", "vd.brand = masterbrand.code")
       .where("vd.status = :status", { status: "Current" })
       .andWhere("vd.isOld = :isOld", { isOld: false })
-      .distinctOn(["vd.vin"])  // Use distinctOn once, with "vd.vin"
+      .distinctOn(["vd.vin"])  
       .orderBy("vd.vin")
       .addOrderBy("vd.titleBrandDate", "DESC")
       .limit(Number(limit))
       .offset(offset);
 
-    // Apply exact search filters
+    // Apply LIKE search filters
     Object.entries(filters).forEach(([key, value]) => {
       if (value) {
-        queryBuilder.andWhere(`vd."${key}" = :${key}`, { [key]: value });
+        queryBuilder.andWhere(`vd."${key}" ILIKE :${key}`, { [key]: `%${value}%` });
       }
     });
 
@@ -399,14 +397,14 @@ export const NewAlertVIN = async (req: any, res: any) => {
 
     // Query to count total distinct VINs
     const totalQueryBuilder = VehicleData.createQueryBuilder("vd")
-      .select("COUNT(DISTINCT vd.vin) AS total") // Count distinct VINs correctly
+      .select("COUNT(DISTINCT vd.vin) AS total")
       .where("vd.status = :status", { status: "Current" })
       .andWhere("vd.isOld = :isOld", { isOld: false });
 
     // Apply filters to total count query
     Object.entries(filters).forEach(([key, value]) => {
       if (value) {
-        totalQueryBuilder.andWhere(`vd."${key}" = :${key}`, { [key]: value });
+        totalQueryBuilder.andWhere(`vd."${key}" ILIKE :${key}`, { [key]: `%${value}%` });
       }
     });
 
@@ -427,7 +425,7 @@ export const NewAlertVIN = async (req: any, res: any) => {
     return createResponse(res, 500, MESSAGES?.INTERNAL_SERVER_ERROR, [], false, true);
   }
 };
-
+ 
 export const TotalUnreadAlerts = async (req: any, res: any) => {
   try {
     const totalNotificationCount = await VehicleData.createQueryBuilder("vehicle")

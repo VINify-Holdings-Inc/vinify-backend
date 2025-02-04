@@ -57,10 +57,12 @@ export const insertBulkSheetData = async (req: any, res: any) => {
       member: item?.member || null,
       isOld: false
     })) : [];
-    const updatedOldData = changedDataToComapre.map((item:any) => ({
+    const updatedOldData = changedDataToComapre.map((item: any) => ({
       ...item,
-      isOld: true
-    })); 
+      isOld: true,
+      createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),  
+    }));
+    
     const finalData = [...updatedOldData, ...newDataToInsert];
     let result1;
     let result2;
