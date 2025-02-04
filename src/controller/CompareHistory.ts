@@ -128,13 +128,19 @@ export const CompareHistoryTitalDetails = async (req: any, res: any) => {
         .set({ isRead: true }) // Update operation
         .where("id = :id", { id }) // Condition to match the record
         .execute();
-  
+
+        const totalNotificationCount = await VehicleData.createQueryBuilder("vehicle")
+        .leftJoin(MasterState, "masterstate", "vehicle.state = masterstate.code")
+        .leftJoin(MasterBrand, "masterbrand", "vehicle.brand = masterbrand.code")
+        .where("vehicle.isRead = :isRead", { isRead: false })
+        .select("COUNT(vehicle.vin)", "count") // Removed DISTINCT
+        .getRawOne();
       if (updateResult.affected === 0) {
-        return createResponse(res, 404, MESSAGES?.ACCESS_DENIED, [], false, true);
+        return createResponse(res, 404, MESSAGES?.NOT_UPDATED,{updated:false,totalNotificationCount:totalNotificationCount?.count}, false, true);
       }
   
       // Create response with success message
-      return createResponse(res, 200, MESSAGES?.DATA_FETCH_SUCCESS, { updated: true });
+      return createResponse(res, 200, MESSAGES?.DATA_FETCH_SUCCESS, { updated: true,totalNotificationCount:totalNotificationCount?.count });
     } catch (error) {
         // tslint:disable-next-line:no-console
       console.error(MESSAGES?.INTERNAL_SERVER_ERROR, error);
