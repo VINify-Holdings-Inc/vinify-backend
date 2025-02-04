@@ -84,7 +84,7 @@ export const UnreadNotificationsAlert = async (req: any, res: any) => {
         .leftJoin(MasterState, "masterstate", "vehicle.state = masterstate.code")
         .leftJoin(MasterBrand, "masterbrand", "vehicle.brand = masterbrand.code") 
         .orderBy("vehicle.vin")
-        .addOrderBy("vehicle.titleBrandDate", "DESC")
+        .addOrderBy("vehicle.createdAt", "DESC")
         .where("vehicle.isRead = :isRead", { isRead: false })
         .limit(limit)
         .offset(offset);
