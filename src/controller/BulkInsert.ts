@@ -146,8 +146,7 @@ export const DashboardSummaryVINUpdated = async (req: any, res: any) => {
     console.error(MESSAGES?.INTERNAL_SERVER_ERROR, error);
     return createResponse(res, 500, MESSAGES?.INTERNAL_SERVER_ERROR, [], false, true);
   }
-};
-
+}; 
 export const DashboardSummaryVIN = async (req: any, res: any) => {
   try {
     const { page = 1, limit = 9, ...filters } = req.query;
@@ -201,13 +200,12 @@ export const DashboardSummaryVIN = async (req: any, res: any) => {
     console.error(MESSAGES?.INTERNAL_SERVER_ERROR, error);
     return createResponse(res, 500, MESSAGES?.INTERNAL_SERVER_ERROR, [], false, true);
   }
-};
-
-
+}; 
 export const getSearchVinPop = async (req: any, res: any) => {
   try {
-    const { page = 1, limit = 9, ...filters } = req.query;
+    const { page = 1, limit = 9, oldVin, ...filters } = req.query;
     const offset = (page - 1) * limit;
+
     const queryBuilder = VehicleData.createQueryBuilder("vd")
       .select([
         "vd.*",
@@ -217,6 +215,14 @@ export const getSearchVinPop = async (req: any, res: any) => {
       .leftJoin(MasterBrand, "masterbrand", "vd.brand = masterbrand.code")
       .leftJoin(MasterState, "masterstate", "vd.state = masterstate.code");
 
+    // Apply VIN search
+    if (oldVin) {
+      queryBuilder.andWhere("LOWER(vd.vin) LIKE LOWER(:oldVin)", {
+        oldVin: `%${oldVin}%`,
+      });
+    }
+
+    // Apply other filters
     Object.entries(filters).forEach(([key, value]) => {
       if (value && key !== "page" && key !== "limit") {
         if (key === "isRead") {
@@ -231,11 +237,22 @@ export const getSearchVinPop = async (req: any, res: any) => {
       }
     });
 
+    // Add ordering
+    queryBuilder.addOrderBy("vd.titleBrandDate", "DESC");
+
+    // Pagination
     const items = await queryBuilder.limit(limit).offset(offset).getRawMany();
 
+    // Count total records
     const totalQueryBuilder = VehicleData.createQueryBuilder("vd")
       .leftJoin(MasterBrand, "masterbrand", "vd.brand = masterbrand.code")
       .leftJoin(MasterState, "masterstate", "vd.state = masterstate.code");
+
+    if (oldVin) {
+      totalQueryBuilder.andWhere("LOWER(vd.vin) LIKE LOWER(:oldVin)", {
+        oldVin: `%${oldVin}%`,
+      });
+    }
 
     Object.entries(filters).forEach(([key, value]) => {
       if (value && key !== "page" && key !== "limit") {
@@ -253,13 +270,14 @@ export const getSearchVinPop = async (req: any, res: any) => {
 
     const totalCount = await totalQueryBuilder.getCount();
     const totalPages = Math.ceil(totalCount / limit);
-    if (items?.length === 0) {
+
+    if (items.length === 0) {
       return createResponse(
         res,
         200,
         MESSAGES?.VIN_NOT_FOUND,
         {
-          page: page,
+          page,
           limit,
           totalPages,
           totalItems: totalCount,
@@ -271,19 +289,17 @@ export const getSearchVinPop = async (req: any, res: any) => {
     }
 
     return createResponse(res, 200, MESSAGES?.DATA_FETCH_SUCCESS, {
-      page: page,
+      page,
       limit,
       totalPages,
       totalItems: totalCount,
       items,
     });
   } catch (error) {
-     // tslint:disable-next-line:no-console
     console.error(MESSAGES?.INTERNAL_SERVER_ERROR, error);
-
     return createResponse(res, 500, MESSAGES?.INTERNAL_SERVER_ERROR, [], false, true);
   }
-};  
+}; 
 export const getTotalKpiesData = async (req: any, res: any) => {
   try {
     const query1 = VehicleData.createQueryBuilder("vehicleData")
