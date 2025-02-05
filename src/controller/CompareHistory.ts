@@ -116,36 +116,66 @@ export const CompareHistoryTitalDetails = async (req: any, res: any) => {
   }; 
   export const SeenUpdateAlert = async (req: any, res: any) => {
     try {
-      const { id } = req.query; 
-      // Check if id is provided
-      if (!id) {
-        return createResponse(res, 400, MESSAGES?.VIN_NOT_FOUND, [], false, true);
-      }
+      const { type = "all" } = req.query;
+      const { vins = [] } = req.body;
   
-      // Update the isRead status to true
-      const updateResult = await VehicleData.createQueryBuilder("vehicleData")
-        .update()
-        .set({ isRead: true }) // Update operation
-        .where("id = :id", { id }) // Condition to match the record
-        .execute();
-
+      if (type === "all") {
+        // Update all records without alias
+        const updateResult = await VehicleData.createQueryBuilder()
+          .update(VehicleData) // No alias here
+          .set({ isRead: true })
+          .execute();
+  
+        // Get count of unread notifications with alias
         const totalNotificationCount = await VehicleData.createQueryBuilder("vehicle")
-        .leftJoin(MasterState, "masterstate", "vehicle.state = masterstate.code")
-        .leftJoin(MasterBrand, "masterbrand", "vehicle.brand = masterbrand.code")
-        .where("vehicle.isRead = :isRead", { isRead: false })
-        .select("COUNT(vehicle.vin)", "count") // Removed DISTINCT
-        .getRawOne();
-      if (updateResult.affected === 0) {
-        return createResponse(res, 404, MESSAGES?.NOT_UPDATED,{updated:false,totalNotificationCount:totalNotificationCount?.count}, false, true);
-      }
+          .where("vehicle.isRead = :isRead", { isRead: false })
+          .getCount();
   
-      // Create response with success message
-      return createResponse(res, 200, MESSAGES?.DATA_FETCH_SUCCESS, { updated: true,totalNotificationCount:totalNotificationCount?.count });
+        return createResponse(
+          res,
+          200,
+          MESSAGES?.DATA_FETCH_SUCCESS,
+          { updated: updateResult?.affected, totalNotificationCount },
+          true,
+          false
+        );
+      } else if (type === "specific" && vins?.length > 0) {
+        // Update specific records based on VINs array without alias
+        const updateResult = await VehicleData.createQueryBuilder()
+          .update(VehicleData) // No alias here
+          .set({ isRead: true })
+          .where("id IN (:...ids)", { ids: vins }) // Corrected reference
+          .execute();
+  
+        // Get count of unread notifications with alias
+        const totalNotificationCount = await VehicleData.createQueryBuilder("vehicle")
+          .where("vehicle.isRead = :isRead", { isRead: false })
+          .getCount();
+  
+        if (updateResult.affected === 0) {
+          return createResponse(
+            res,
+            404,
+            MESSAGES?.NOT_UPDATED,
+            { updated: false, totalNotificationCount },
+            false,
+            true
+          );
+        }
+  
+        return createResponse(
+          res,
+          200,
+          MESSAGES?.DATA_FETCH_SUCCESS,
+          { updated: true, totalNotificationCount }
+        );
+      } else {
+        return createResponse(res, 400, MESSAGES?.NOT_UPDATED, [], false, true);
+      }
     } catch (error) {
-        // tslint:disable-next-line:no-console
       console.error(MESSAGES?.INTERNAL_SERVER_ERROR, error);
-
       return createResponse(res, 500, MESSAGES?.INTERNAL_SERVER_ERROR, [], false, true);
     }
   };
+  
   

@@ -23,12 +23,19 @@ export const UnreadNotificationsAlert = async (req: any, res: any) => {
       .limit(limit)
       .offset(offset);
 
-    // Apply LIKE search filters
+    // Apply search filters
     Object.entries(filters).forEach(([key, value]) => {
-      if (value) {
-        queryBuilder.andWhere(`vehicle.${key} ILIKE :${key}`, {
-          [key]: `%${value}%`,
-        });
+      if (value !== undefined && value !== null) {
+        if (key === "isRead") {
+          // Ensure boolean comparison instead of LIKE
+          queryBuilder.andWhere(`vehicle.${key} = :${key}`, {
+            [key]: value === "true", // Convert string to boolean
+          });
+        } else {
+          queryBuilder.andWhere(`vehicle.${key} ILIKE :${key}`, {
+            [key]: `%${value}%`,
+          });
+        }
       }
     });
 
@@ -37,14 +44,20 @@ export const UnreadNotificationsAlert = async (req: any, res: any) => {
     // Query to count total records 
     const totalQueryBuilder = VehicleData.createQueryBuilder("vehicle")
       .select("COUNT(vehicle.vin)", "total")
-      .leftJoin(MasterState, "masterstate", "vehicle.state = masterstate.code"); 
+      .leftJoin(MasterState, "masterstate", "vehicle.state = masterstate.code");
 
-    // Apply LIKE search filters for total count
+    // Apply search filters for total count
     Object.entries(filters).forEach(([key, value]) => {
-      if (value) {
-        totalQueryBuilder.andWhere(`vehicle.${key} ILIKE :${key}`, {
-          [key]: `%${value}%`,
-        });
+      if (value !== undefined && value !== null) {
+        if (key === "isRead") {
+          totalQueryBuilder.andWhere(`vehicle.${key} = :${key}`, {
+            [key]: value === "true",
+          });
+        } else {
+          totalQueryBuilder.andWhere(`vehicle.${key} ILIKE :${key}`, {
+            [key]: `%${value}%`,
+          });
+        }
       }
     });
 
@@ -62,9 +75,7 @@ export const UnreadNotificationsAlert = async (req: any, res: any) => {
       items: vehicles,
     });
   } catch (error: any) {
-      // tslint:disable-next-line:no-console
     console.error(MESSAGES?.INTERNAL_SERVER_ERROR, error);
-
     return createResponse(res, 500, MESSAGES?.INTERNAL_SERVER_ERROR, [], false, true);
   }
 };
