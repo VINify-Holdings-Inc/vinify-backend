@@ -11,11 +11,11 @@ import {
     userProfileUpdate, ProfileUpdate, ResetTockenCheck,
     TestRoute
 } from "../controller/LoginController";
-import { NewValidateVinData, SoapToken } from "../controller/soapController";
+import { NewValidateVinData, SoapToken, TrackVinPopController } from "../controller/soapController";
 import { CompareHistoryTitalDetails, SeenUpdateAlert } from "../controller/CompareHistory";
-import { UnreadNotificationsAlert } from "../controller/Notification";
+import { UnreadNotificationsAlert, UnreadNotificationsTopTenData } from "../controller/Notification";
 import { insertBulkSheetData } from "../controller/StoreNewPreviousData";
-const routerAdmin = express.Router();
+ const routerAdmin = express.Router();
 
 routerAdmin.post("/user-login", LoginController);
 routerAdmin.put("/user-profile-update", userProfileUpdate);
@@ -38,13 +38,16 @@ routerAdmin.post("/export-pdf", ExportPdfVINData);
 // soap data
 routerAdmin.get("/get-soap-token", SoapToken);
 routerAdmin.post("/new-validate-vin-data", NewValidateVinData);
+// track vin me populate
+routerAdmin.get("/track-vin-pop", TrackVinPopController);
 // history
 routerAdmin.get("/title-detail-history", CompareHistoryTitalDetails);
 routerAdmin.post("/seen-alert", SeenUpdateAlert);
 // unread notification
 
 routerAdmin.get("/total-unread-alert", TotalUnreadAlerts);
-routerAdmin.get("/unread-notification", UnreadNotificationsAlert);
+routerAdmin.get("/unread-notification", UnreadNotificationsAlert);//Tptal data
+routerAdmin.get("/notification-top-ten", UnreadNotificationsTopTenData);
 // dashboard-vin-summary
 routerAdmin.post("/test/:email", TestRoute);
 export default routerAdmin;
