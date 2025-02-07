@@ -6,14 +6,14 @@ import swaggerSpec from "./docs/swagger";
 import routerAdmin from "./route/index";
 import { AppDataSource } from "./DbConfig/TypeOrm";
 import { throttleMiddleware } from "./middleware/ThrottleMiddleware";
-
+import expressFileupload from 'express-fileupload'
 const app = express();
 dotenv.config();
 app.set("trust proxy", 1);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors());
-
+app.use(expressFileupload())
 // Static serve path
 app.use("/api/uploads", express.static("./src/uploads"));
 

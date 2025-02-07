@@ -15,7 +15,7 @@ export const insertBulkSheetData = async (req: any, res: any) => {
       return createResponse(res, 400, "No data provided for insertion in sheet2", [], false, true);
     }
 
-    const vehicleTemData = await VehicleDataTemp.find();
+    const vehicleTemData = await VehicleData.find();
 
     const formattedSheet1 = sheet1.map(item => ({
       vin: item?.vin || null,
@@ -42,9 +42,6 @@ export const insertBulkSheetData = async (req: any, res: any) => {
  const changedDataToComapre=await changedDataToComapreData(vehicleTemData, formattedSheet2)
  const NewData = await findDifferencesFromTemData(changedDataToComapre, formattedSheet2);
 
-    await truncateTable(VehicleData);
-    await truncateTable(VehicleDataTemp);
-
     const newDataToInsert = NewData.length > 0 ? NewData.map((item: any) => ({
       vin: item?.vin || null,
       vinId: item?.vinId || null,
@@ -66,7 +63,9 @@ export const insertBulkSheetData = async (req: any, res: any) => {
     const finalData = [...updatedOldData, ...newDataToInsert];
     let result1;
     let result2;
-    if (finalData.length > 0) {
+    if (finalData.length > 0) { 
+    await truncateTable(VehicleData);
+    await truncateTable(VehicleDataTemp); 
       result1 = await VehicleDataTemp.save(finalData);
       await VehicleData.save(finalData);
     }

@@ -6,8 +6,10 @@ import { createResponse } from "../helpers/response";
 
 export const UnreadNotificationsAlert = async (req: any, res: any) => {
   try {
-    const { page = 1, limit = 9, ...filters } = req.query;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 8;
     const offset = (page - 1) * limit;
+    const { page: _, limit: __, ...filters } = req.query; // Exclude pagination from filters
 
     // Query to fetch VINs with pagination and include masterstate.name
     const queryBuilder = VehicleData.createQueryBuilder("vehicle")
@@ -17,39 +19,44 @@ export const UnreadNotificationsAlert = async (req: any, res: any) => {
         "masterbrand.name AS brand"
       ])
       .leftJoin(MasterState, "masterstate", "vehicle.state = masterstate.code")
-      .leftJoin(MasterBrand, "masterbrand", "vehicle.brand = masterbrand.code") 
-      .orderBy("vehicle.vin")
-      .addOrderBy("vehicle.titleBrandDate", "DESC")
+      .leftJoin(MasterBrand, "masterbrand", "vehicle.brand = masterbrand.code")
+      .orderBy("vehicle.isRead", "ASC")
+      .addOrderBy("vehicle.vin", "ASC")
+      .distinct(true) // Corrected distinct usage
       .limit(limit)
       .offset(offset);
 
-    // Apply LIKE search filters
+    // Apply search filters
     Object.entries(filters).forEach(([key, value]) => {
-      if (value) {
-        queryBuilder.andWhere(`vehicle.${key} ILIKE :${key}`, {
-          [key]: `%${value}%`,
-        });
+      if (value !== undefined && value !== null) {
+        if (key === "isRead") {
+          queryBuilder.andWhere(`vehicle.${key} = :${key}`, { [key]: value === "true" });
+        } else {
+          queryBuilder.andWhere(`vehicle.${key} ILIKE :${key}`, { [key]: `%${value}%` });
+        }
       }
     });
 
     const vehicles = await queryBuilder.getRawMany();
 
-    // Query to count total records 
+    // Query to count total records
     const totalQueryBuilder = VehicleData.createQueryBuilder("vehicle")
-      .select("COUNT(vehicle.vin)", "total")
-      .leftJoin(MasterState, "masterstate", "vehicle.state = masterstate.code"); 
+      .select("COUNT(DISTINCT vehicle.id) AS total") // Corrected count query
+      .leftJoin(MasterState, "masterstate", "vehicle.state = masterstate.code");
 
-    // Apply LIKE search filters for total count
+    // Apply search filters for total count
     Object.entries(filters).forEach(([key, value]) => {
-      if (value) {
-        totalQueryBuilder.andWhere(`vehicle.${key} ILIKE :${key}`, {
-          [key]: `%${value}%`,
-        });
+      if (value !== undefined && value !== null) {
+        if (key === "isRead") {
+          totalQueryBuilder.andWhere(`vehicle.${key} = :${key}`, { [key]: value === "true" });
+        } else {
+          totalQueryBuilder.andWhere(`vehicle.${key} ILIKE :${key}`, { [key]: `%${value}%` });
+        }
       }
     });
 
     const totalResult = await totalQueryBuilder.getRawOne();
-    const totalRecords = totalResult?.total || 0;
+    const totalRecords = parseInt(totalResult?.total) || 0; // Ensure integer value
 
     // Calculate total pages
     const totalPages = Math.ceil(totalRecords / limit);
@@ -62,75 +69,41 @@ export const UnreadNotificationsAlert = async (req: any, res: any) => {
       items: vehicles,
     });
   } catch (error: any) {
-      // tslint:disable-next-line:no-console
     console.error(MESSAGES?.INTERNAL_SERVER_ERROR, error);
-
     return createResponse(res, 500, MESSAGES?.INTERNAL_SERVER_ERROR, [], false, true);
   }
 };
 
-  export const UnreadNotificationsTopTenData = async (req: any, res: any) => {
-    try {
-      const { page = 1, limit = 9, ...filters } = req.query;
-      const offset = (page - 1) * limit;
-  
-      // Query to fetch VINs with pagination and include masterstate.name
-      const queryBuilder = VehicleData.createQueryBuilder("vehicle")
-        .select([
-          "vehicle.*",
-          "masterstate.name AS state",
-          "masterbrand.name AS brand"
-        ])
-        .leftJoin(MasterState, "masterstate", "vehicle.state = masterstate.code")
-        .leftJoin(MasterBrand, "masterbrand", "vehicle.brand = masterbrand.code") 
-        .orderBy("vehicle.vin")
-        .addOrderBy("vehicle.createdAt", "DESC")
-        .where("vehicle.isRead = :isRead", { isRead: false })
-        .limit(limit)
-        .offset(offset);
-  
-      // Apply exact search filters
-      Object.entries(filters).forEach(([key, value]) => {
-        if (value) {
-          queryBuilder.andWhere(`vehicle.${key} = :${key}`, {
-            [key]: value,
-          });
-        }
-      });
-  
-      const vehicles = await queryBuilder.getRawMany();
-  
-      // Query to count total records 
-      const totalQueryBuilder = VehicleData.createQueryBuilder("vehicle")
-        .select("COUNT(vehicle.vin)", "total")
-        .leftJoin(MasterState, "masterstate", "vehicle.state = masterstate.code")
-        .where("vehicle.isRead = :isRead", { isRead: false }); 
-      // Apply exact search filters for total count
-      Object.entries(filters).forEach(([key, value]) => {
-        if (value) {
-          totalQueryBuilder.andWhere(`vehicle.${key} = :${key}`, {
-            [key]: value,
-          });
-        }
-      });
-  
-      const totalResult = await totalQueryBuilder.getRawOne();
-      const totalRecords = totalResult?.total || 0;
-  
-      // Calculate total pages
-      const totalPages = Math.ceil(totalRecords / limit);
-  
-      // Create response
-      return createResponse(res, 200, MESSAGES?.DATA_FETCH_SUCCESS, {
-        currentPage: page,
-        totalPages,
-        totalRecords,
-        items: vehicles,
-      });
-    } catch (error: any) {
-        // tslint:disable-next-line:no-console
-      console.error(MESSAGES?.INTERNAL_SERVER_ERROR, error);
-  
-      return createResponse(res, 500, MESSAGES?.INTERNAL_SERVER_ERROR, [], false, true);
-    }
-  };
+
+
+export const UnreadNotificationsTopTenData = async (req: any, res: any) => {
+  try {
+    const limit = 8;
+
+    const queryBuilder = VehicleData.createQueryBuilder("vehicle")
+      .select([
+        "vehicle.*",
+        "masterstate.name AS state",
+        "masterbrand.name AS brand"
+      ])
+      .leftJoin(MasterState, "masterstate", "vehicle.state = masterstate.code")
+      .leftJoin(MasterBrand, "masterbrand", "vehicle.brand = masterbrand.code") 
+      .orderBy("vehicle.isRead", "ASC")
+      .addOrderBy("vehicle.createdAt", "DESC")
+      .limit(limit);
+
+    const vehicles = await queryBuilder.getRawMany();
+
+    // Count total vehicles with the same filters (optional)
+    const totalRecords = await VehicleData.count();
+
+    // Create response
+    return createResponse(res, 200, MESSAGES?.DATA_FETCH_SUCCESS, {
+      totalRecords,
+      items: vehicles,
+    });
+  } catch (error: any) {
+    console.error("Error fetching unread notifications:", error);
+    return createResponse(res, 500, MESSAGES?.INTERNAL_SERVER_ERROR || "Internal Server Error", [], false, true);
+  }
+};
