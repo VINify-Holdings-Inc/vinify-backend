@@ -13,15 +13,10 @@ export const uploadToFTP = async (filePath:any, fileName:any) => {
   const client = new Client();
   client.ftp.verbose = true;
 
-  try {
-    console.log("🔄 Connecting to FTP Server...");
-    await client.access(ftpConfig);
-    console.log("✅ Connected to FTP Server!");
-
-    await client.ensureDir("/");
-    console.log(`📤 Uploading file: ${fileName}...`);
-    await client.uploadFrom(filePath, `/${fileName}`);
-    console.log("✅ File uploaded successfully!");
+  try { 
+    await client.access(ftpConfig); 
+    await client.ensureDir("/"); 
+    await client.uploadFrom(filePath, `/${fileName}`); 
   } catch (error) {
     console.error("❌ FTP Upload Error:", error);
     throw error;
@@ -34,11 +29,8 @@ export const readFromFTP = async (fileName:any) => {
   const client = new Client();
   client.ftp.verbose = true;
 
-  try {
-    console.log("🔄 Connecting to FTP Server...");
-    await client.access(ftpConfig);
-    console.log("✅ Connected to FTP Server!");
-
+  try { 
+    await client.access(ftpConfig); 
     await client.ensureDir("/");
     const tempPath = path.join(__dirname, fileName);
     await client.downloadTo(tempPath, `/${fileName}`);
@@ -47,6 +39,7 @@ export const readFromFTP = async (fileName:any) => {
     fs.unlinkSync(tempPath);
     return fileBuffer;
   } catch (error) {
+
     console.error("❌ FTP Read Error:", error);
     throw error;
   } finally {
@@ -63,13 +56,9 @@ export const FTPController = async (req:any, res:any) => {
     const uploadedFile = req.files.file;
     const uploadPath = path.join(__dirname, uploadedFile.name);
 
-    await uploadedFile.mv(uploadPath);
-    console.log(`📁 File saved locally: ${uploadPath}`);
-
+    await uploadedFile.mv(uploadPath); 
     await uploadToFTP(uploadPath, uploadedFile.name);
-    fs.unlinkSync(uploadPath);
-    console.log(`🗑️ Deleted local temporary file: ${uploadPath}`);
-
+    fs.unlinkSync(uploadPath); 
     const result = await readFromFTP(uploadedFile.name);
     res.status(200).json({ message: "File uploaded successfully!", data: result });
   } catch (error) {
