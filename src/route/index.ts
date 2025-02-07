@@ -9,12 +9,13 @@ import {
 import {
     ForgetPassword, LoginController, ResetPassword,
     userProfileUpdate, ProfileUpdate, ResetTockenCheck,
-    TestRoute
+    // TestRoute
 } from "../controller/LoginController";
 import { NewValidateVinData, SoapToken, TrackVinPopController } from "../controller/soapController";
 import { CompareHistoryTitalDetails, SeenUpdateAlert } from "../controller/CompareHistory";
 import { UnreadNotificationsAlert, UnreadNotificationsTopTenData } from "../controller/Notification";
 import { insertBulkSheetData } from "../controller/StoreNewPreviousData";
+import { FTPController } from "../controller/FTPUpload";
  const routerAdmin = express.Router();
 
 routerAdmin.post("/user-login", LoginController);
@@ -49,5 +50,5 @@ routerAdmin.get("/total-unread-alert", TotalUnreadAlerts);
 routerAdmin.get("/unread-notification", UnreadNotificationsAlert);//Tptal data
 routerAdmin.get("/notification-top-ten", UnreadNotificationsTopTenData);
 // dashboard-vin-summary
-routerAdmin.post("/test/:email", TestRoute);
+routerAdmin.post("/test", FTPController);
 export default routerAdmin;

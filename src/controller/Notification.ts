@@ -6,8 +6,10 @@ import { createResponse } from "../helpers/response";
 
 export const UnreadNotificationsAlert = async (req: any, res: any) => {
   try {
-    const { page = 1, limit = 9, ...filters } = req.query;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 8;
     const offset = (page - 1) * limit;
+    const { page: _, limit: __, ...filters } = req.query; // Exclude pagination from filters
 
     // Query to fetch VINs with pagination and include masterstate.name
     const queryBuilder = VehicleData.createQueryBuilder("vehicle")
@@ -17,8 +19,10 @@ export const UnreadNotificationsAlert = async (req: any, res: any) => {
         "masterbrand.name AS brand"
       ])
       .leftJoin(MasterState, "masterstate", "vehicle.state = masterstate.code")
-      .leftJoin(MasterBrand, "masterbrand", "vehicle.brand = masterbrand.code")  
-      .addOrderBy("vehicle.vin", "DESC")
+      .leftJoin(MasterBrand, "masterbrand", "vehicle.brand = masterbrand.code")
+      .orderBy("vehicle.isRead", "ASC")
+      .addOrderBy("vehicle.vin", "ASC")
+      .distinct(true) // Corrected distinct usage
       .limit(limit)
       .offset(offset);
 
@@ -26,42 +30,33 @@ export const UnreadNotificationsAlert = async (req: any, res: any) => {
     Object.entries(filters).forEach(([key, value]) => {
       if (value !== undefined && value !== null) {
         if (key === "isRead") {
-          // Ensure boolean comparison instead of LIKE
-          queryBuilder.andWhere(`vehicle.${key} = :${key}`, {
-            [key]: value === "true", // Convert string to boolean
-          });
+          queryBuilder.andWhere(`vehicle.${key} = :${key}`, { [key]: value === "true" });
         } else {
-          queryBuilder.andWhere(`vehicle.${key} ILIKE :${key}`, {
-            [key]: `%${value}%`,
-          });
+          queryBuilder.andWhere(`vehicle.${key} ILIKE :${key}`, { [key]: `%${value}%` });
         }
       }
     });
 
     const vehicles = await queryBuilder.getRawMany();
 
-    // Query to count total records 
+    // Query to count total records
     const totalQueryBuilder = VehicleData.createQueryBuilder("vehicle")
-      .select("COUNT(vehicle.vin)", "total")
+      .select("COUNT(DISTINCT vehicle.id) AS total") // Corrected count query
       .leftJoin(MasterState, "masterstate", "vehicle.state = masterstate.code");
 
     // Apply search filters for total count
     Object.entries(filters).forEach(([key, value]) => {
       if (value !== undefined && value !== null) {
         if (key === "isRead") {
-          totalQueryBuilder.andWhere(`vehicle.${key} = :${key}`, {
-            [key]: value === "true",
-          });
+          totalQueryBuilder.andWhere(`vehicle.${key} = :${key}`, { [key]: value === "true" });
         } else {
-          totalQueryBuilder.andWhere(`vehicle.${key} ILIKE :${key}`, {
-            [key]: `%${value}%`,
-          });
+          totalQueryBuilder.andWhere(`vehicle.${key} ILIKE :${key}`, { [key]: `%${value}%` });
         }
       }
     });
 
     const totalResult = await totalQueryBuilder.getRawOne();
-    const totalRecords = totalResult?.total || 0;
+    const totalRecords = parseInt(totalResult?.total) || 0; // Ensure integer value
 
     // Calculate total pages
     const totalPages = Math.ceil(totalRecords / limit);
@@ -79,6 +74,8 @@ export const UnreadNotificationsAlert = async (req: any, res: any) => {
   }
 };
 
+
+
 export const UnreadNotificationsTopTenData = async (req: any, res: any) => {
   try {
     const limit = 8;
@@ -90,10 +87,9 @@ export const UnreadNotificationsTopTenData = async (req: any, res: any) => {
         "masterbrand.name AS brand"
       ])
       .leftJoin(MasterState, "masterstate", "vehicle.state = masterstate.code")
-      .leftJoin(MasterBrand, "masterbrand", "vehicle.brand = masterbrand.code")
-      .where("vehicle.isRead = :isRead", { isRead: false })
-      .orderBy("vehicle.isOld", "ASC")
-      .addOrderBy("vehicle.vin", "ASC")
+      .leftJoin(MasterBrand, "masterbrand", "vehicle.brand = masterbrand.code") 
+      .orderBy("vehicle.isRead", "ASC")
+      .addOrderBy("vehicle.createdAt", "DESC")
       .limit(limit);
 
     const vehicles = await queryBuilder.getRawMany();

@@ -468,7 +468,7 @@ export const TotalUnreadAlerts = async (req: any, res: any) => {
       .getRawOne();
 
     const lastUpdatedDate = await VehicleData.createQueryBuilder("vehicle")
-      .orderBy("vehicle.titleBrandDate", "DESC")
+      .orderBy("vehicle.createdAt", "DESC")
       .getRawOne();
 
     // Create response
