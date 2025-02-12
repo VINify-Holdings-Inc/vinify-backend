@@ -1,13 +1,10 @@
 import cron from "node-cron"; 
+import { FTPReadAllController } from "../controller/FTPUpload"; 
 
-export const test = () => { 
-        cron.schedule("*/10 * * * * *", function() {
-            
-            const now = new Date();
-            const minutes = now.getMinutes();
-            const seconds = now.getSeconds();
-            // tslint:disable-next-line:no-console
-           console.log(`Current Time: ${minutes}:${seconds}`);
+export const BatchFileExecution = () => { 
+        cron.schedule("*/30 * * * *", async function() {
+            await FTPReadAllController();
+            console.log("hi....", new Date().toLocaleString());
         });
+    };
     
-};
