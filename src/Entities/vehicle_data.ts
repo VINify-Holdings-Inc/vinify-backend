@@ -25,7 +25,7 @@ export class VehicleData extends BaseEntity {
   model: string;
 
   @Column({ name: "brand", type: "varchar", nullable: true })
-  brand: number;
+  brand: string;
 
   @Column({ name: "insurance", type: "varchar", nullable: true })
   insurance: string;
