@@ -56,7 +56,6 @@ export const updateIsNotFound = (oldArray: any, newArray: any) => {
   return oldArray?.map((oldItem: any) => {
       const exists = newArray?.some((newItem: any) => 
           newItem?.vin === oldItem?.vin &&
-          newItem?.model === oldItem?.model &&
           newItem?.titleBrandDate === oldItem?.titleBrandDate &&
           newItem?.status === oldItem?.status
       );
@@ -69,12 +68,11 @@ export const findDifferencesFromTemData = (data: any, data2: any) => {
   // Normalize the data by mapping them to a consistent structure for comparison
   const normalize = (item: any) => ({
     vin: item?.vin, // Trimming whitespace from vin
-    model: item?.model, // Include model in comparison
     titleBrandDate: item?.titleBrandDate, // Stripping time part from titleBrandDate
     status: item?.status,
   });
 
-  // Find records in data2 that are different from data based on vin, model, titleBrandDate, and status
+  // Find records in data2 that are different from data based on vin, titleBrandDate, and status
   return data2.filter((item2: any) => {
     const normalizedItem2 = normalize(item2);
 
@@ -84,7 +82,6 @@ export const findDifferencesFromTemData = (data: any, data2: any) => {
       // Compare values
       return (
         normalizedItem1.vin === normalizedItem2.vin &&
-        normalizedItem1.model === normalizedItem2.model &&
         normalizedItem1.titleBrandDate === normalizedItem2.titleBrandDate &&
         normalizedItem1.status === normalizedItem2.status
       );
@@ -96,9 +93,60 @@ export const changedDataToComapreData = (oldArray: any, newArray: any) =>  {
   return newArray.filter((newItem: any) => 
       oldArray.some((oldItem: any) => 
           newItem.vin === oldItem.vin &&
-          newItem.model === oldItem.model &&
           newItem.titleBrandDate === oldItem.titleBrandDate &&
           newItem.status === oldItem.status
       )
   );
 };
+
+
+// export const updateIsNotFound = (oldArray: any, newArray: any) => {
+//   return oldArray?.map((oldItem: any) => {
+//       const exists = newArray?.some((newItem: any) => 
+//           newItem?.vin === oldItem?.vin &&
+//           newItem?.model === oldItem?.model &&
+//           newItem?.titleBrandDate === oldItem?.titleBrandDate &&
+//           newItem?.status === oldItem?.status
+//       );
+      
+//       return { ...oldItem, isNotFound: !exists };
+//   });
+// }; 
+
+// export const findDifferencesFromTemData = (data: any, data2: any) => {
+//   // Normalize the data by mapping them to a consistent structure for comparison
+//   const normalize = (item: any) => ({
+//     vin: item?.vin, // Trimming whitespace from vin
+//     model: item?.model, // Include model in comparison
+//     titleBrandDate: item?.titleBrandDate, // Stripping time part from titleBrandDate
+//     status: item?.status,
+//   });
+
+//   // Find records in data2 that are different from data based on vin, model, titleBrandDate, and status
+//   return data2.filter((item2: any) => {
+//     const normalizedItem2 = normalize(item2);
+
+//     return !data.some((item1: any) => {
+//       const normalizedItem1 = normalize(item1);
+
+//       // Compare values
+//       return (
+//         normalizedItem1.vin === normalizedItem2.vin &&
+//         normalizedItem1.model === normalizedItem2.model &&
+//         normalizedItem1.titleBrandDate === normalizedItem2.titleBrandDate &&
+//         normalizedItem1.status === normalizedItem2.status
+//       );
+//     });
+//   });
+// };
+
+// export const changedDataToComapreData = (oldArray: any, newArray: any) =>  {
+//   return newArray.filter((newItem: any) => 
+//       oldArray.some((oldItem: any) => 
+//           newItem.vin === oldItem.vin &&
+//           newItem.model === oldItem.model &&
+//           newItem.titleBrandDate === oldItem.titleBrandDate &&
+//           newItem.status === oldItem.status
+//       )
+//   );
+// };
