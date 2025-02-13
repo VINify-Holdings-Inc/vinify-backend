@@ -1,8 +1,8 @@
 import { Client } from "basic-ftp";
 import path from "path";
-import fs from "fs"; 
+import fs from "fs";
 import { ReadTheTxtFomatJson } from "../helpers/ReadTxtFile";
-import { insertBulkSheetData } from "./StoreNewPreviousData"; 
+import { insertBulkSheetData } from "./StoreNewPreviousData";
 
 const ftpConfig = {
   host: "ftp-cert.aamva.org",
@@ -39,52 +39,64 @@ export const FTPController = async (req: any, res: any) => {
 
     await uploadedFile.mv(uploadPath);
     await uploadToFTP(uploadPath, uploadedFile.name);
-    
-    return res.status(200).json({ message: "File uploaded successfully!" });
+
+    return res.json({ code:200,message: "File uploaded successfully!" ,success:true,error:false});
   } catch (error) {
     console.error("❌ Upload Error:", error);
     return res.status(500).json({ error: "File upload failed." });
   }
 };
 
-export const FTPReadAllController = async () => {
-  const client = new Client();
+const retryOperation = async (operation: Function, retries: number = 3) => {
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      return await operation();
+    } catch (error) {
+      console.error(`Attempt ${attempt} failed:`, error);
+      if (attempt === retries) throw error;
+    }
+  }
+};
+
+
+export const FTPReadAllController = async (req:any,res:any) => {
+  const client:any = new Client();
   client.ftp.verbose = true;
+  client.ftp.keepAlive = 10000;
+  client.ftp.timeout = 30000;
 
   try {
     await client.access(ftpConfig);
     await client.ensureDir("/");
 
-    const fileList = await client.list("/");
-    if (!fileList.length) {
-      console.log("No files found on FTP server.");
-      return;
-    }
+    const targetFileName = "MY.T.CINQ.TITLE.txt";
+    const localPath = path.join(__dirname, "../AAMVAFTP", targetFileName);
 
-    const targetFile = fileList.find(file => file.type === 1 && file.name === "MY.T.CINQ.TITLE.txt");
-    if (!targetFile) {
-      console.log("Target file not found on FTP server.");
-      return;
-    }
+    // Retry connection in case of failure
+    await retryOperation(() => client.downloadTo(localPath, `/${targetFileName}`));
 
-    const localPath = path.join(__dirname, "../AAMVAFTP", targetFile.name);
-    await client.downloadTo(localPath, `/${targetFile.name}`);
-    console.log(`✅ File ${targetFile.name} downloaded successfully.`);
+    console.log(`✅ File ${targetFileName} downloaded successfully.`);
 
     if (!fs.existsSync(localPath)) {
       console.log("Downloaded file not found in local directory.");
-      return;
+      return 
+      ;
     }
 
     const fileContent = fs.readFileSync(localPath, "utf8").replace(/\r\n/g, "\n");
     const parsedData = await ReadTheTxtFomatJson(fileContent);
-    await insertBulkSheetData(parsedData);
+    const inserted= await insertBulkSheetData(parsedData);
+    
+     return res.send({fileContent,parsedData,inserted,msg:"okkkay"})
     console.log("✅ Data inserted successfully from file.");
-  } catch (error) {
+  } catch (error:any) {
     console.error("❌ FTP Read All Error:", error);
+    return ;
   } finally {
-    client.close();
+    await client.close();
   }
 };
 
- 
+
+
+

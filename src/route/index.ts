@@ -15,9 +15,9 @@ import { NewValidateVinData, SoapToken, TrackVinPopController } from "../control
 import { CompareHistoryTitalDetails, SeenUpdateAlert } from "../controller/CompareHistory";
 import { UnreadNotificationsAlert, UnreadNotificationsTopTenData } from "../controller/Notification";
 // import { insertBulkSheetData } from "../controller/StoreNewPreviousData";
-import { FTPController
-    // , FTPReadAllController
- } from "../controller/FTPUpload";
+import { FTPController,
+     FTPReadAllController
+     } from "../controller/FTPUpload";
  const routerAdmin = express.Router();
 
 routerAdmin.post("/user-login", LoginController);
@@ -53,5 +53,5 @@ routerAdmin.get("/unread-notification", UnreadNotificationsAlert);//Tptal data
 routerAdmin.get("/notification-top-ten", UnreadNotificationsTopTenData);
 // dashboard-vin-summary
 routerAdmin.post("/upload-ftp-txt", FTPController);
-// routerAdmin.get("/upload-ftp-txt", FTPReadAllController);
+routerAdmin.get("/upload-ftp-txt", FTPReadAllController);
 export default routerAdmin;

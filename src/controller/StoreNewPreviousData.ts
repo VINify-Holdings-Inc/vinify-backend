@@ -119,7 +119,7 @@ export const insertBulkSheetData = async (sheet2:any) => {
     const updatedOldData = changedDataToComapre.map((item: any) => ({
       ...item,
       isOld: true,
-      createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),  
+      createdAt: item?.createdAt,  
     }));
     
     const finalData = [...updatedOldData, ...newDataToInsert];
