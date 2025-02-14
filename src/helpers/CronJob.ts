@@ -1,10 +1,10 @@
 import cron from "node-cron"; 
-// import { FTPReadAllController } from "../controller/FTPUpload"; 
+import { FTPReadAllController } from "../controller/FTPUpload"; 
 
 export const BatchFileExecution = () => { 
-    cron.schedule("*/1 * * * *", async function() {
-        // await FTPReadAllController();
-        // console.log("hi....", new Date().toLocaleString());
+    cron.schedule("0 */2 * * *", async function() {
+        await FTPReadAllController();
+        console.log("Cron job executed at:", new Date().toLocaleString());
     });
 };
 // 

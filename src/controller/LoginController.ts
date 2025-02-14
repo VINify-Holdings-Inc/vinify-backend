@@ -3,10 +3,10 @@ import { Login } from "../Entities/login";
 import { User } from "../Entities/user";
 import { sendEmail } from "../helpers/email";
 import { MESSAGES } from "../helpers/constants";
-import { createResponse } from "../helpers/response";
-import upload from "../middleware/multer";
+import { createResponse } from "../helpers/response"; 
 import { generateToken, profileCompletion } from "../helpers/utils";
- 
+import path from "path";
+ import fs from 'fs'
 export const TestRoute = async (req: any, res: any) => {
     try {
         const { email } = req.params; 
@@ -185,90 +185,7 @@ export const ResetTockenCheck = async (req: any, res: any, next: any) => {
 
         return createResponse(res, 500, MESSAGES?.INTERNAL_SERVER_ERROR, [], false, true);
     }
-};
-export const userProfileUpdate = async (req: any, res: any) => {
-    try {
-        // Handle file upload using multer
-        await new Promise<void>((resolve, reject) => {
-            upload.single("profile")(req, res, (err: any) => {
-                if (err) {
-                    return reject(createResponse(res, 400, MESSAGES?.NO_FILE_UPLOAD, [], false, true));
-                }
-                resolve();
-            });
-        });
-
-        const {
-            userId,
-            firstName,
-            lastName,
-            companyId,
-            title,
-            secondaryEmailId,
-            address,
-            phoneNumber,
-            password } = req.body;
-
-        // Validate required fields
-        if (!userId) {
-            return createResponse(res, 400, "User ID is required", [], false, true);
-        }
-
-        // Prepare update data for User table
-        const updateData: Record<string, any> = {
-            firstName,
-            lastName,
-            companyId,
-            title,
-            secondaryEmailId,
-            address,
-            phoneNumber,
-            updatedBy: userId,
-            updatedAt: new Date()
-        };
-
-        // Include profile picture if uploaded
-        if (req?.file?.filename) {
-            updateData.profile = req.file.filename;
-        }
-
-        // Update user record in User table
-        const result = await User.createQueryBuilder()
-            .update(User)
-            .set(updateData)
-            .where("userId = :userId", { userId })
-            .returning(["userId", "firstName", "lastName", "companyId", "title", "secondaryEmailId", "address", "phoneNumber", "profile", "updatedAt"])
-            .execute();
-        const profileComplete = await profileCompletion(result?.raw[0]);
-        // Check if the user was found and updated
-        if (result?.affected === 0) {
-            return createResponse(res, 404, MESSAGES?.USER_NOT_FOUND, [], false, true);
-        }
-
-        // Update password in Login table, if provided
-        if (password) {
-            await Login.createQueryBuilder()
-                .update(Login)
-                .set({ password, updatedAt: new Date(), updatedBy: userId })
-                .where("userId = :userId", { userId })
-                .execute();
-        }
-
-        const updatedUserData = result.raw[0];
-
-        return createResponse(res,
-            200, MESSAGES?.PROFILE_UPDATED,
-            { ...updatedUserData, profileComplete },
-            true,
-            false);
-
-    } catch (err) {
-        // tslint:disable-next-line:no-console
-        console.error(MESSAGES?.RESET_ERROR, err);
-
-        return createResponse(res, 500, MESSAGES?.RESET_ERROR, [], false, true);
-    }
-};
+}; 
 export const ProfileUpdate = async (req: any, res: any) => {
     const { email } = req.params;
     try {
@@ -321,3 +238,88 @@ export const ProfileUpdate = async (req: any, res: any) => {
         return res.status(500).json({ message: "Internal Server Error", error: error.message });
     }
 };
+
+export const userProfileUpdate = async (req: any, res: any) => {
+    try {
+        let profileFilename = null;
+        
+        // Handle file upload using multer
+        if (req.files && req.files.profile) {
+            const file = req.files.profile;
+            const uploadDir = path.join(__dirname, "../../uploads");  
+            // Ensure the directory exists
+            if (!fs.existsSync(uploadDir)) {
+                fs.mkdirSync(uploadDir, { recursive: true });
+            }
+
+            const uploadPath = path.join(uploadDir, file.name);
+            await file.mv(uploadPath);
+            profileFilename = file.name;
+        }
+
+        const {
+            userId,
+            firstName,
+            lastName,
+            companyId,
+            title,
+            secondaryEmailId,
+            address,
+            phoneNumber,
+            password
+        } = req.body;
+
+        // Validate required fields
+        if (!userId) {
+            return  createResponse(res, 400, "User ID is required", [], false, true);
+        }
+
+        // Prepare update data for User table
+        const updateData: Record<string, any> = {
+            firstName,
+            lastName,
+            companyId,
+            title,
+            secondaryEmailId,
+            address,
+            phoneNumber,
+            updatedBy: userId,
+            updatedAt: new Date()
+        };
+
+        // Include profile picture if uploaded
+        if (profileFilename) {
+            updateData.profile = profileFilename;
+        }
+
+        // Update user record in User table
+        const result = await User.createQueryBuilder()
+            .update(User)
+            .set(updateData)
+            .where("userId = :userId", { userId })
+            .returning(["userId", "firstName", "lastName", "companyId", "title", "secondaryEmailId", "address", "phoneNumber", "profile", "updatedAt"])
+            .execute();
+        
+        if (result.affected === 0) {
+            return createResponse(res, 404, MESSAGES?.USER_NOT_FOUND, [], false, true);
+        }
+        
+        const profileComplete = await profileCompletion(result.raw[0]);
+
+        // Update password in Login table, if provided
+        if (password) {
+            await Login.createQueryBuilder()
+                .update(Login)
+                .set({ password, updatedAt: new Date(), updatedBy: userId })
+                .where("userId = :userId", { userId })
+                .execute();
+        }
+
+        const updatedUserData = result.raw[0];
+     return   createResponse(res, 200, MESSAGES?.PROFILE_UPDATED, { ...updatedUserData, profileComplete }, true, false)
+    } catch (err) {
+        console.error(MESSAGES?.RESET_ERROR, err);
+        return createResponse(res, 200, MESSAGES?.INTERNAL_SERVER_ERROR, true, false)
+    }
+};
+
