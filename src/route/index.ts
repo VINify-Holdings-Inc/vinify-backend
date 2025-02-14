@@ -16,7 +16,7 @@ import { CompareHistoryTitalDetails, SeenUpdateAlert } from "../controller/Compa
 import { UnreadNotificationsAlert, UnreadNotificationsTopTenData } from "../controller/Notification";
 // import { insertBulkSheetData } from "../controller/StoreNewPreviousData";
 import { FTPController,
-     FTPReadAllController
+    //  FTPReadAllController
      } from "../controller/FTPUpload";
  const routerAdmin = express.Router();
 
@@ -53,5 +53,5 @@ routerAdmin.get("/unread-notification", UnreadNotificationsAlert);//Tptal data
 routerAdmin.get("/notification-top-ten", UnreadNotificationsTopTenData);
 // dashboard-vin-summary
 routerAdmin.post("/upload-ftp-txt", FTPController);
-routerAdmin.get("/upload-ftp-txt", FTPReadAllController);
+// routerAdmin.get("/upload-ftp-txt", FTPReadAllController);
 export default routerAdmin;
