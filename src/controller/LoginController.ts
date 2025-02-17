@@ -3,23 +3,23 @@ import { Login } from "../Entities/login";
 import { User } from "../Entities/user";
 import { sendEmail } from "../helpers/email";
 import { MESSAGES } from "../helpers/constants";
-import { createResponse } from "../helpers/response"; 
+import { createResponse } from "../helpers/response";
 import { generateToken, profileCompletion } from "../helpers/utils";
 import path from "path";
- import fs from 'fs'
+import fs from 'fs'
 export const TestRoute = async (req: any, res: any) => {
     try {
-        const { email } = req.params; 
+        const { email } = req.params;
         // Execute the query to fetch the user data with a LEFT JOIN on the Login table
         const queryBuilder = User.createQueryBuilder("user")
             .leftJoinAndSelect(Login, "login", "user.emailId = login.emailId")
             .where("user.emailId = :email", { email });
-            // .select([
-            //     "user.id",
-            //     "user.emailId",
-            //     "login.password",
-            //     "login.status",
-            // ]); 
+        // .select([
+        //     "user.id",
+        //     "user.emailId",
+        //     "login.password",
+        //     "login.status",
+        // ]); 
         // Execute the query
         const userData = await queryBuilder.getRawOne();
         if (!userData) {
@@ -32,7 +32,7 @@ export const TestRoute = async (req: any, res: any) => {
             success: true,
         });
     } catch (error: any) {
-          // tslint:disable-next-line:no-console
+        // tslint:disable-next-line:no-console
         console.error("Error fetching data:", error);
 
         return res.status(500).json({
@@ -185,7 +185,7 @@ export const ResetTockenCheck = async (req: any, res: any, next: any) => {
 
         return createResponse(res, 500, MESSAGES?.INTERNAL_SERVER_ERROR, [], false, true);
     }
-}; 
+};
 export const ProfileUpdate = async (req: any, res: any) => {
     const { email } = req.params;
     try {
@@ -238,23 +238,25 @@ export const ProfileUpdate = async (req: any, res: any) => {
         return res.status(500).json({ message: "Internal Server Error", error: error.message });
     }
 };
-
 export const userProfileUpdate = async (req: any, res: any) => {
     try {
+
         let profileFilename = null;
-        
+
         // Handle file upload using multer
         if (req.files && req.files.profile) {
             const file = req.files.profile;
-            const uploadDir = path.join(__dirname, "../../uploads");  
+            const uploadDir = path.join(__dirname, "../uploads");
             // Ensure the directory exists
             if (!fs.existsSync(uploadDir)) {
                 fs.mkdirSync(uploadDir, { recursive: true });
             }
 
-            const uploadPath = path.join(uploadDir, file.name);
+            const timestamp = Date.now();
+            const fileName = `${timestamp}_${file.name}`;
+            const uploadPath = path.join(uploadDir, fileName);
             await file.mv(uploadPath);
-            profileFilename = file.name;
+            profileFilename = fileName;
         }
 
         const {
@@ -271,7 +273,7 @@ export const userProfileUpdate = async (req: any, res: any) => {
 
         // Validate required fields
         if (!userId) {
-            return  createResponse(res, 400, "User ID is required", [], false, true);
+            return createResponse(res, 400, "User ID is required", [], false, true);
         }
 
         // Prepare update data for User table
@@ -299,11 +301,11 @@ export const userProfileUpdate = async (req: any, res: any) => {
             .where("userId = :userId", { userId })
             .returning(["userId", "firstName", "lastName", "companyId", "title", "secondaryEmailId", "address", "phoneNumber", "profile", "updatedAt"])
             .execute();
-        
+
         if (result.affected === 0) {
             return createResponse(res, 404, MESSAGES?.USER_NOT_FOUND, [], false, true);
         }
-        
+
         const profileComplete = await profileCompletion(result.raw[0]);
 
         // Update password in Login table, if provided
@@ -316,7 +318,7 @@ export const userProfileUpdate = async (req: any, res: any) => {
         }
 
         const updatedUserData = result.raw[0];
-     return   createResponse(res, 200, MESSAGES?.PROFILE_UPDATED, { ...updatedUserData, profileComplete }, true, false)
+        return createResponse(res, 200, MESSAGES?.PROFILE_UPDATED, { ...updatedUserData, profileComplete }, true, false)
     } catch (err) {
         console.error(MESSAGES?.RESET_ERROR, err);
         return createResponse(res, 200, MESSAGES?.INTERNAL_SERVER_ERROR, true, false)
