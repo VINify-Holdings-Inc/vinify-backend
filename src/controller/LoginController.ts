@@ -271,7 +271,7 @@ export const userProfileUpdate = async (req: any, res: any) => {
             password
         } = req.body;
 
-        // Validate required fields
+        // Validate required fields 
         if (!userId) {
             return createResponse(res, 400, "User ID is required", [], false, true);
         }
