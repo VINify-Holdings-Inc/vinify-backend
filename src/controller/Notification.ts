@@ -87,7 +87,7 @@ export const UnreadNotificationsTopTenData = async (req: any, res: any) => {
         "masterbrand.name AS brand"
       ])
       .leftJoin(MasterState, "masterstate", "vehicle.state = masterstate.code")
-      .leftJoin(MasterBrand, "masterbrand", "vehicle.brand = masterbrand.code") 
+      .leftJoin(MasterBrand, "masterbrand", "vehicle.brand = masterbrand.code")
       .orderBy("vehicle.isRead", "ASC")
       .addOrderBy("vehicle.createdAt", "DESC")
       .limit(limit);
@@ -104,6 +104,19 @@ export const UnreadNotificationsTopTenData = async (req: any, res: any) => {
     });
   } catch (error: any) {
     console.error("Error fetching unread notifications:", error);
+    return createResponse(res, 500, MESSAGES?.INTERNAL_SERVER_ERROR || "Internal Server Error", [], false, true);
+  }
+};
+
+export const VinListAutomateFileCreatetion = async (req: any, res: any) => {
+  try {
+    const data = await VehicleData.createQueryBuilder("vehicle")
+      .select("DISTINCT vehicle.vin", "vin")
+      .getRawMany(); 
+    // Create response
+    return createResponse(res, 200, MESSAGES?.DATA_FETCH_SUCCESS, data);
+  } catch (error: any) {
+    console.error("Error fetching vehicle data:", error);
     return createResponse(res, 500, MESSAGES?.INTERNAL_SERVER_ERROR || "Internal Server Error", [], false, true);
   }
 };
