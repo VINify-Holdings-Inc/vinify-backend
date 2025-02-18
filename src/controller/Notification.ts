@@ -113,7 +113,7 @@ export const VinListAutomateFileCreatetion = async (req: any, res: any) => {
     const data = await VehicleData.createQueryBuilder("vehicle")
       .select("DISTINCT vehicle.vin", "vin")
       .getRawMany(); 
-    // Create response
+    // Create response --
     return createResponse(res, 200, MESSAGES?.DATA_FETCH_SUCCESS, data);
   } catch (error: any) {
     console.error("Error fetching vehicle data:", error);
