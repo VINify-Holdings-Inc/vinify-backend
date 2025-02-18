@@ -1,6 +1,7 @@
 import { MasterBrand } from "../Entities/master_brand";
 import { MasterState } from "../Entities/master_state";
 import { VehicleData } from "../Entities/vehicle_data";
+import { VinCreateList } from "../Entities/VinCreateList";
 import { MESSAGES } from "../helpers/constants";
 import { createResponse } from "../helpers/response";
 
@@ -110,7 +111,7 @@ export const UnreadNotificationsTopTenData = async (req: any, res: any) => {
 
 export const VinListAutomateFileCreatetion = async (req: any, res: any) => {
   try {
-    const data = await VehicleData.createQueryBuilder("vehicle")
+    const data = await VinCreateList.createQueryBuilder("vehicle")
       .select("DISTINCT vehicle.vin", "vin")
       .getRawMany(); 
     // Create response --
