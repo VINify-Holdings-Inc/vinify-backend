@@ -13,7 +13,7 @@ import {
 } from "../controller/LoginController";
 import { NewValidateVinData, SoapToken, TrackVinPopController } from "../controller/soapController";
 import { CompareHistoryTitalDetails, SeenUpdateAlert } from "../controller/CompareHistory";
-import { UnreadNotificationsAlert, UnreadNotificationsTopTenData } from "../controller/Notification";
+import { UnreadNotificationsAlert, UnreadNotificationsTopTenData, VinListAutomateFileCreatetion } from "../controller/Notification";
 // import { insertBulkSheetData } from "../controller/StoreNewPreviousData";
 import { FTPController,
     //  FTPReadAllController
@@ -54,4 +54,7 @@ routerAdmin.get("/notification-top-ten", UnreadNotificationsTopTenData);
 // dashboard-vin-summary
 routerAdmin.post("/upload-ftp-txt", FTPController);
 // routerAdmin.get("/upload-ftp-txt", FTPReadAllController);
+
+//VIn List for the file createtion
+routerAdmin.get("/file-create-automation", VinListAutomateFileCreatetion)
 export default routerAdmin;
