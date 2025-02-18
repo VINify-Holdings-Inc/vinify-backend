@@ -111,13 +111,21 @@ export const UnreadNotificationsTopTenData = async (req: any, res: any) => {
 
 export const VinListAutomateFileCreatetion = async (req: any, res: any) => {
   try {
-    const data = await VinCreateList.createQueryBuilder("vehicle")
-      .select("DISTINCT vehicle.vin", "vin")
-      .getRawMany(); 
-    // Create response --
+    const query = VinCreateList.createQueryBuilder("vehicle")
+      .select("DISTINCT vehicle.vin", "vin");
+
+    // Check if vin query param exists and apply filtering
+    if (req.query.vin) {
+      query.where("vehicle.vin LIKE :vin", { vin: `%${req.query.vin}%` });
+    }
+
+    const data = await query.getRawMany();
+
+    // Create response
     return createResponse(res, 200, MESSAGES?.DATA_FETCH_SUCCESS, data);
   } catch (error: any) {
     console.error("Error fetching vehicle data:", error);
     return createResponse(res, 500, MESSAGES?.INTERNAL_SERVER_ERROR || "Internal Server Error", [], false, true);
   }
 };
+
