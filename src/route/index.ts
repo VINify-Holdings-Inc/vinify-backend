@@ -15,7 +15,7 @@ import { NewValidateVinData, SoapToken, TrackVinPopController } from "../control
 import { CompareHistoryTitalDetails, SeenUpdateAlert } from "../controller/CompareHistory";
 import { UnreadNotificationsAlert, UnreadNotificationsTopTenData, VinListAutomateFileCreatetion } from "../controller/Notification";
 // import { insertBulkSheetData } from "../controller/StoreNewPreviousData";
-import { FTPController,
+import { CreateVinTxtFileAndUpload, FTPController,
     //  FTPReadAllController
      } from "../controller/FTPUpload";
  const routerAdmin = express.Router();
@@ -49,12 +49,13 @@ routerAdmin.post("/seen-alert", SeenUpdateAlert);
 // unread notification
 
 routerAdmin.get("/total-unread-alert", TotalUnreadAlerts);
-routerAdmin.get("/unread-notification", UnreadNotificationsAlert);//Tptal data
+routerAdmin.get("/unread-notification", UnreadNotificationsAlert); // Tptal data
 routerAdmin.get("/notification-top-ten", UnreadNotificationsTopTenData);
 // dashboard-vin-summary
 routerAdmin.post("/upload-ftp-txt", FTPController);
 // routerAdmin.get("/upload-ftp-txt", FTPReadAllController);
 
-//VIn List for the file createtion
-routerAdmin.get("/file-create-automation", VinListAutomateFileCreatetion)
+// VIn List for the file createtion
+routerAdmin.get("/file-create-automation", VinListAutomateFileCreatetion);
+routerAdmin.post("/file-create-automation", CreateVinTxtFileAndUpload);
 export default routerAdmin;
