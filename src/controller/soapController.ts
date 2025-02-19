@@ -1,23 +1,20 @@
 
 import { createResponse } from "../helpers/response";
-import { VehicleData } from '../Entities/vehicle_data';
-import { MasterBrand } from '../Entities/master_brand';
-import { MasterState } from '../Entities/master_state';
-import { MESSAGES } from '../helpers/constants';
-import https from 'https';
-import axios from 'axios';
-import fs from 'fs';
-import { Parser } from 'xml2js';
+import { VehicleData } from "../Entities/vehicle_data";
+import { MasterBrand } from "../Entities/master_brand";
+import { MasterState } from "../Entities/master_state";
+import { MESSAGES } from "../helpers/constants";
+import https from "https";
+import axios from "axios";
+import fs from "fs";
+import { Parser } from "xml2js";
 import { transformVehicleDataToJson } from "../helpers/SoapHelper";
 import { SingleSoapDataToPdf } from "../Entities/SingleSoapDataToPdf";
 
-
-
 export const SoapToken = async (req: any, res: any) => {
      try {
-        const soapUrl = "https://authentication-rest-cert.aamva.org/Authentication/authenticate"; // Replace with the actual SOAP service URL
+        const soapUrl = "https://authentication-rest-cert.aamva.org/Authentication/authenticate";  
        
-
         const httpsAgent = new https.Agent({
             cert: fs.readFileSync("./certificates/TAAMVAcert-file.pem"),
             key: fs.readFileSync("./certificates/TAAAMVA.pem"),
@@ -28,7 +25,7 @@ export const SoapToken = async (req: any, res: any) => {
         const response = await axios.get(soapUrl, {
             headers: {
                 "Content-Type": "text/xml;charset=UTF-8",
-                "SOAPAction": "https://authentication-rest-cert.aamva.org/Authentication/authenticate", // Replace with the appropriate SOAPAction if needed
+                "SOAPAction": "https://authentication-rest-cert.aamva.org/Authentication/authenticate",  
             },
             httpsAgent,
         });
@@ -44,9 +41,6 @@ export const SoapToken = async (req: any, res: any) => {
         return createResponse(res, 400, "Token fetched unsuccessful.", error.message, false, true);
     }
 };
-
-
-
 
 // const convertXmlToJson = async (data:any) => {
 //     const parser = new Parser({ explicitArray: false });
@@ -67,7 +61,9 @@ export const SoapToken = async (req: any, res: any) => {
 //       const result = await parser.parseStringPromise(data);
       
 //       // Extracting the specific part you want from the result
-//       const jsonData = result['s:Envelope']['s:Body']['GetConsumerVehicleDataResponse']['GetConsumerVehicleDataResult'];
+//       const jsonData = result['s:Envelope']['s:Body']
+// ['GetConsumerVehicleDataResponse']
+// ['GetConsumerVehicleDataResult'];
   
 //       return JSON.stringify(jsonData, null, 2);
 //     } catch (err) {
@@ -75,8 +71,6 @@ export const SoapToken = async (req: any, res: any) => {
 //       return null;
 //     }
 //   };
-
-
 
 const convertXmlToJson = async (data: string): Promise<any> => {
     const parser = new Parser({ 
@@ -86,24 +80,27 @@ const convertXmlToJson = async (data: string): Promise<any> => {
 
     try {
         const result = await parser.parseStringPromise(data);
+         // tslint:disable-next-line:no-console
         console.log("Parsed JSON:", JSON.stringify(result, null, 2)); // Debugging
 
         // Dynamically find the correct response path
-        const envelope = result?.Envelope || result?.['s:Envelope'];
-        const body = envelope?.Body || envelope?.['s:Body'];
-        const response = body?.GetConsumerVehicleDataResponse || body?.['GetConsumerVehicleDataResponse'];
-        const resultData = response?.GetConsumerVehicleDataResult || response?.['GetConsumerVehicleDataResult'];
+        const envelope = result?.Envelope || result?.["s:Envelope"];
+        const body = envelope?.Body || envelope?.["s:Body"];
+        const response = body?.GetConsumerVehicleDataResponse || body.GetConsumerVehicleDataResponse;
+        const resultData = response?.GetConsumerVehicleDataResult || response.GetConsumerVehicleDataResult;
 
         return resultData ? JSON.stringify(resultData, null, 2) : null;
     } catch (err) {
+       // tslint:disable-next-line:no-console
         console.error("Error parsing XML:", err);
+
         return null;
     }
 };
 
 export const NewValidateVinData = async (req: any, res: any) => {
     try {
-        console.log("test", req.body);
+       
         const { token, vin } = req.body;
         const soapUrl = "https://vehiclesystems-cert.aamva.org/Vehicles/ConsumerAccess/2.0/GetData.svc";
         
@@ -137,9 +134,9 @@ export const NewValidateVinData = async (req: any, res: any) => {
         if (!response.data) {
             return createResponse(res, 400, "No data received from SOAP service.", null, false, true);
         }
-            let JsonData = await convertXmlToJson(response.data); 
-           const jsonDataToInsert= transformVehicleDataToJson(JSON.parse(JsonData));
-         const insertRow=  await SingleSoapDataToPdf.save(jsonDataToInsert);
+            const JsonData = await convertXmlToJson(response.data); 
+           const jsonDataToInsert = transformVehicleDataToJson(JSON.parse(JsonData));
+         const insertRow =  await SingleSoapDataToPdf.save(jsonDataToInsert);
          const queryBuilder = SingleSoapDataToPdf.createQueryBuilder("vehicle")
          .select([
            "vehicle.*", 
@@ -156,7 +153,7 @@ export const NewValidateVinData = async (req: any, res: any) => {
        // Delete the record based on VIN
        await  SingleSoapDataToPdf.delete({ vin: insertRow[0]?.vin });
        
-        return createResponse(res, 200, "Data fetched successfully.", {generatePdf:distinctVINs}, true, false);
+        return createResponse(res, 200, "Data fetched successfully.", {generatePdf: distinctVINs}, true, false);
     } catch (error: any) {
         return createResponse(res, 400, "Data fetched unsuccessful.", error, false, true);
     }
@@ -243,7 +240,9 @@ export const TrackVinPopController = async (req: any, res: any) => {
         items,
       });
     } catch (error) {
+       // tslint:disable-next-line:no-console
       console.error(MESSAGES?.INTERNAL_SERVER_ERROR, error);
+
       return createResponse(res, 500, MESSAGES?.INTERNAL_SERVER_ERROR, [], false, true);
     }
   }; 

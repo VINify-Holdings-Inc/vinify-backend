@@ -81,15 +81,14 @@ import { changedDataToComapreData, findDifferencesFromTemData, truncateTable } f
 //   }
 // }; 
 
-export const insertBulkSheetData = async (sheet2:any) => {
+export const insertBulkSheetData = async (sheet2: any) => {
   try {
   
     const vehicleTemData = await VehicleData.find();
  
-
     const formattedSheet2 = sheet2
-      .filter((item:any) => item?.vin)
-      .map((item:any) => ({
+      .filter((item: any) => item?.vin)
+      .map((item: any) => ({
         vin: item.vin,
         vinId: item?.vinId || null,
         status: item?.status || null,
@@ -101,7 +100,7 @@ export const insertBulkSheetData = async (sheet2:any) => {
         member: item?.member || null,
       }));
       
- const changedDataToComapre=await changedDataToComapreData(vehicleTemData, formattedSheet2)
+ const changedDataToComapre = await changedDataToComapreData(vehicleTemData, formattedSheet2);
  const NewData = await findDifferencesFromTemData(changedDataToComapre, formattedSheet2);
 
     const newDataToInsert = NewData.length > 0 ? NewData.map((item: any) => ({
@@ -133,7 +132,9 @@ export const insertBulkSheetData = async (sheet2:any) => {
      
     return result1;
   } catch (error) {
+     // tslint:disable-next-line:no-console
     console.error("Error during data insertion:", error);
+
     return ;
   }
 }; 

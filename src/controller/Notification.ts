@@ -1,6 +1,7 @@
 import { MasterBrand } from "../Entities/master_brand";
 import { MasterState } from "../Entities/master_state";
 import { VehicleData } from "../Entities/vehicle_data";
+import { VinCreateList } from "../Entities/VinCreateList";
 import { MESSAGES } from "../helpers/constants";
 import { createResponse } from "../helpers/response";
 
@@ -69,13 +70,12 @@ export const UnreadNotificationsAlert = async (req: any, res: any) => {
       items: vehicles,
     });
   } catch (error: any) {
+     // tslint:disable-next-line:no-console
     console.error(MESSAGES?.INTERNAL_SERVER_ERROR, error);
+
     return createResponse(res, 500, MESSAGES?.INTERNAL_SERVER_ERROR, [], false, true);
   }
-};
-
-
-
+}; 
 export const UnreadNotificationsTopTenData = async (req: any, res: any) => {
   try {
     const limit = 8;
@@ -103,20 +103,31 @@ export const UnreadNotificationsTopTenData = async (req: any, res: any) => {
       items: vehicles,
     });
   } catch (error: any) {
+     // tslint:disable-next-line:no-console
     console.error("Error fetching unread notifications:", error);
+
     return createResponse(res, 500, MESSAGES?.INTERNAL_SERVER_ERROR || "Internal Server Error", [], false, true);
   }
 };
 
 export const VinListAutomateFileCreatetion = async (req: any, res: any) => {
   try {
-    const data = await VehicleData.createQueryBuilder("vehicle")
-      .select("DISTINCT vehicle.vin", "vin")
-      .getRawMany(); 
+    const query = VinCreateList.createQueryBuilder("vehicle")
+      .select("DISTINCT vehicle.vin", "vin");
+
+    // Check if vin query param exists and apply filtering
+    if (req.query.vin) {
+      query.where("vehicle.vin LIKE :vin", { vin: `%${req.query.vin}%` });
+    }
+
+    const data = await query.getRawMany();
+
     // Create response
     return createResponse(res, 200, MESSAGES?.DATA_FETCH_SUCCESS, data);
   } catch (error: any) {
+     // tslint:disable-next-line:no-console
     console.error("Error fetching vehicle data:", error);
+
     return createResponse(res, 500, MESSAGES?.INTERNAL_SERVER_ERROR || "Internal Server Error", [], false, true);
   }
 };

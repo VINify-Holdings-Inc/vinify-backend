@@ -143,7 +143,9 @@ export const DashboardSummaryVINUpdated = async (req: any, res: any) => {
       items: distinctVINs,
     });
   } catch (error: any) {
+     // tslint:disable-next-line:no-console
     console.error(MESSAGES?.INTERNAL_SERVER_ERROR, error);
+
     return createResponse(res, 500, MESSAGES?.INTERNAL_SERVER_ERROR, [], false, true);
   }
 }; 
@@ -199,6 +201,7 @@ export const DashboardSummaryVIN = async (req: any, res: any) => {
     });
   } catch (error: any) {
     console.error(MESSAGES?.INTERNAL_SERVER_ERROR, error);
+
     return createResponse(res, 500, MESSAGES?.INTERNAL_SERVER_ERROR, [], false, true);
   }
 }; 
@@ -297,7 +300,9 @@ export const getSearchVinPop = async (req: any, res: any) => {
       items,
     });
   } catch (error) {
+     // tslint:disable-next-line:no-console
     console.error(MESSAGES?.INTERNAL_SERVER_ERROR, error);
+
     return createResponse(res, 500, MESSAGES?.INTERNAL_SERVER_ERROR, [], false, true);
   }
 }; 
@@ -453,7 +458,9 @@ export const NewAlertVIN = async (req: any, res: any) => {
       items: vinRecords,
     });
   } catch (error: any) {
+     // tslint:disable-next-line:no-console
     console.error(MESSAGES?.INTERNAL_SERVER_ERROR, error);
+
     return createResponse(res, 500, MESSAGES?.INTERNAL_SERVER_ERROR, [], false, true);
   }
 };
