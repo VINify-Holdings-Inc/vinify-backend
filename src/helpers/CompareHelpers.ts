@@ -99,7 +99,6 @@ export const changedDataToComapreData = (oldArray: any, newArray: any) =>  {
   );
 };
 
-
 // export const updateIsNotFound = (oldArray: any, newArray: any) => {
 //   return oldArray?.map((oldItem: any) => {
 //       const exists = newArray?.some((newItem: any) => 
