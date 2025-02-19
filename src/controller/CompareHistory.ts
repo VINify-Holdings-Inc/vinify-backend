@@ -173,9 +173,10 @@ export const CompareHistoryTitalDetails = async (req: any, res: any) => {
         return createResponse(res, 400, MESSAGES?.NOT_UPDATED, [], false, true);
       }
     } catch (error) {
+       // tslint:disable-next-line:no-console
       console.error(MESSAGES?.INTERNAL_SERVER_ERROR, error);
+
       return createResponse(res, 500, MESSAGES?.INTERNAL_SERVER_ERROR, [], false, true);
     }
   };
-  
   

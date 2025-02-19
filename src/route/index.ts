@@ -13,9 +13,11 @@ import {
 } from "../controller/LoginController";
 import { NewValidateVinData, SoapToken, TrackVinPopController } from "../controller/soapController";
 import { CompareHistoryTitalDetails, SeenUpdateAlert } from "../controller/CompareHistory";
-import { UnreadNotificationsAlert, UnreadNotificationsTopTenData } from "../controller/Notification";
-import { insertBulkSheetData } from "../controller/StoreNewPreviousData";
-import { FTPController } from "../controller/FTPUpload";
+import { UnreadNotificationsAlert, UnreadNotificationsTopTenData, VinListAutomateFileCreatetion } from "../controller/Notification";
+// import { insertBulkSheetData } from "../controller/StoreNewPreviousData";
+import { CreateVinTxtFileAndUpload, FTPController,
+    //  FTPReadAllController
+     } from "../controller/FTPUpload";
  const routerAdmin = express.Router();
 
 routerAdmin.post("/user-login", LoginController);
@@ -29,7 +31,7 @@ routerAdmin.post("/contact-us", insertContactUs);
 routerAdmin.get("/contact-us", readContactUs);
 routerAdmin.delete("/contact-us/:id", deleteContactUs);
 
-routerAdmin.post("/csv-import", insertBulkSheetData);
+// routerAdmin.post("/csv-import", insertBulkSheetData);
 routerAdmin.get("/search-pop-vin", getSearchVinPop);
 routerAdmin.get("/kpi-data", getTotalKpiesData);
 routerAdmin.get("/dashboard-vin-summary", DashboardSummaryVIN);
@@ -47,8 +49,13 @@ routerAdmin.post("/seen-alert", SeenUpdateAlert);
 // unread notification
 
 routerAdmin.get("/total-unread-alert", TotalUnreadAlerts);
-routerAdmin.get("/unread-notification", UnreadNotificationsAlert);//Tptal data
+routerAdmin.get("/unread-notification", UnreadNotificationsAlert); // Tptal data
 routerAdmin.get("/notification-top-ten", UnreadNotificationsTopTenData);
 // dashboard-vin-summary
-routerAdmin.post("/test", FTPController);
+routerAdmin.post("/upload-ftp-txt", FTPController);
+// routerAdmin.get("/upload-ftp-txt", FTPReadAllController);
+
+// VIn List for the file createtion
+routerAdmin.get("/file-create-automation", VinListAutomateFileCreatetion);
+routerAdmin.post("/file-create-automation", CreateVinTxtFileAndUpload);
 export default routerAdmin;
