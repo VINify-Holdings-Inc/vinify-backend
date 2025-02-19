@@ -85,7 +85,7 @@ export const ExportPdfVINData = async (req: any, res: any) => {
     // Return the fetched data
     return createResponse(res, 200, MESSAGES?.DATA_FETCH_SUCCESS, { items: data });
   } catch (error: any) {
-    // tslint:disable-next-line:no-console
+    // tslint:disable-next-line:no-console  
     console.error(MESSAGES?.INTERNAL_SERVER_ERROR, error);
 
     return createResponse(res, 500, MESSAGES?.INTERNAL_SERVER_ERROR, [], false, true);
