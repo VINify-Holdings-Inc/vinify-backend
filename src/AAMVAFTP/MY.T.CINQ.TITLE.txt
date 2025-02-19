@@ -1,13 +1,3 @@
 M  1FTCF15N5HLA06223             01N                                                                                                                                                                         
 V011FTCF15N5HLA06223             00N  1FTCF15N5HLA06223             S9                 20200301                                                000003480M                                                    
-M  1GNEC13T6YJ14DUP              03N                                                                                                                                                                         
-V011GNEC13T6YJ14DUP              00N  1GNEC13T6YJ14DUP              AA                 20160320                                                UNKNOWN                                                       
-V021GNEC13T6YJ14DUP              00N  1GNEC13T6YJ14DUP              AA                 20160320                                                UNKNOWN                                                       
-V031GNEC13T6YJ14DUP              00N  1GNEC13T6YJ14DUP              AA                 20160320                                                UNKNOWN                                                       
-M  3B7KF23DXVG700810             03N                                                                                                                                                                         
-V013B7KF23DXVG700810             02N  3B7KF23DXVG700810             AA                 20160320                                                UNKNOWN                                                       
-H013B7KF23DXVG700810                013B7KF23DXVG700810             AA                 20000101                                                EXEMPT                                                        
-H013B7KF23DXVG700810                023B7KF23DXVG700810             AA                 19970101                                                000001234K                                                    
-V023B7KF23DXVG700810             00N  3B7KF23DXVG700810             Z3                 20160320                                                UNKNOWN                                                       
-V033B7KF23DXVG700810             00N  3B7KF23DXVG700810             Z5                 20160320                                                UNKNOWN                                                       
-CTITLEMY0000000072025021200000001220250212                                                                                                                                                                   
+CTITLEMY0000000052025021800000000220250218                                                                                                                                                                   

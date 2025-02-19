@@ -21,8 +21,6 @@ export class VinCreateList extends BaseEntity {
     })
     vin: string;
 
-   
-
     @Column({
         name: "createdAt",
         type: "timestamptz",
@@ -37,5 +35,4 @@ export class VinCreateList extends BaseEntity {
     })
     updatedAt: Date;
     
-   
 }

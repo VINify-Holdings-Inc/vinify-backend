@@ -6,7 +6,7 @@ import { MESSAGES } from "../helpers/constants";
 import { createResponse } from "../helpers/response";
 import { generateToken, profileCompletion } from "../helpers/utils";
 import path from "path";
-import fs from 'fs'
+import fs from "fs";
 export const TestRoute = async (req: any, res: any) => {
     try {
         const { email } = req.params;
@@ -318,10 +318,14 @@ export const userProfileUpdate = async (req: any, res: any) => {
         }
 
         const updatedUserData = result.raw[0];
-        return createResponse(res, 200, MESSAGES?.PROFILE_UPDATED, { ...updatedUserData, profileComplete }, true, false)
+
+        return createResponse(res, 200, MESSAGES?.PROFILE_UPDATED,
+             { ...updatedUserData, profileComplete },
+              true, false);
     } catch (err) {
+         // tslint:disable-next-line:no-console
         console.error(MESSAGES?.RESET_ERROR, err);
-        return createResponse(res, 200, MESSAGES?.INTERNAL_SERVER_ERROR, true, false)
+
+        return createResponse(res, 200, MESSAGES?.INTERNAL_SERVER_ERROR, true, false);
     }
 };
-

@@ -70,13 +70,12 @@ export const UnreadNotificationsAlert = async (req: any, res: any) => {
       items: vehicles,
     });
   } catch (error: any) {
+     // tslint:disable-next-line:no-console
     console.error(MESSAGES?.INTERNAL_SERVER_ERROR, error);
+
     return createResponse(res, 500, MESSAGES?.INTERNAL_SERVER_ERROR, [], false, true);
   }
-};
-
-
-
+}; 
 export const UnreadNotificationsTopTenData = async (req: any, res: any) => {
   try {
     const limit = 8;
@@ -104,7 +103,9 @@ export const UnreadNotificationsTopTenData = async (req: any, res: any) => {
       items: vehicles,
     });
   } catch (error: any) {
+     // tslint:disable-next-line:no-console
     console.error("Error fetching unread notifications:", error);
+
     return createResponse(res, 500, MESSAGES?.INTERNAL_SERVER_ERROR || "Internal Server Error", [], false, true);
   }
 };
@@ -124,8 +125,9 @@ export const VinListAutomateFileCreatetion = async (req: any, res: any) => {
     // Create response
     return createResponse(res, 200, MESSAGES?.DATA_FETCH_SUCCESS, data);
   } catch (error: any) {
+     // tslint:disable-next-line:no-console
     console.error("Error fetching vehicle data:", error);
+
     return createResponse(res, 500, MESSAGES?.INTERNAL_SERVER_ERROR || "Internal Server Error", [], false, true);
   }
 };
-
