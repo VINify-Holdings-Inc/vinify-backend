@@ -31,7 +31,7 @@ AppDataSource.initialize()
 
 // Swagger setup
 app.use("/api-doc", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
-//  BatchFileExecution()// batch file logic automate 30 min
+//  BatchFileExecution()// batch file logic automate 30 min   
 // Routes
 app.use("/api", throttleMiddleware, routerAdmin);
 
@@ -51,7 +51,7 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
 });
 
 // Start server
-const PORT = process.env.PORT || 4800;
+const PORT = process.env.PORT || 8000;
 app.listen(PORT, () => {
  // tslint:disable-next-line:no-console
   console.log(`Hi Server is Running 🚀 at Port ${PORT}`);
