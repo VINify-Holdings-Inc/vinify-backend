@@ -15,7 +15,6 @@
                 @Column({ name: "vin", type: "varchar", nullable: true })
                 vin: string;
                
-              
                 @Column({ name: "brand", type: "varchar", nullable: true })
                 brand: number; 
               
@@ -31,10 +30,8 @@
                 @Column({ name: "ReportingEntityCategoryText", type: "varchar", nullable: true })
                 ReportingEntityCategoryText: string; 
                 
-                
                 @Column({ name: "EntityName", type: "varchar", nullable: true })
                 EntityName: string; 
-                
                 
                 @Column({
                   name: "createdAt",
