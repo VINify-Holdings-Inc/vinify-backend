@@ -16,28 +16,22 @@ export class VehicleData extends BaseEntity {
   vin: string;
 
   @Column({ name: "vinId", type: "varchar", nullable: true })
-  vinId: string;
-
-  @Column({ name: "member", type: "varchar", nullable: true })
-  member: string;
+  vinId: string; 
 
   @Column({ name: "model", type: "varchar", nullable: true })
   model: string;
 
+  @Column({ name: "make", type: "varchar", nullable: true })
+  make: string;
+
   @Column({ name: "brand", type: "varchar", nullable: true })
-  brand: string;
-
-  @Column({ name: "insurance", type: "varchar", nullable: true })
-  insurance: string;
-
-  @Column({ name: "junkSalvage", type: "varchar", nullable: true })
-  junkSalvage: string;
+  brand: string;  
 
   @Column({ name: "state", type: "varchar", nullable: true })
   state: string;
-
-  @Column({ name: "alertDate", type: "varchar", nullable: true })
-  alertDate: string;
+ 
+  @Column({ name: "alertType", type: "varchar", nullable: true })
+  alertType: string;
 
   @Column({ name: "titleBrandDate", type: "varchar", nullable: true })
   titleBrandDate: string;
@@ -47,15 +41,28 @@ export class VehicleData extends BaseEntity {
 
   @Column({ name: "status", type: "varchar", nullable: true })
   status: string;
+  //             
+
+  @Column({ name: "description", type: "varchar", nullable: true })
+  description: string;
+
+  @Column({ name: "export", type: "varchar", nullable: true })
+  export: string;
+
+  @Column({ name: "city", type: "varchar", nullable: true })
+  city: string;
+
+  @Column({ name: "rptgEntity", type: "varchar", nullable: true })
+  rptgEntity: string; 
+
+  @Column({ name: "rptgDetails", type: "varchar", nullable: true })
+  rptgDetails: string; 
 
   @Column({ name: "isRead", type: "boolean", default: false })
   isRead: boolean;
 
   @Column({ name: "isOld", type: "boolean", default: true })
-  isOld: boolean;
-
-  @Column({ name: "isNotFound", type: "boolean", default: false })
-  isNotFound: boolean; 
+  isOld: boolean; 
   
   @Column({
     name: "createdAt",
