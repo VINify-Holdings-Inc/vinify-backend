@@ -15,7 +15,7 @@ import { NewValidateVinData, SoapToken, TrackVinPopController } from "../control
 import { CompareHistoryTitalDetails, SeenUpdateAlert } from "../controller/CompareHistory";
 import { UnreadNotificationsAlert, UnreadNotificationsTopTenData, VinListAutomateFileCreatetion } from "../controller/Notification";
 // import { insertBulkSheetData } from "../controller/StoreNewPreviousData";
-import { CreateVinTxtFileAndUpload, FTPController,
+import { CreateVinTxtFileAndUpload, FTPController, testR,
     //  FTPReadAllController
      } from "../controller/FTPUpload";
  const routerAdmin = express.Router();
@@ -58,4 +58,6 @@ routerAdmin.post("/upload-ftp-txt", FTPController);
 // VIn List for the file createtion
 routerAdmin.get("/file-create-automation", VinListAutomateFileCreatetion);
 routerAdmin.post("/file-create-automation", CreateVinTxtFileAndUpload);
+
+routerAdmin.get("/test", testR);
 export default routerAdmin;
