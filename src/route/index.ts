@@ -33,7 +33,7 @@ routerAdmin.delete("/contact-us/:id", deleteContactUs);//##C
 
 // routerAdmin.post("/csv-import", insertBulkSheetData);
 routerAdmin.get("/search-pop-vin", getSearchVinPop);
-routerAdmin.get("/kpi-data", getTotalKpiesData);
+routerAdmin.get("/kpi-data", getTotalKpiesData);//##C
 routerAdmin.get("/dashboard-vin-summary", DashboardSummaryVIN); //##C
 routerAdmin.get("/dashboard-vin-summary-updated", DashboardSummaryVINUpdated);
 routerAdmin.get("/new-alerts", NewAlertVIN); //##C

@@ -92,38 +92,50 @@ export const ExportPdfVINData = async (req: any, res: any) => {
     return createResponse(res, 500, MESSAGES?.INTERNAL_SERVER_ERROR, [], false, true);
   }
 };
+ 
+
 export const DashboardSummaryVINUpdated = async (req: any, res: any) => {
   try {
     const { page = 1, limit = 9, ...filters } = req.query;
     const offset = (Number(page) - 1) * Number(limit);
 
-    const queryBuilder = VehicleData.createQueryBuilder("vd")
+    // Subquery to get the latest vehicle data per VIN
+    const subQuery = VehicleData.createQueryBuilder("vd")
+      .select("vd.*")
+      .distinctOn(["vd.vin"])
+      .orderBy("vd.vin", "ASC")
+      .addOrderBy("vd.titleBrandDate", "DESC");
+
+    // Main query to get vehicle data with additional details
+    const queryBuilder = VehicleData.createQueryBuilder()
       .select([
-        "vd.*",
+        "latest_vd.*",
         "masterstate.name AS state",
-        "masterbrand.name AS brand"
+        "masterbrand.name AS brand",
       ])
-      .leftJoin(MasterState, "masterstate", "vd.state = masterstate.code")
-      .leftJoin(MasterBrand, "masterbrand", "vd.brand = masterbrand.code")
-      .distinctOn(["vd.vin"]) 
-      .where("vd.isOld = :isOld", { isOld: false }) 
-      .addOrderBy("vd.vin", "ASC") // Ensure vin is the first order column
-      .addOrderBy("vd.titleBrandDate", "DESC") // Secondary order
+      .from(`(${subQuery.getQuery()})`, "latest_vd")
+      .leftJoin(MasterState, "masterstate", "latest_vd.state = masterstate.code")
+      .leftJoin(MasterBrand, "masterbrand", "latest_vd.brand = masterbrand.code")
+      .distinctOn(["latest_vd.vin"])
+      .where(`latest_vd."isOld" = :isOld`, { isOld: false }) // Fix case sensitivity
+      .setParameters(subQuery.getParameters())
       .limit(Number(limit))
       .offset(offset);
 
+    // Apply filters dynamically
     Object.entries(filters).forEach(([key, value]) => {
       if (value) {
-        queryBuilder.andWhere(`LOWER(vd."${key}") ILIKE LOWER(:${key})`, { [key]: `%${value}%` });
+        queryBuilder.andWhere(`LOWER(latest_vd."${key}") ILIKE LOWER(:${key})`, { [key]: `%${value}%` });
       }
     });
 
-    const temp = await queryBuilder.getRawMany();  
-    
-    const distinctVINs=await correctedData(temp)
+    const temp = await queryBuilder.getRawMany();
+    const distinctVINs = await correctedData(temp);
+
+    // Query to count total distinct VINs
     const totalQueryBuilder = VehicleData.createQueryBuilder("vd")
-      .select("COUNT(DISTINCT vd.vin)", "total") 
-      .where("vd.isOld = :isOld", { isOld: false });
+      .select("COUNT(DISTINCT vd.vin)", "total")
+      .where(`vd."isOld" = :isOld`, { isOld: false });
 
     Object.entries(filters).forEach(([key, value]) => {
       if (value) {
@@ -143,12 +155,11 @@ export const DashboardSummaryVINUpdated = async (req: any, res: any) => {
       items: distinctVINs,
     });
   } catch (error: any) {
-     // tslint:disable-next-line:no-console
     console.error(MESSAGES?.INTERNAL_SERVER_ERROR, error);
-
     return createResponse(res, 500, MESSAGES?.INTERNAL_SERVER_ERROR, [], false, true);
   }
-}; 
+};
+
 
 export const DashboardSummaryVIN = async (req: any, res: any) => {
   try {
@@ -177,7 +188,7 @@ export const DashboardSummaryVIN = async (req: any, res: any) => {
     });
 
     const temp = await queryBuilder.getRawMany();
-    const distinctVINs=await correctedData(temp)
+    const distinctVINs = await correctedData(temp)
     const totalQueryBuilder = VehicleData.createQueryBuilder("vehicle")
       .select("COUNT(DISTINCT vehicle.vin)", "total")
       .leftJoin(MasterState, "masterstate", "vehicle.state = masterstate.code");
@@ -301,49 +312,46 @@ export const getSearchVinPop = async (req: any, res: any) => {
       items,
     });
   } catch (error) {
-     // tslint:disable-next-line:no-console
+    // tslint:disable-next-line:no-console
     console.error(MESSAGES?.INTERNAL_SERVER_ERROR, error);
 
     return createResponse(res, 500, MESSAGES?.INTERNAL_SERVER_ERROR, [], false, true);
   }
-}; 
+};
 export const getTotalKpiesData = async (req: any, res: any) => {
   try {
     const query1 = VehicleData.createQueryBuilder("vehicleData")
       .select("COUNT(DISTINCT vehicleData.vin)", "uniqueVinCount");
     const totalKpiData = await query1.getRawOne();
-    const queryBuilder = VehicleData.createQueryBuilder("vehicleData")
+    const queryBuilder = VehicleData.createQueryBuilder("vehicle")
     .select([
-      "vehicleData.id",
-      "vehicleData.vin",
-      "vehicleData.titleBrandDate",
-      "vehicleData.createdAt",
-    ])
-    .distinctOn(["vehicleData.vin"]) // DISTINCT ON (vin)
-    .where("vehicleData.isOld = :isOld", { isOld: false })
-    .orderBy("vehicleData.vin", "ASC") // Primary ordering for DISTINCT ON
-    .addOrderBy("vehicleData.titleBrandDate", "DESC") // Secondary ordering
-    .addOrderBy("vehicleData.createdAt", "DESC"); // Ensure latest records
-  
-  const rawUpdated = await queryBuilder.getMany();
-  const totalUpdatedData = rawUpdated?.length;
-  
+      "vehicle.*", 
+    ]) 
+    .distinctOn(["vehicle.vin"])
+    .orderBy("vehicle.vin", "ASC") // Ensure vin is the first ORDER BY field
+    .addOrderBy("vehicle.titleBrandDate", "DESC")
+    .addOrderBy("vehicle.createdAt", "DESC")
+
+    let rawUpdated = await queryBuilder.getRawMany(); 
+    // // Apply filtering correctly and store the filtered array
+    const filteredData = rawUpdated?.filter((item: any) => !item.isOld);
+    const totalUpdatedData = filteredData?.length; 
 
     const currentQueryBuilder = VehicleData.createQueryBuilder("vehicle")
-    .select([
-      "vehicle.*",
-      "masterstate.name AS state",
-      "masterbrand.name AS brand",
-    ])
-    .leftJoin(MasterState, "masterstate", "vehicle.state = masterstate.code")
-    .leftJoin(MasterBrand, "masterbrand", "vehicle.brand = masterbrand.code")
-    .orderBy("vehicle.vin") 
-    .addOrderBy("vehicle.isOld", "ASC") 
-    .limit(3);
-  
-  let RecentAlert = await currentQueryBuilder.getRawMany();
-  
-  
+      .select([
+        "vehicle.*",
+        "masterstate.name AS state",
+        "masterbrand.name AS brand",
+      ])
+      .leftJoin(MasterState, "masterstate", "vehicle.state = masterstate.code")
+      .leftJoin(MasterBrand, "masterbrand", "vehicle.brand = masterbrand.code")
+      .orderBy("vehicle.vin")
+      .addOrderBy("vehicle.isOld", "ASC")
+      .limit(3);
+
+    let RecentAlert = await currentQueryBuilder.getRawMany();
+
+
 
     return createResponse(
       res,
@@ -379,12 +387,12 @@ export const NewAlertVIN = async (req: any, res: any) => {
     // Ensure the correct table name (lowercase "vehicle_data")
     const queryBuilder = VehicleData.createQueryBuilder("vd")
       .select([
-        "vd.*",                    
+        "vd.*",
         "masterstate.name AS state",
         "masterbrand.name AS brand"
       ])
       .leftJoin(MasterState, "masterstate", "vd.state = masterstate.code")
-      .leftJoin(MasterBrand, "masterbrand", "vd.brand = masterbrand.code") 
+      .leftJoin(MasterBrand, "masterbrand", "vd.brand = masterbrand.code")
       .where("vd.isOld = :isOld", { isOld: false })
       .orderBy("vd.vin")
       .addOrderBy("vd.titleBrandDate", "DESC")
@@ -411,7 +419,7 @@ export const NewAlertVIN = async (req: any, res: any) => {
 
     // Query to count total VINs
     const totalQueryBuilder = VehicleData.createQueryBuilder("vd")
-      .select("COUNT(vd.vin) AS total") 
+      .select("COUNT(vd.vin) AS total")
       .where("vd.isOld = :isOld", { isOld: false });
 
     // Apply filters to total count query
@@ -442,13 +450,13 @@ export const NewAlertVIN = async (req: any, res: any) => {
       items: vinRecords,
     });
   } catch (error: any) {
-     // tslint:disable-next-line:no-console
+    // tslint:disable-next-line:no-console
     console.error(MESSAGES?.INTERNAL_SERVER_ERROR, error);
 
     return createResponse(res, 500, MESSAGES?.INTERNAL_SERVER_ERROR, [], false, true);
   }
 };
- 
+
 export const TotalUnreadAlerts = async (req: any, res: any) => {
   try {
     const totalNotificationCount = await VehicleData.createQueryBuilder("vehicle")

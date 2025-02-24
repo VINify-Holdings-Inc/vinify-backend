@@ -5,6 +5,9 @@ import { parseVehicleDataJSI } from "../helpers/ReadTxtFile";
 import { parseVehicleDataBrand } from "../helpers/ReadTxtFile";
 import { ReadTheTxtFomatJson } from "../helpers/ReadTxtFile";
 import { insertBulkSheetData } from "./StoreNewPreviousData";
+import { VehicleData } from "../Entities/vehicle_data";
+import { MasterState } from "../Entities/master_state";
+import { MasterBrand } from "../Entities/master_brand";
 
 const ftpConfig = {
   host: "ftp-cert.aamva.org",
@@ -167,7 +170,34 @@ export const FTPReadAllController = async () => {
   }
 };
 
-export const testR = async(req: any, res: any) => {
-  await FTPReadAllController();
- res.send("t");
+export const testR = async (req: any, res: any) => {
+  try {
+    const subQuery = VehicleData.createQueryBuilder("vd")
+      .select("vd.*")
+      .distinctOn(["vd.vin"])
+      .orderBy("vd.vin", "ASC")
+      .addOrderBy("vd.titleBrandDate", "DESC");
+
+    const queryBuilder = VehicleData.createQueryBuilder()
+      .select([
+        "latest_vd.*",
+        "masterstate.name AS state",
+        "masterbrand.name AS brand",
+      ])
+      .from(`(${subQuery.getQuery()})`, "latest_vd")
+      .leftJoin(MasterState, "masterstate", "latest_vd.state = masterstate.code")
+      .leftJoin(MasterBrand, "masterbrand", "latest_vd.brand = masterbrand.code")
+      .distinctOn(["latest_vd.vin"])
+      // .addOrderBy("latest_vd.titleBrandDate", "DESC")
+      .where(`latest_vd."isOld" = :isOld`, { isOld: false }) // Fix column case sensitivity
+      .setParameters(subQuery.getParameters()); // Ensure parameters from subquery are used
+
+    const result = await queryBuilder.getRawMany();
+
+    res.json(result);
+  } catch (error) {
+    console.error("Error fetching data:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
 };
+
