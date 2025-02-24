@@ -35,9 +35,9 @@ routerAdmin.delete("/contact-us/:id", deleteContactUs);//##C
 routerAdmin.get("/search-pop-vin", getSearchVinPop);
 routerAdmin.get("/kpi-data", getTotalKpiesData);//##C
 routerAdmin.get("/dashboard-vin-summary", DashboardSummaryVIN); //##C
-routerAdmin.get("/dashboard-vin-summary-updated", DashboardSummaryVINUpdated);
+routerAdmin.get("/dashboard-vin-summary-updated", DashboardSummaryVINUpdated); //##C
 routerAdmin.get("/new-alerts", NewAlertVIN); //##C
-routerAdmin.post("/export-pdf", ExportPdfVINData);
+routerAdmin.post("/export-pdf", ExportPdfVINData);//##C
 // soap data
 routerAdmin.get("/get-soap-token", SoapToken); //##C
 routerAdmin.post("/new-validate-vin-data", NewValidateVinData); //##C

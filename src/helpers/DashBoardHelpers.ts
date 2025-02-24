@@ -53,7 +53,7 @@ export const correctedData = async (data: any[]) => {
             vinId: queryTitle?.vinId ?? null,
             model: item?.model,
             make: item?.make,
-            brand: queryTitle?.brand ?? queryBrand?.brand ?? null,
+            brand: item?.brand ? item?.brand :  queryBrand?.brand ,
             state: item?.state,
             alertType: item?.alertType,
             titleBrandDate: item?.titleBrandDate,
