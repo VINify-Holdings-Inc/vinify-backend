@@ -15,7 +15,7 @@ export const ReadTheTxtFomatJson = (input: any) => {
             obj.status = item2[0]?.startsWith("V") ? "Current" : "History";
             obj.vinId = item2[0]?.slice(0, 3);
             obj.brand = obj.brand = item2[1] ? String(Number(item2[1].slice(0, 2))) : item2[1].slice(0, 2);
-              obj.export =   item2[1].slice(0, 0) === "N" ? "yes" : "no";
+              obj.export = "-";
             //   vin  vinId status brand export  titleBrandDate state alertType
             obj.titleBrandDate = item2[0]?.startsWith("V") ?
                 item2[4]?.replace(/(\d{4})(\d{2})(\d{2})/, "$1-$2-$3") :
@@ -37,7 +37,7 @@ export function parseVehicleDataBrand(input: any) {
       if (parts?.length < 5) return null; // Skip invalid lines
   
       const vin = parts[0]?.substring(3);  // Remove 'B' from the VIN
-      const exportStatus = parts[1]?.endsWith("Y") ? "yes" : "no";
+      // const exportStatus = parts[1]?.endsWith("Y") ? "yes" : "no";
       const state = parts[2];
       const brand = String(Number(parts[3]));
       const titleBrandDate = parts[4]?.replace(/(\d{4})(\d{2})(\d{2})/, "$1-$2-$3");
@@ -49,7 +49,7 @@ export function parseVehicleDataBrand(input: any) {
         alertType: "Brand",
         state,
         brand,
-        export: exportStatus,
+        export: "-",
         description: "",
         city: "", 
       };

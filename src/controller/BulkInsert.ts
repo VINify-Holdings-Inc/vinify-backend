@@ -4,6 +4,7 @@ import { createResponse } from "../helpers/response";
 import { VehicleData } from "../Entities/vehicle_data";
 import { MasterState } from "../Entities/master_state";
 import { MasterBrand } from "../Entities/master_brand";
+import { correctedData } from "../helpers/DashBoardHelpers";
 
 export const ExportPdfVINData = async (req: any, res: any) => {
   try {
@@ -117,8 +118,9 @@ export const DashboardSummaryVINUpdated = async (req: any, res: any) => {
       }
     });
 
-    const distinctVINs = await queryBuilder.getRawMany();
-
+    const temp = await queryBuilder.getRawMany();  
+    
+    const distinctVINs=await correctedData(temp)
     const totalQueryBuilder = VehicleData.createQueryBuilder("vd")
       .select("COUNT(DISTINCT vd.vin)", "total") 
       .where("vd.isOld = :isOld", { isOld: false });
@@ -174,8 +176,8 @@ export const DashboardSummaryVIN = async (req: any, res: any) => {
       }
     });
 
-    const distinctVINs = await queryBuilder.getRawMany();
-
+    const temp = await queryBuilder.getRawMany();
+    const distinctVINs=await correctedData(temp)
     const totalQueryBuilder = VehicleData.createQueryBuilder("vehicle")
       .select("COUNT(DISTINCT vehicle.vin)", "total")
       .leftJoin(MasterState, "masterstate", "vehicle.state = masterstate.code");
@@ -202,6 +204,7 @@ export const DashboardSummaryVIN = async (req: any, res: any) => {
     return createResponse(res, 500, MESSAGES?.INTERNAL_SERVER_ERROR, [], false, true);
   }
 };
+
 
 export const getSearchVinPop = async (req: any, res: any) => {
   try {
@@ -310,17 +313,21 @@ export const getTotalKpiesData = async (req: any, res: any) => {
       .select("COUNT(DISTINCT vehicleData.vin)", "uniqueVinCount");
     const totalKpiData = await query1.getRawOne();
     const queryBuilder = VehicleData.createQueryBuilder("vehicleData")
-      .select([
-        "vehicleData.id",
-        "vehicleData.vin",
-      ])
-      .distinctOn(["vehicleData.vin"])
-      .where("vehicleData.isOld = :isOld", { isOld: false })
-      .orderBy("vehicleData.vin", "ASC")
-      .addOrderBy("vehicleData.titleBrandDate", "DESC");
-
-    const rawUpdated = await queryBuilder.getMany();
-    const totalUpdatedData = rawUpdated?.length; 
+    .select([
+      "vehicleData.id",
+      "vehicleData.vin",
+      "vehicleData.titleBrandDate",
+      "vehicleData.createdAt",
+    ])
+    .distinctOn(["vehicleData.vin"]) // DISTINCT ON (vin)
+    .where("vehicleData.isOld = :isOld", { isOld: false })
+    .orderBy("vehicleData.vin", "ASC") // Primary ordering for DISTINCT ON
+    .addOrderBy("vehicleData.titleBrandDate", "DESC") // Secondary ordering
+    .addOrderBy("vehicleData.createdAt", "DESC"); // Ensure latest records
+  
+  const rawUpdated = await queryBuilder.getMany();
+  const totalUpdatedData = rawUpdated?.length;
+  
 
     const currentQueryBuilder = VehicleData.createQueryBuilder("vehicle")
     .select([
@@ -330,31 +337,13 @@ export const getTotalKpiesData = async (req: any, res: any) => {
     ])
     .leftJoin(MasterState, "masterstate", "vehicle.state = masterstate.code")
     .leftJoin(MasterBrand, "masterbrand", "vehicle.brand = masterbrand.code")
-    .orderBy("vehicle.vin")
-    .where("vehicle.isOld = :isOld", { isOld: false })
-    .andWhere("vehicle.isRead = :isRead", { isRead: false })
-    .addOrderBy("vehicle.titleBrandDate", "DESC") 
+    .orderBy("vehicle.vin") 
+    .addOrderBy("vehicle.isOld", "ASC") 
     .limit(3);
   
   let RecentAlert = await currentQueryBuilder.getRawMany();
   
-  if (RecentAlert?.length === 0) {
-    const fallbackQueryBuilder = VehicleData.createQueryBuilder("vehicle")
-      .select([
-        "vehicle.*",
-        "masterstate.name AS state",
-        "masterbrand.name AS brand",
-      ])
-      .leftJoin(MasterState, "masterstate", "vehicle.state = masterstate.code")
-      .leftJoin(MasterBrand, "masterbrand", "vehicle.brand = masterbrand.code")
-      .orderBy("vehicle.vin")
-      .where("vehicle.isOld = :isOld", { isOld: false }) 
-      .addOrderBy("vehicle.titleBrandDate", "DESC")
-      .addOrderBy("vehicle.modelYear", "DESC")
-      .limit(3);
   
-    RecentAlert = await fallbackQueryBuilder.getRawMany();
-  } 
 
     return createResponse(
       res,

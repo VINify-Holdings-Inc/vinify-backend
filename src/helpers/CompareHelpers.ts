@@ -19,7 +19,7 @@ export const changedDataToComapreData = (oldArray: any, newArray: any) =>  {
           newItem.titleBrandDate === oldItem.titleBrandDate &&
           newItem.status === oldItem.status &&
           newItem.brand === oldItem.brand &&
-          newItem.export === oldItem.export &&
+          // newItem.export === oldItem.export &&
           newItem.state === oldItem.state &&
           newItem.alertType === oldItem.alertType
       )
@@ -34,7 +34,7 @@ export const findDifferencesFromTemData = (data: any, data2: any) => {
     titleBrandDate: item?.titleBrandDate, // Stripping time part from titleBrandDate
     status: item?.status,
     brand: item?.brand,
-    export: item?.export,
+    // export: item?.export,
     state: item?.state,
     alertType: item?.alertType,
   });
@@ -53,7 +53,7 @@ export const findDifferencesFromTemData = (data: any, data2: any) => {
         normalizedItem1.titleBrandDate === normalizedItem2.titleBrandDate &&
         normalizedItem1.status === normalizedItem2.status &&
         normalizedItem1.brand === normalizedItem2.brand &&
-        normalizedItem1.export === normalizedItem2.export &&
+        // normalizedItem1.export === normalizedItem2.export &&
         normalizedItem1.state === normalizedItem2.state &&
         normalizedItem1.alertType === normalizedItem2.alertType
       );
@@ -67,7 +67,7 @@ export const brandChangedDataToCompareData = (oldArray: any, newArray: any) => {
       newItem.vin === oldItem.vin &&
       newItem.titleBrandDate === oldItem.titleBrandDate &&
       newItem.brand === oldItem.brand &&
-      newItem.export === oldItem.export &&
+      // newItem.export === oldItem.export &&
       newItem.state === oldItem.state &&
       newItem.alertType === oldItem.alertType
     )
@@ -79,7 +79,7 @@ export const brandFindDifferencesFromTempData = (data: any, data2: any) => {
     vin: item?.vin,
     titleBrandDate: item?.titleBrandDate,
     brand: item?.brand,
-    export: item?.export,
+    // export: item?.export,
     state: item?.state,
     alertType: item?.alertType,
   });
@@ -94,7 +94,7 @@ export const brandFindDifferencesFromTempData = (data: any, data2: any) => {
         normalizedItem1.vin === normalizedItem2.vin &&
         normalizedItem1.titleBrandDate === normalizedItem2.titleBrandDate &&
         normalizedItem1.brand === normalizedItem2.brand &&
-        normalizedItem1.export === normalizedItem2.export &&
+        // normalizedItem1.export === normalizedItem2.export &&
         normalizedItem1.state === normalizedItem2.state &&
         normalizedItem1.alertType === normalizedItem2.alertType
       );
