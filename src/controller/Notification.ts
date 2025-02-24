@@ -3,6 +3,7 @@ import { MasterState } from "../Entities/master_state";
 import { VehicleData } from "../Entities/vehicle_data";
 import { VinCreateList } from "../Entities/VinCreateList";
 import { MESSAGES } from "../helpers/constants";
+import { correctedData } from "../helpers/DashBoardHelpers";
 import { createResponse } from "../helpers/response";
 
 export const UnreadNotificationsAlert = async (req: any, res: any) => {
@@ -38,8 +39,8 @@ export const UnreadNotificationsAlert = async (req: any, res: any) => {
       }
     });
 
-    const vehicles = await queryBuilder.getRawMany();
-
+    const temp = await queryBuilder.getRawMany(); 
+    const vehicles =  await correctedData(temp); 
     // Query to count total records
     const totalQueryBuilder = VehicleData.createQueryBuilder("vehicle")
       .select("COUNT(DISTINCT vehicle.id) AS total") // Corrected count query
@@ -90,10 +91,9 @@ export const UnreadNotificationsTopTenData = async (req: any, res: any) => {
       .leftJoin(MasterBrand, "masterbrand", "vehicle.brand = masterbrand.code")
       .orderBy("vehicle.isRead", "ASC")
       .addOrderBy("vehicle.createdAt", "DESC")
-      .limit(limit);
-
-    const vehicles = await queryBuilder.getRawMany();
-
+      .limit(limit); 
+    const temp = await queryBuilder.getRawMany(); 
+    const vehicles =  await correctedData(temp);
     // Count total vehicles with the same filters (optional)
     const totalRecords = await VehicleData.count();
 
