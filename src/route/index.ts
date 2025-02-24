@@ -20,44 +20,44 @@ import { CreateVinTxtFileAndUpload, FTPController, testR,
      } from "../controller/FTPUpload";
  const routerAdmin = express.Router();
 
-routerAdmin.post("/user-login", LoginController);
-routerAdmin.put("/user-profile-update", userProfileUpdate);
-routerAdmin.get("/user-profile/:email", ProfileUpdate);
-routerAdmin.post("/forget-password", ForgetPassword);
-routerAdmin.post("/reset-password", ResetPassword);
-routerAdmin.post("/reset-token-check", ResetTockenCheck);
+routerAdmin.post("/user-login", LoginController); //##C
+routerAdmin.put("/user-profile-update", userProfileUpdate);//##C
+routerAdmin.get("/user-profile/:email", ProfileUpdate);//##C
+routerAdmin.post("/forget-password", ForgetPassword);//##C
+routerAdmin.post("/reset-password", ResetPassword);//##C
+routerAdmin.post("/reset-token-check", ResetTockenCheck);//##C
 
-routerAdmin.post("/contact-us", insertContactUs);
-routerAdmin.get("/contact-us", readContactUs);
-routerAdmin.delete("/contact-us/:id", deleteContactUs);
+routerAdmin.post("/contact-us", insertContactUs); //##C
+routerAdmin.get("/contact-us", readContactUs);//##C
+routerAdmin.delete("/contact-us/:id", deleteContactUs);//##C
 
 // routerAdmin.post("/csv-import", insertBulkSheetData);
 routerAdmin.get("/search-pop-vin", getSearchVinPop);
 routerAdmin.get("/kpi-data", getTotalKpiesData);
-routerAdmin.get("/dashboard-vin-summary", DashboardSummaryVIN);
+routerAdmin.get("/dashboard-vin-summary", DashboardSummaryVIN); //##C
 routerAdmin.get("/dashboard-vin-summary-updated", DashboardSummaryVINUpdated);
-routerAdmin.get("/new-alerts", NewAlertVIN);
+routerAdmin.get("/new-alerts", NewAlertVIN); //##C
 routerAdmin.post("/export-pdf", ExportPdfVINData);
 // soap data
-routerAdmin.get("/get-soap-token", SoapToken);
-routerAdmin.post("/new-validate-vin-data", NewValidateVinData);
-// track vin me populate
-routerAdmin.get("/track-vin-pop", TrackVinPopController);
+routerAdmin.get("/get-soap-token", SoapToken); //##C
+routerAdmin.post("/new-validate-vin-data", NewValidateVinData); //##C
+// track vin me populate soap
+routerAdmin.get("/track-vin-pop", TrackVinPopController); //##C
 // history
 routerAdmin.get("/title-detail-history", CompareHistoryTitalDetails);
-routerAdmin.post("/seen-alert", SeenUpdateAlert);
+routerAdmin.post("/seen-alert", SeenUpdateAlert); //##C
 // unread notification
 
-routerAdmin.get("/total-unread-alert", TotalUnreadAlerts);
-routerAdmin.get("/unread-notification", UnreadNotificationsAlert); // Tptal data
+routerAdmin.get("/total-unread-alert", TotalUnreadAlerts); //##C
+routerAdmin.get("/unread-notification", UnreadNotificationsAlert);  
 routerAdmin.get("/notification-top-ten", UnreadNotificationsTopTenData);
 // dashboard-vin-summary
-routerAdmin.post("/upload-ftp-txt", FTPController);
+routerAdmin.post("/upload-ftp-txt", FTPController); //##C
 // routerAdmin.get("/upload-ftp-txt", FTPReadAllController);
 
 // VIn List for the file createtion
-routerAdmin.get("/file-create-automation", VinListAutomateFileCreatetion);
-routerAdmin.post("/file-create-automation", CreateVinTxtFileAndUpload);
+routerAdmin.get("/file-create-automation", VinListAutomateFileCreatetion); //##C
+routerAdmin.post("/file-create-automation", CreateVinTxtFileAndUpload); //##C
 
-routerAdmin.get("/test", testR);
+routerAdmin.get("/test", testR); //##C
 export default routerAdmin;
