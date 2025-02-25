@@ -58,7 +58,7 @@ export const correctedData = async (data: any[]) => {
             alertType: item?.alertType,
             titleBrandDate: item?.titleBrandDate,
             modelYear: item?.modelYear ?? null,
-            status: queryTitle?.status ?? item?.state ?? null,
+            status: item?.alertType==="Title" ? item?.status : "History",
             description: queryJsi?.description ?? null,
             export: queryJsi?.export ?? null,
             city: queryJsi?.city ?? null,

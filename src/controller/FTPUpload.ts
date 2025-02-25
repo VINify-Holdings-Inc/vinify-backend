@@ -8,6 +8,9 @@ import { insertBulkSheetData } from "./StoreNewPreviousData";
 import { VehicleData } from "../Entities/vehicle_data";
 import { MasterState } from "../Entities/master_state";
 import { MasterBrand } from "../Entities/master_brand";
+import { correctedData } from "../helpers/DashBoardHelpers";
+import { MESSAGES } from "../helpers/constants";
+import { createResponse } from "../helpers/response";
 
 const ftpConfig = {
   host: "ftp-cert.aamva.org",
@@ -171,33 +174,29 @@ export const FTPReadAllController = async () => {
 };
 
 export const testR = async (req: any, res: any) => {
-  try {
-    const subQuery = VehicleData.createQueryBuilder("vd")
-      .select("vd.*")
-      .distinctOn(["vd.vin"])
-      .orderBy("vd.vin", "ASC")
-      .addOrderBy("vd.titleBrandDate", "DESC");
-
-    const queryBuilder = VehicleData.createQueryBuilder()
+  try { 
+    const queryBuilder = VehicleData.createQueryBuilder('vd')
       .select([
-        "latest_vd.*",
+        "vd.*",
         "masterstate.name AS state",
         "masterbrand.name AS brand",
-      ])
-      .from(`(${subQuery.getQuery()})`, "latest_vd")
-      .leftJoin(MasterState, "masterstate", "latest_vd.state = masterstate.code")
-      .leftJoin(MasterBrand, "masterbrand", "latest_vd.brand = masterbrand.code")
-      .distinctOn(["latest_vd.vin"])
-      // .addOrderBy("latest_vd.titleBrandDate", "DESC")
-      .where(`latest_vd."isOld" = :isOld`, { isOld: false }) // Fix column case sensitivity
-      .setParameters(subQuery.getParameters()); // Ensure parameters from subquery are used
-
+      ]) 
+      .leftJoin(MasterState, "masterstate", "vd.state = masterstate.code")
+      .leftJoin(MasterBrand, "masterbrand", "vd.brand = masterbrand.code")  
+      .orderBy("vd.vin", "ASC")  // Ensure vin is the first ORDER BY field
+      .addOrderBy("vd.titleBrandDate", "DESC")
+      .addOrderBy("vd.createdAt", "DESC") 
+      .addOrderBy("vd.alertType", "DESC");
     const result = await queryBuilder.getRawMany();
-
-    res.json(result);
+    const items = await correctedData(result);
+    const rawData = await VehicleData.find();
+    
+ return createResponse(res, 200, MESSAGES?.DATA_FETCH_SUCCESS, { csvData: items, rawData });
+    
   } catch (error) {
     console.error("Error fetching data:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
 
