@@ -59,5 +59,5 @@ routerAdmin.post("/upload-ftp-txt", FTPController); //##C
 routerAdmin.get("/file-create-automation", VinListAutomateFileCreatetion); //##C
 routerAdmin.post("/file-create-automation", CreateVinTxtFileAndUpload); //##C
 
-routerAdmin.get("/test", testR); //##C
+routerAdmin.get("/test-csv-export", testR); //##C
 export default routerAdmin;
