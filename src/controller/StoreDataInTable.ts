@@ -1,5 +1,6 @@
 import { VehicleData } from "../Entities/vehicle_data"; 
 import { brandChangedDataToCompareData, brandFindDifferencesFromTempData, changedDataToComapreData, findDifferencesFromTemData, JsiChangedDataToCompareData, JsiFindDifferencesFromTempData, truncateTable } from "../helpers/CompareHelpers";
+import { sortByTitleBrandDateDesc } from "../helpers/SortCollection";
  
 export const insertBulkSheetData = async (title: any, brand: any, JsiContent: any) => {
   try {  
@@ -10,9 +11,9 @@ export const insertBulkSheetData = async (title: any, brand: any, JsiContent: an
   const finalDataStore = [titleData, brandData, JsiData]
   .filter(arr => arr.length > 0) // Filter out empty arrays
   .flat();  
-  
+ const SortedfinalDataStore=await sortByTitleBrandDateDesc(finalDataStore)
     await truncateTable(VehicleData); 
-      await VehicleData.save(finalDataStore); 
+      await VehicleData.save(SortedfinalDataStore); 
       return ;
   } catch (error) {
      // tslint:disable-next-line:no-console
