@@ -4,8 +4,7 @@ import { VehicleData } from "../Entities/vehicle_data";
 import { VinCreateList } from "../Entities/VinCreateList";
 import { MESSAGES } from "../helpers/constants";
 import { correctedData } from "../helpers/DashBoardHelpers";
-import { createResponse } from "../helpers/response";
-import { sortByTitleBrandDateDesc } from "../helpers/SortArray";
+import { createResponse } from "../helpers/response"; 
 
 
 export const UnreadNotificationsTopTenData = async (req: any, res: any) => {
@@ -23,9 +22,8 @@ export const UnreadNotificationsTopTenData = async (req: any, res: any) => {
       .orderBy("vehicle.isRead", "ASC")
       .addOrderBy("vehicle.createdAt", "DESC")
       .limit(limit); 
-    const temp = await queryBuilder.getRawMany();
-    const sortByTitle=await sortByTitleBrandDateDesc(temp); 
-    const vehicles =  await correctedData(sortByTitle);
+    const temp = await queryBuilder.getRawMany(); 
+    const vehicles =  await correctedData(temp);
     // Count total vehicles with the same filters (optional)
     const totalRecords = await VehicleData.count();
 

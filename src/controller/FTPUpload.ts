@@ -4,7 +4,7 @@ import fs from "fs";
 import { parseVehicleDataJSI } from "../helpers/ReadTxtFile";
 import { parseVehicleDataBrand } from "../helpers/ReadTxtFile";
 import { ReadTheTxtFomatJson } from "../helpers/ReadTxtFile";
-import { insertBulkSheetData } from "./StoreNewPreviousData";
+import { insertBulkSheetData } from "./StoreDataInTable";
 import { VehicleData } from "../Entities/vehicle_data";
 import { MasterState } from "../Entities/master_state";
 import { MasterBrand } from "../Entities/master_brand";
