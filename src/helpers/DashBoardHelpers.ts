@@ -13,7 +13,7 @@ export const correctedData = async (data: any[]) => {
                 ]) 
                 .where("vehicle.vin = :vin", { vin: item?.vin })
                 .andWhere("vehicle.alertType = :alertType", { alertType: "Title" })
-                .orderBy("vehicle.titleBrandDate", "DESC")
+                .orderBy("vehicle.alertDate", "DESC")
                 .addOrderBy("vehicle.createdAt", "DESC")
                 .limit(1)
                 .getRawOne(),
@@ -26,7 +26,7 @@ export const correctedData = async (data: any[]) => {
                 .leftJoin(MasterBrand, "masterbrand", "vehicle.brand = masterbrand.code")
                 .where("vehicle.vin = :vin", { vin: item?.vin })
                 .andWhere("vehicle.alertType = :alertType", { alertType: "Brand" })
-                .orderBy("vehicle.titleBrandDate", "DESC")
+                .orderBy("vehicle.alertDate", "DESC")
                 .addOrderBy("vehicle.createdAt", "DESC")
                 .limit(1)
                 .getRawOne(),
@@ -35,7 +35,7 @@ export const correctedData = async (data: any[]) => {
                 .select(["vehicle.*"])
                 .where("vehicle.vin = :vin", { vin: item?.vin })
                 .andWhere("vehicle.alertType = :alertType", { alertType: "JSI" })
-                .orderBy("vehicle.titleBrandDate", "DESC")
+                .orderBy("vehicle.alertDate", "DESC")
                 .addOrderBy("vehicle.createdAt", "DESC")
                 .limit(1)
                 .getRawOne()
@@ -50,7 +50,7 @@ export const correctedData = async (data: any[]) => {
             brand: item?.brand ? item?.brand :  queryBrand?.brand ,
             state: item?.state,
             alertType: item?.alertType,
-            titleBrandDate: item?.titleBrandDate,
+            alertDate: item?.alertDate,
             modelYear: item?.modelYear ?? null,
             status: item?.alertType==="Title" ? item?.status : "History",
             description: queryJsi?.description ?? null,
