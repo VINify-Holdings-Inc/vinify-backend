@@ -23,6 +23,8 @@ routerAdmin.get("/new-alerts", Controllers.NewAlertVIN);
 routerAdmin.get("/unread-notification", Controllers.UnreadNotificationsAlert); 
 routerAdmin.get("/search-pop-vin", Controllers.getSearchVinPop);
 routerAdmin.post("/export-pdf", Controllers.ExportPdfVINData); 
+//export-vin-selection-list
+routerAdmin.get("/export-vin-selection-list", Controllers.ExportPdfVINDataList); 
 
 // Bell icon section
 routerAdmin.get("/total-unread-alert", Controllers.TotalUnreadAlerts); 

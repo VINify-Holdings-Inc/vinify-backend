@@ -92,4 +92,27 @@ export const TotalUnreadAlerts = async (req: any, res: any) => {
 
     return createResponse(res, 500, MESSAGES?.INTERNAL_SERVER_ERROR, [], false, true);
   }
+};  // ExportPdfVINDataList
+
+export const ExportPdfVINDataList = async (req: any, res: any) => {
+  try {
+    const query = VehicleData.createQueryBuilder("vehicle")
+    .select("DISTINCT vehicle.vin", "vin")
+    .addSelect("vehicle.id", "id");
+
+    // Check if vin query param exists and apply filtering
+    if (req.query.vin) {
+      query.where("vehicle.vin LIKE :vin", { vin: `%${req.query.vin}%` });
+    }
+
+    const data = await query.getRawMany();
+
+    // Create response
+    return createResponse(res, 200, MESSAGES?.DATA_FETCH_SUCCESS, data);
+  } catch (error: any) {
+     // tslint:disable-next-line:no-console
+    console.error("Error fetching vehicle data:", error);
+
+    return createResponse(res, 500, MESSAGES?.INTERNAL_SERVER_ERROR || "Internal Server Error", [], false, true);
+  }
 };
