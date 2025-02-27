@@ -1,5 +1,5 @@
-import { MasterBrand } from "../Entities/master_brand";
-import { MasterState } from "../Entities/master_state";
+ 
+import { MasterBrand } from "../Entities/master_brand"; 
 import { VehicleData } from "../Entities/vehicle_data";
 
 export const correctedData = async (data: any[]) => {
@@ -9,12 +9,8 @@ export const correctedData = async (data: any[]) => {
         const [queryTitle, queryBrand, queryJsi] = await Promise.all([
             VehicleData.createQueryBuilder("vehicle")
                 .select([
-                    "vehicle.*",
-                    "masterstate.name AS state",
-                    "masterbrand.name AS brand"
-                ])
-                .leftJoin(MasterState, "masterstate", "vehicle.state = masterstate.code")
-                .leftJoin(MasterBrand, "masterbrand", "vehicle.brand = masterbrand.code")
+                    "vehicle.*", 
+                ]) 
                 .where("vehicle.vin = :vin", { vin: item?.vin })
                 .andWhere("vehicle.alertType = :alertType", { alertType: "Title" })
                 .orderBy("vehicle.titleBrandDate", "DESC")
@@ -24,11 +20,9 @@ export const correctedData = async (data: any[]) => {
 
             VehicleData.createQueryBuilder("vehicle")
                 .select([
-                    "vehicle.*",
-                    "masterstate.name AS state",
+                    "vehicle.*", 
                     "masterbrand.name AS brand"
-                ])
-                .leftJoin(MasterState, "masterstate", "vehicle.state = masterstate.code")
+                ]) 
                 .leftJoin(MasterBrand, "masterbrand", "vehicle.brand = masterbrand.code")
                 .where("vehicle.vin = :vin", { vin: item?.vin })
                 .andWhere("vehicle.alertType = :alertType", { alertType: "Brand" })

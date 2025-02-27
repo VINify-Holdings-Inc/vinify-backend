@@ -4,11 +4,7 @@ import fs from "fs";
 import { parseVehicleDataJSI } from "../helpers/ReadTxtFile";
 import { parseVehicleDataBrand } from "../helpers/ReadTxtFile";
 import { ReadTheTxtFomatJson } from "../helpers/ReadTxtFile";
-import { insertBulkSheetData } from "./StoreDataInTable";
-import { VehicleData } from "../Entities/vehicle_data";
-import { MasterState } from "../Entities/master_state";
-import { MasterBrand } from "../Entities/master_brand";
-import { correctedData } from "../helpers/DashBoardHelpers";
+import { insertBulkSheetData } from "./StoreDataInTable"; 
 import { MESSAGES } from "../helpers/constants";
 import { createResponse } from "../helpers/response";
 
@@ -164,7 +160,7 @@ export const FTPReadAllController = async () => {
     const JsiContent = await parseVehicleDataJSI(fileContentJsi); 
     await insertBulkSheetData(titleContent, brandContent, JsiContent);
 
-    // await removeAllFilesFromFTP(client);
+    await removeAllFilesFromFTP(client);
     return; 
   } catch (error) {
     console.error("❌ FTP Read All Error:", error);
@@ -175,23 +171,9 @@ export const FTPReadAllController = async () => {
 
 export const testR = async (req: any, res: any) => {
   try { 
-    const queryBuilder = VehicleData.createQueryBuilder('vd')
-      .select([
-        "vd.*",
-        "masterstate.name AS state",
-        "masterbrand.name AS brand",
-      ]) 
-      .leftJoin(MasterState, "masterstate", "vd.state = masterstate.code")
-      .leftJoin(MasterBrand, "masterbrand", "vd.brand = masterbrand.code")  
-      .orderBy("vd.vin", "ASC")  // Ensure vin is the first ORDER BY field
-      .addOrderBy("vd.titleBrandDate", "DESC")
-      .addOrderBy("vd.createdAt", "DESC") 
-      .addOrderBy("vd.alertType", "DESC");
-    const result = await queryBuilder.getRawMany();
-    const items = await correctedData(result);
-    const rawData = await VehicleData.find();
+    await FTPReadAllController()
     
- return createResponse(res, 200, MESSAGES?.DATA_FETCH_SUCCESS, { csvData: items, rawData });
+ return createResponse(res, 200, MESSAGES?.DATA_FETCH_SUCCESS);
     
   } catch (error) {
     console.error("Error fetching data:", error);

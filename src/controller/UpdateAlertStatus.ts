@@ -1,4 +1,5 @@
 import { VehicleData } from "../Entities/vehicle_data";
+import { VehicleDataTemp } from "../Entities/vehicle_data_temp";
 import { MESSAGES } from "../helpers/constants";
 import { createResponse } from "../helpers/response";
 
@@ -10,6 +11,11 @@ export const UpdateSeenUpdateAlert = async (req: any, res: any) => {
     if (type === "all") {
       // Update all records without alias
       const updateResult = await VehicleData.createQueryBuilder()
+        .update(VehicleData) // No alias here
+        .set({ isRead: true })
+        .execute();
+
+        await VehicleDataTemp.createQueryBuilder()
         .update(VehicleData) // No alias here
         .set({ isRead: true })
         .execute();
@@ -35,6 +41,11 @@ export const UpdateSeenUpdateAlert = async (req: any, res: any) => {
         .where("id IN (:...ids)", { ids: vins }) // Corrected reference
         .execute();
 
+          await VehicleDataTemp.createQueryBuilder()
+        .update(VehicleData) // No alias here
+        .set({ isRead: true })
+        .where("id IN (:...ids)", { ids: vins }) // Corrected reference
+        .execute();
       // Get count of unread notifications with alias
       const totalNotificationCount = await VehicleData.createQueryBuilder("vehicle")
         .where("vehicle.isRead = :isRead", { isRead: false })
