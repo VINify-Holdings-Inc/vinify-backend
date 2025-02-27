@@ -33,8 +33,8 @@ export class VehicleData extends BaseEntity {
   @Column({ name: "alertType", type: "varchar", nullable: true })
   alertType: string;
 
-  @Column({ name: "titleBrandDate", type: "varchar", nullable: true })
-  titleBrandDate: string;
+  @Column({ name: "alertDate", type: "varchar", nullable: true })
+  alertDate: string;
 
   @Column({ name: "modelYear", type: "varchar", nullable: true })
   modelYear: string;

@@ -16,8 +16,8 @@ export const ReadTheTxtFomatJson = (input: any) => {
             obj.vinId = item2[0]?.slice(0, 3);
             obj.brand = obj.brand = item2[1] ? String(Number(item2[1].slice(0, 2))) : item2[1].slice(0, 2);
               obj.export = "-";
-            //   vin  vinId status brand export  titleBrandDate state alertType
-            obj.titleBrandDate = item2[0]?.startsWith("V") ?
+            //   vin  vinId status brand export  alertDate state alertType
+            obj.alertDate = item2[0]?.startsWith("V") ?
                 item2[4]?.replace(/(\d{4})(\d{2})(\d{2})/, "$1-$2-$3") :
                 item2[3]?.replace(/(\d{4})(\d{2})(\d{2})/, "$1-$2-$3");
             obj.state = item2[0]?.startsWith("V") ? item2[3] : item2[2];
@@ -40,12 +40,12 @@ export function parseVehicleDataBrand(input: any) {
       // const exportStatus = parts[1]?.endsWith("Y") ? "yes" : "no";
       const state = parts[2];
       const brand = String(Number(parts[3]));
-      const titleBrandDate = parts[4]?.replace(/(\d{4})(\d{2})(\d{2})/, "$1-$2-$3");
+      const alertDate = parts[4]?.replace(/(\d{4})(\d{2})(\d{2})/, "$1-$2-$3");
 
-      //   vin    status brand export  titleBrandDate state alertType      
+      //   vin    status brand export  alertDate state alertType      
       return {
         vin,
-        titleBrandDate,
+        alertDate,
         alertType: "Brand",
         state,
         brand,
@@ -66,10 +66,10 @@ export function parseVehicleDataBrand(input: any) {
         if (parts?.length < 5) return null; // Ensure valid lines
   
         const vin = parts[0]?.substring(1); // Extract VIN (remove first character)
-        const titleBrandDateMatch = parts[1]?.match(/^(\d{8})/); // Extract date if present
-        const titleBrandDate = titleBrandDateMatch ? titleBrandDateMatch[1]?.replace(/(\d{4})(\d{2})(\d{2})/, "$1-$2-$3") : "";
+        const alertDateMatch = parts[1]?.match(/^(\d{8})/); // Extract date if present
+        const alertDate = alertDateMatch ? alertDateMatch[1]?.replace(/(\d{4})(\d{2})(\d{2})/, "$1-$2-$3") : "";
         
-        const description = parts[1]?.replace(titleBrandDateMatch[1], "").trim(); // Extract description
+        const description = parts[1]?.replace(alertDateMatch[1], "").trim(); // Extract description
         
         const exportStatus = parts[2]?.startsWith("Y") ? "yes" : "no"; // Extract Export (Y/N)
         
@@ -80,10 +80,10 @@ export function parseVehicleDataBrand(input: any) {
         const state = stateMatch ? stateMatch[1] : "";
   
         const rptgDetails = parts[parts?.length - 2]?.replace(state, "")?.trim(); 
-        // vin      export  titleBrandDate state alertType description city rptgEntity rptgDetails
+        // vin      export  alertDate state alertType description city rptgEntity rptgDetails
         return {
           alertType: "JSI",
-          titleBrandDate,
+          alertDate,
           state,
           brand: "",
           export: exportStatus,
@@ -99,4 +99,4 @@ export function parseVehicleDataBrand(input: any) {
       })?.filter((item: any) => item !== null); // Remove null entries
   }
   
-          // vin  vinId status brand export  titleBrandDate state alertType description city rptgEntity rptgDetails
+          // vin  vinId status brand export  alertDate state alertType description city rptgEntity rptgDetails
