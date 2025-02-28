@@ -17,7 +17,7 @@ export const getTotalKpiesData = async (req: any, res: any) => {
       ])
       .distinctOn(["vehicle.vin"])
       .orderBy("vehicle.vin", "ASC") // Ensure vin is the first ORDER BY field
-      .addOrderBy("vehicle.alertDate", "DESC")
+      .addOrderBy("vehicle.titleBrandDate", "DESC")
       // .addOrderBy("vehicle.createdAt", "DESC")
       // .addOrderBy("vehicle.alertType", "DESC");
     let rawUpdated = await queryBuilder.getRawMany();

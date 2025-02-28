@@ -20,7 +20,7 @@ export const CompareHistoryTitalDetails = async (req: any, res: any) => {
       .leftJoin(MasterState, "masterstate", "vehicle.state = masterstate.code")
       .leftJoin(MasterBrand, "masterbrand", "vehicle.brand = masterbrand.code")
       .orderBy("vehicle.vin")
-      .addOrderBy("vehicle.alertDate", "DESC");
+      .addOrderBy("vehicle.titleBrandDate", "DESC");
 
     // Apply exact search filters to current data query
     Object.entries(filters).forEach(([key, value]) => {
@@ -61,7 +61,7 @@ export const CompareHistoryTitalDetails = async (req: any, res: any) => {
       .leftJoin(MasterBrand, "masterbrand", "vehicle.brand = masterbrand.code")
       .where("vehicle.isOld = :isOld", { isOld: true })
       .orderBy("vehicle.vin")
-      .addOrderBy("vehicle.alertDate", "DESC");
+      .addOrderBy("vehicle.titleBrandDate", "DESC");
 
     // Apply exact search filters to history data query
     Object.entries(filters).forEach(([key, value]) => {

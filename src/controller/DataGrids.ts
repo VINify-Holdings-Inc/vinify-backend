@@ -19,7 +19,7 @@ export const DashboardSummaryVIN = async (req: any, res: any) => {
       ])
       .leftJoin(MasterState, "masterstate", "vehicle.state = masterstate.code")
       .leftJoin(MasterBrand, "masterbrand", "vehicle.brand = masterbrand.code")
-      .orderBy("vehicle.alertDate", "DESC")
+      .orderBy("vehicle.titleBrandDate", "DESC")
       .addOrderBy("vehicle.vin", "ASC")
       .limit(limit)
       .offset(offset);
@@ -70,7 +70,7 @@ export const DashboardSummaryVINUpdated = async (req: any, res: any) => {
       ])
       .leftJoin(MasterState, "masterstate", "vehicle.state = masterstate.code")
       .leftJoin(MasterBrand, "masterbrand", "vehicle.brand = masterbrand.code")
-      .orderBy("vehicle.alertDate", "DESC")
+      .orderBy("vehicle.titleBrandDate", "DESC")
       .addOrderBy("vehicle.vin", "ASC")
       .where("vehicle.isOld = :isOld", { isOld: false })
       .limit(limit)
@@ -126,7 +126,7 @@ export const NewAlertVIN = async (req: any, res: any) => {
       .leftJoin(MasterState, "masterstate", "vd.state = masterstate.code")
       .leftJoin(MasterBrand, "masterbrand", "vd.brand = masterbrand.code")
       .where("vd.isOld = :isOld", { isOld: false })
-      .orderBy("vd.alertDate", "DESC")
+      .orderBy("vd.titleBrandDate", "DESC")
       // .addOrderBy("vd.alertType", "DESC")
       .limit(Number(limit))
       .offset(offset);
@@ -205,7 +205,7 @@ export const UnreadNotificationsAlert = async (req: any, res: any) => {
       ])
       .leftJoin(MasterState, "masterstate", "vehicle.state = masterstate.code")
       .leftJoin(MasterBrand, "masterbrand", "vehicle.brand = masterbrand.code")
-      .orderBy("vehicle.alertDate", "DESC")
+      .orderBy("vehicle.titleBrandDate", "DESC")
       .distinct(true) // Corrected distinct usage
       .limit(limit)
       .offset(offset);
@@ -273,7 +273,7 @@ export const getSearchVinPop = async (req: any, res: any) => {
       ])
       .leftJoin(MasterBrand, "masterbrand", "vd.brand = masterbrand.code")
       .leftJoin(MasterState, "masterstate", "vd.state = masterstate.code")
-      .orderBy("vd.alertDate", "DESC")
+      .orderBy("vd.titleBrandDate", "DESC")
       .addOrderBy("vd.alertType", "DESC");
 
     // **Exact VIN Search**
@@ -373,7 +373,7 @@ export const ExportPdfVINData = async (req: any, res: any) => {
       ])
       .leftJoin(MasterState, "masterstate", "vehicle.state = masterstate.code")
       .leftJoin(MasterBrand, "masterbrand", "vehicle.brand = masterbrand.code")
-      .orderBy("vehicle.alertDate", "DESC")
+      .orderBy("vehicle.titleBrandDate", "DESC")
       .addOrderBy("vehicle.vin", "ASC")
       .where("vehicle.id IN (:...vins)", { vins }) 
 
@@ -389,7 +389,7 @@ export const ExportPdfVINData = async (req: any, res: any) => {
         ])
         .leftJoin(MasterState, "masterstate", "vehicle.state = masterstate.code")
         .leftJoin(MasterBrand, "masterbrand", "vehicle.brand = masterbrand.code")
-        .orderBy("vehicle.alertDate", "DESC")
+        .orderBy("vehicle.titleBrandDate", "DESC")
         .addOrderBy("vehicle.vin", "ASC")
 
 
@@ -406,7 +406,7 @@ export const ExportPdfVINData = async (req: any, res: any) => {
       ])
       .leftJoin(MasterState, "masterstate", "vehicle.state = masterstate.code")
       .leftJoin(MasterBrand, "masterbrand", "vehicle.brand = masterbrand.code")
-      .orderBy("vehicle.alertDate", "DESC")
+      .orderBy("vehicle.titleBrandDate", "DESC")
       .addOrderBy("vehicle.vin", "ASC")
       .where("vehicle.isOld = :isOld", { isOld: false }) 
     const items = await queryBuilder.getRawMany();
