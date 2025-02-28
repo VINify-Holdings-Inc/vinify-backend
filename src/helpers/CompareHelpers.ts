@@ -16,7 +16,7 @@ export const changedDataToComapreData = (oldArray: any, newArray: any) =>  {
       oldArray.some((oldItem: any) => 
           newItem.vin === oldItem.vin &&
           newItem.vinId === oldItem.vinId &&
-          newItem.alertDate === oldItem.alertDate &&
+          newItem.titleBrandDate === oldItem.titleBrandDate &&
           newItem.status === oldItem.status &&
           newItem.brand === oldItem.brand &&
           // newItem.export === oldItem.export &&
@@ -31,7 +31,7 @@ export const findDifferencesFromTemData = (data: any, data2: any) => {
   const normalize = (item: any) => ({
     vin: item?.vin,
     vinId: item?.vinId, // Trimming whitespace from vinId
-    alertDate: item?.alertDate, // Stripping time part from alertDate
+    titleBrandDate: item?.titleBrandDate, // Stripping time part from titleBrandDate
     status: item?.status,
     brand: item?.brand,
     // export: item?.export,
@@ -39,7 +39,7 @@ export const findDifferencesFromTemData = (data: any, data2: any) => {
     alertType: item?.alertType,
   });
 
-  // Find records in data2 that are different from data based on vin, vinId, alertDate, and other fields
+  // Find records in data2 that are different from data based on vin, vinId, titleBrandDate, and other fields
   return data2.filter((item2: any) => {
     const normalizedItem2 = normalize(item2);
 
@@ -50,7 +50,7 @@ export const findDifferencesFromTemData = (data: any, data2: any) => {
       return (
         normalizedItem1.vin === normalizedItem2.vin &&
         normalizedItem1.vinId === normalizedItem2.vinId &&
-        normalizedItem1.alertDate === normalizedItem2.alertDate &&
+        normalizedItem1.titleBrandDate === normalizedItem2.titleBrandDate &&
         normalizedItem1.status === normalizedItem2.status &&
         normalizedItem1.brand === normalizedItem2.brand &&
         // normalizedItem1.export === normalizedItem2.export &&
@@ -65,7 +65,7 @@ export const brandChangedDataToCompareData = (oldArray: any, newArray: any) => {
   return newArray.filter((newItem: any) =>
     oldArray.some((oldItem: any) =>
       newItem.vin === oldItem.vin &&
-      newItem.alertDate === oldItem.alertDate &&
+      newItem.titleBrandDate === oldItem.titleBrandDate &&
       newItem.brand === oldItem.brand &&
       // newItem.export === oldItem.export &&
       newItem.state === oldItem.state &&
@@ -77,7 +77,7 @@ export const brandChangedDataToCompareData = (oldArray: any, newArray: any) => {
 export const brandFindDifferencesFromTempData = (data: any, data2: any) => {
   const normalize = (item: any) => ({
     vin: item?.vin,
-    alertDate: item?.alertDate,
+    titleBrandDate: item?.titleBrandDate,
     brand: item?.brand,
     // export: item?.export,
     state: item?.state,
@@ -92,7 +92,7 @@ export const brandFindDifferencesFromTempData = (data: any, data2: any) => {
 
       return (
         normalizedItem1.vin === normalizedItem2.vin &&
-        normalizedItem1.alertDate === normalizedItem2.alertDate &&
+        normalizedItem1.titleBrandDate === normalizedItem2.titleBrandDate &&
         normalizedItem1.brand === normalizedItem2.brand &&
         // normalizedItem1.export === normalizedItem2.export &&
         normalizedItem1.state === normalizedItem2.state &&
@@ -107,7 +107,7 @@ export const JsiChangedDataToCompareData = (oldArray: any, newArray: any) => {
   return newArray.filter((newItem: any) =>
     oldArray.some((oldItem: any) =>
       newItem.vin === oldItem.vin &&
-      newItem.alertDate === oldItem.alertDate &&
+      newItem.titleBrandDate === oldItem.titleBrandDate &&
       newItem.status === oldItem.status &&
       newItem.brand === oldItem.brand &&
       newItem.export === oldItem.export &&
@@ -124,7 +124,7 @@ export const JsiChangedDataToCompareData = (oldArray: any, newArray: any) => {
 export const JsiFindDifferencesFromTempData = (data: any, data2: any) => {
   const normalize = (item: any) => ({
     vin: item?.vin,
-    alertDate: item?.alertDate,
+    titleBrandDate: item?.titleBrandDate,
     status: item?.status,
     brand: item?.brand,
     export: item?.export,
@@ -144,7 +144,7 @@ export const JsiFindDifferencesFromTempData = (data: any, data2: any) => {
 
       return (
         normalizedItem1.vin === normalizedItem2.vin &&
-        normalizedItem1.alertDate === normalizedItem2.alertDate &&
+        normalizedItem1.titleBrandDate === normalizedItem2.titleBrandDate &&
         normalizedItem1.status === normalizedItem2.status &&
         normalizedItem1.brand === normalizedItem2.brand &&
         normalizedItem1.export === normalizedItem2.export &&

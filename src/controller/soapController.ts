@@ -146,7 +146,7 @@ export const NewValidateVinData = async (req: any, res: any) => {
          .leftJoin(MasterState, "masterstate", "vehicle.IdentificationID = masterstate.code")
          .leftJoin(MasterBrand, "masterbrand", "vehicle.brand = masterbrand.code")  
          .where("vehicle.vin = :vin", { vin: insertRow[0]?.vin })  
-         .orderBy("vehicle.alertDate", "DESC"); 
+         .orderBy("vehicle.titleBrandDate", "DESC"); 
        
        const distinctVINs = await queryBuilder.getRawMany();
        

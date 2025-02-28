@@ -1,13 +1,13 @@
-export const sortByalertDateDesc = (data: any[]) => {
-    return [...data].sort((a, b) => new Date(b.alertDate).getTime() - new Date(a.alertDate).getTime());
+export const sortBytitleBrandDateDesc = (data: any[]) => {
+    return [...data].sort((a, b) => new Date(b.titleBrandDate).getTime() - new Date(a.titleBrandDate).getTime());
 };
 
 
-export const getLatestalertDate=(data:any)=> {
+export const getLatesttitleBrandDate=(data:any)=> {
     const vinMap = new Map(); 
     data.forEach((item:any) => {
       const existing = vinMap.get(item.vin);
-      if (!existing || new Date(item.alertDate) > new Date(existing.alertDate)) {
+      if (!existing || new Date(item.titleBrandDate) > new Date(existing.titleBrandDate)) {
         vinMap.set(item.vin, item);
       }
     });

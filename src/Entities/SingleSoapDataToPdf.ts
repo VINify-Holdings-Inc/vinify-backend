@@ -18,8 +18,8 @@
                 @Column({ name: "brand", type: "varchar", nullable: true })
                 brand: number; 
               
-                @Column({ name: "alertDate", type: "varchar", nullable: true })
-                alertDate: string;
+                @Column({ name: "titleBrandDate", type: "varchar", nullable: true })
+                titleBrandDate: string;
 
                 @Column({ name: "ReportingEntityCategoryCode", type: "varchar", nullable: true })
                 ReportingEntityCategoryCode: string;
