@@ -4,6 +4,7 @@ import { createResponse } from "../helpers/response";
 import { VehicleData } from "../Entities/vehicle_data";
 import { MasterState } from "../Entities/master_state";
 import { MasterBrand } from "../Entities/master_brand";
+import { LastFileProcess } from "../Entities/LastFileProcess";
  
 
 export const getTotalKpiesData = async (req: any, res: any) => {
@@ -77,14 +78,13 @@ export const TotalUnreadAlerts = async (req: any, res: any) => {
       .select("COUNT(vehicle.vin)", "count") // Removed DISTINCT
       .getRawOne();
 
-    const lastUpdatedDate = await VehicleData.createQueryBuilder("vehicle")
-      .orderBy("vehicle.createdAt", "DESC")
-      .getRawOne();
-
+    let lastFileProcess = await LastFileProcess.createQueryBuilder("lastFileProcess")
+       .select()
+       .getOne(); 
     // Create response
     return createResponse(res, 200, MESSAGES?.DATA_FETCH_SUCCESS, {
       totalNotificationCount: totalNotificationCount?.count,
-      lastUpdatedDate: lastUpdatedDate?.vehicle_createdAt
+      lastUpdatedDate: lastFileProcess?.createdAt
     });
   } catch (error: any) {
     // tslint:disable-next-line:no-console

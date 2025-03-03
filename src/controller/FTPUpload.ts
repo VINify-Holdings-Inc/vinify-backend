@@ -7,6 +7,9 @@ import { ReadTheTxtFomatJson } from "../helpers/ReadTxtFile";
 import { insertBulkSheetData } from "./StoreDataInTable"; 
 import { MESSAGES } from "../helpers/constants";
 import { createResponse } from "../helpers/response";
+import { MasterState } from "../Entities/master_state";
+import { MasterBrand } from "../Entities/master_brand";
+import { VehicleData } from "../Entities/vehicle_data";
 
 const ftpConfig = {
   host: "ftp-cert.aamva.org",
@@ -160,7 +163,7 @@ export const FTPReadAllController = async () => {
     const JsiContent = await parseVehicleDataJSI(fileContentJsi); 
     await insertBulkSheetData(titleContent, brandContent, JsiContent);
 
-    await removeAllFilesFromFTP(client);
+    //await removeAllFilesFromFTP(client);
     return; 
   } catch (error) {
     console.error("❌ FTP Read All Error:", error);
@@ -171,9 +174,22 @@ export const FTPReadAllController = async () => {
 
 export const testR = async (req: any, res: any) => {
   try { 
-    await FTPReadAllController()
-    
- return createResponse(res, 200, MESSAGES?.DATA_FETCH_SUCCESS);
+     const historyQueryBuilder = VehicleData.createQueryBuilder("vehicle")
+          .select([
+            "vehicle.*",
+            "masterstate.name AS state",
+            "masterbrand.name AS brand",
+          ])
+          .leftJoin(MasterState, "masterstate", "vehicle.state = masterstate.code")
+          .leftJoin(MasterBrand, "masterbrand", "vehicle.brand = masterbrand.code")
+           .orderBy("vehicle.vin")
+          .addOrderBy("vehicle.titleBrandDate", "DESC");
+          const historyData = await historyQueryBuilder.getRawMany()
+    const newData=await VehicleData.find()
+ return createResponse(res, 200, MESSAGES?.DATA_FETCH_SUCCESS,{
+  csvData:historyData ,
+  newData
+ });
     
   } catch (error) {
     console.error("Error fetching data:", error);

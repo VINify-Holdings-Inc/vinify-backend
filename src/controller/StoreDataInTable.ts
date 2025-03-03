@@ -1,87 +1,90 @@
-import { VehicleData } from "../Entities/vehicle_data"; 
+import { VehicleData } from "../Entities/vehicle_data";
 import { VehicleDataTemp } from "../Entities/vehicle_data_temp";
 import { brandChangedDataToCompareData, brandFindDifferencesFromTempData, changedDataToComapreData, findDifferencesFromTemData, JsiChangedDataToCompareData, JsiFindDifferencesFromTempData, truncateTable } from "../helpers/CompareHelpers";
 import { getLatesttitleBrandDate, sortBytitleBrandDateDesc } from "../helpers/SortCollection";
- 
+import { updateLastFileProcess } from "../helpers/UpdateLastRecord";
+
 export const insertBulkSheetData = async (title: any, brand: any, JsiContent: any) => {
-  try {  
-  const titleData = await titleInsertData(title); 
-  const brandData = await BrandInsertData(brand); 
-  const JsiData = await JsiInsertData(JsiContent); 
-  
-  const finalDataStore = [titleData, brandData, JsiData]
-  .filter(arr => arr.length > 0) // Filter out empty arrays
-  .flat();  
-   
- const SortedfinalDataStore=await sortBytitleBrandDateDesc(finalDataStore)
- const TempSortedfinalDataStore=await getLatesttitleBrandDate(SortedfinalDataStore) 
-    await truncateTable(VehicleData); 
+  try {
+    const titleData = await titleInsertData(title);
+    const brandData = await BrandInsertData(brand);
+    const JsiData = await JsiInsertData(JsiContent);
+
+    const finalDataStore = [titleData, brandData, JsiData]
+      .filter(arr => arr.length > 0) // Filter out empty arrays
+      .flat();
+
+    const SortedfinalDataStore = await sortBytitleBrandDateDesc(finalDataStore)
+    const TempSortedfinalDataStore = await getLatesttitleBrandDate(SortedfinalDataStore)
+    await truncateTable(VehicleData);
     await truncateTable(VehicleDataTemp);
-      await VehicleData.save(SortedfinalDataStore); 
-      await VehicleDataTemp.save(TempSortedfinalDataStore); 
-      return ;
+    await updateLastFileProcess()
+    await VehicleData.save(SortedfinalDataStore);
+    await VehicleDataTemp.save(TempSortedfinalDataStore);
+
+    return;
   } catch (error) {
-     // tslint:disable-next-line:no-console
+    // tslint:disable-next-line:no-console
     console.error("Error during data insertion:", error);
 
-    return ;
+    return;
   }
-}; 
+};
 
-export const titleInsertData = async(title: any) => {
-  const vehicleTemData = await VehicleData.find({where: {alertType: "Title"}}); 
+export const titleInsertData = async (title: any) => {
+  const vehicleTemData = await VehicleData.find({ where: { alertType: "Title" } });
   const changedDataToComapre = await changedDataToComapreData(vehicleTemData, title);
-  const NewData = await findDifferencesFromTemData(changedDataToComapre, title); 
-     const newDataToInsert = NewData.length > 0 ? NewData.map((item: any) => ({
-       ...item,
-       isOld: false
-     })) : [];
-     const updatedOldData = changedDataToComapre.map((item: any) => ({
-       ...item,
-       isOld: true,
-       createdAt: item?.createdAt,  
-     }));
-     
-    const finalData = [...updatedOldData, ...newDataToInsert];
+  const NewData = await findDifferencesFromTemData(changedDataToComapre, title);
+  const newDataToInsert = NewData.length > 0 ? NewData.map((item: any) => ({
+    ...item,
+    isOld: false
+  })) : [];
+  const updatedOldData = changedDataToComapre.map((item: any) => ({
+    ...item,
+    isOld: true,
+    createdAt: item?.createdAt,
+  }));
 
-    return finalData;  
+  const finalData = [...updatedOldData, ...newDataToInsert];
+
+  return finalData;
 };
 
-export const BrandInsertData = async(title: any) => {
-  const vehicleTemData = await VehicleData.find({where: {alertType: "Brand"}}); 
+export const BrandInsertData = async (title: any) => {
+  const vehicleTemData = await VehicleData.find({ where: { alertType: "Brand" } });
   const changedDataToComapre = await brandChangedDataToCompareData(vehicleTemData, title);
-  const NewData = await brandFindDifferencesFromTempData(changedDataToComapre, title); 
- 
-     const newDataToInsert = NewData.length > 0 ? NewData.map((item: any) => ({
-       ...item,
-       isOld: false
-     })) : [];
-     const updatedOldData = changedDataToComapre.map((item: any) => ({
-       ...item,
-       isOld: true,
-       createdAt: item?.createdAt,  
-     }));
-     
-    const finalData = [...updatedOldData, ...newDataToInsert];
+  const NewData = await brandFindDifferencesFromTempData(changedDataToComapre, title);
 
-    return finalData;  
+  const newDataToInsert = NewData.length > 0 ? NewData.map((item: any) => ({
+    ...item,
+    isOld: false
+  })) : [];
+  const updatedOldData = changedDataToComapre.map((item: any) => ({
+    ...item,
+    isOld: true,
+    createdAt: item?.createdAt,
+  }));
+
+  const finalData = [...updatedOldData, ...newDataToInsert];
+
+  return finalData;
 };
 
-export const JsiInsertData = async(title: any) => {
-  const vehicleTemData = await VehicleData.find({where: {alertType: "JSI"}}); 
+export const JsiInsertData = async (title: any) => {
+  const vehicleTemData = await VehicleData.find({ where: { alertType: "JSI" } });
   const changedDataToComapre = await JsiChangedDataToCompareData(vehicleTemData, title);
-  const NewData = await JsiFindDifferencesFromTempData(changedDataToComapre, title); 
-     const newDataToInsert = NewData.length > 0 ? NewData.map((item: any) => ({
-       ...item,
-       isOld: false
-     })) : [];
-     const updatedOldData = changedDataToComapre.map((item: any) => ({
-       ...item,
-       isOld: true,
-       createdAt: item?.createdAt,  
-     }));
-     
-    const finalData = [...updatedOldData, ...newDataToInsert];
+  const NewData = await JsiFindDifferencesFromTempData(changedDataToComapre, title);
+  const newDataToInsert = NewData.length > 0 ? NewData.map((item: any) => ({
+    ...item,
+    isOld: false
+  })) : [];
+  const updatedOldData = changedDataToComapre.map((item: any) => ({
+    ...item,
+    isOld: true,
+    createdAt: item?.createdAt,
+  }));
 
-    return finalData;  
+  const finalData = [...updatedOldData, ...newDataToInsert];
+
+  return finalData;
 };

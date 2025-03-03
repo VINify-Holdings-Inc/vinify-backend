@@ -1,5 +1,6 @@
  
 import { MasterBrand } from "../Entities/master_brand"; 
+import { MasterState } from "../Entities/master_state";
 import { VehicleData } from "../Entities/vehicle_data";
 
 export const correctedData = async (data: any[]) => {
@@ -32,8 +33,11 @@ export const correctedData = async (data: any[]) => {
                 .getRawOne(),
 
             VehicleData.createQueryBuilder("vehicle")
-                .select(["vehicle.*"])
+                .select(["vehicle.*",
+                     "masterstate.name AS state"
+                ])
                 .where("vehicle.vin = :vin", { vin: item?.vin })
+                .leftJoin(MasterState, "masterstate", "vehicle.state = masterstate.code")
                 .andWhere("vehicle.alertType = :alertType", { alertType: "JSI" })
                 .orderBy("vehicle.titleBrandDate", "DESC")
                 .addOrderBy("vehicle.createdAt", "DESC")
@@ -48,7 +52,7 @@ export const correctedData = async (data: any[]) => {
             model: item?.model,
             make: item?.make,
             brand: item?.brand ? item?.brand :  queryBrand?.brand ,
-            state: item?.state,
+            state: queryJsi?.city ?  queryJsi?.state: item?.state,
             alertType: item?.alertType,
             titleBrandDate: item?.titleBrandDate,
             modelYear: item?.modelYear ?? null,
