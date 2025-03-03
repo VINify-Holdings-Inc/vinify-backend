@@ -3,7 +3,7 @@ import { MasterState } from "../Entities/master_state";
 import { VehicleData } from "../Entities/vehicle_data";
 import { VinCreateList } from "../Entities/VinCreateList";
 import { MESSAGES } from "../helpers/constants";
-import { correctedData } from "../helpers/DashBoardHelpers";
+// import { correctedData } from "../helpers/DashBoardHelpers";
 import { createResponse } from "../helpers/response"; 
 
 
@@ -20,10 +20,11 @@ export const UnreadNotificationsTopTenData = async (req: any, res: any) => {
       .leftJoin(MasterState, "masterstate", "vehicle.state = masterstate.code")
       .leftJoin(MasterBrand, "masterbrand", "vehicle.brand = masterbrand.code")
       .orderBy("vehicle.isRead", "ASC")
+      .addOrderBy("vehicle.alertType", "DESC")
       .addOrderBy("vehicle.createdAt", "DESC")
       .limit(limit); 
-    const temp = await queryBuilder.getRawMany(); 
-    const vehicles =  await correctedData(temp);
+    const vehicles = await queryBuilder.getRawMany(); 
+    // const vehicles =  await correctedData(temp);
     // Count total vehicles with the same filters (optional)
     const totalRecords = await VehicleData.count();
 
