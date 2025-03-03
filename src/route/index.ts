@@ -26,7 +26,7 @@ routerAdmin.post("/export-pdf", Controllers.ExportPdfVINData);
 //export-vin-selection-list
 routerAdmin.get("/export-vin-selection-list", Controllers.ExportPdfVINDataList); 
 
-// Bell icon section
+// Bell icon section--
 routerAdmin.get("/total-unread-alert", Controllers.TotalUnreadAlerts); 
 routerAdmin.get("/notification-top-ten", Controllers.UnreadNotificationsTopTenData);
 
