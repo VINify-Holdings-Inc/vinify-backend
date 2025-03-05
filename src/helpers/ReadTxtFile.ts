@@ -78,9 +78,11 @@ export function parseVehicleDataBrand(input: any) {
         const city = parts[parts?.length - 3]; // Extract city dynamically
         const stateMatch = parts[parts?.length - 2]?.match(/^([A-Z]{2})/); // Extract state
         const state = stateMatch ? stateMatch[1] : "";
-  
+       
         const rptgDetails = parts[parts?.length - 2]?.replace(state, "")?.trim(); 
-        // vin      export  titleBrandDate state alertType description city rptgEntity rptgDetails
+        const match = rptgDetails.match(/^(\d+)([A-Z@.]+)$/); 
+        const mobile = match ? match[1] : "";
+        const email = match ? match[2] : "";
         return {
           alertType: "JSI",
           titleBrandDate,
@@ -89,7 +91,8 @@ export function parseVehicleDataBrand(input: any) {
           export: exportStatus,
           vin,
           rptgEntity: rptgEntity,
-          rptgDetails: rptgDetails,
+          email,
+          mobile,
           make: "",
           model: "",
           modelYear: "",

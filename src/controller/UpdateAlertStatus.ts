@@ -16,7 +16,7 @@ export const UpdateSeenUpdateAlert = async (req: any, res: any) => {
         .execute();
 
         await VehicleDataTemp.createQueryBuilder()
-        .update(VehicleData) // No alias here
+        .update(VehicleDataTemp) // No alias here
         .set({ isRead: true })
         .execute();
 

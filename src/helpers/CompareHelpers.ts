@@ -108,15 +108,16 @@ export const JsiChangedDataToCompareData = (oldArray: any, newArray: any) => {
     oldArray.some((oldItem: any) =>
       newItem.vin === oldItem.vin &&
       newItem.titleBrandDate === oldItem.titleBrandDate &&
-      // newItem.status === oldItem.status &&
+      newItem.email === oldItem.email &&
+      newItem.mobile === oldItem.mobile &&
       newItem.brand === oldItem.brand &&
       newItem.export === oldItem.export &&
       newItem.state === oldItem.state &&
       newItem.alertType === oldItem.alertType &&
       newItem.description === oldItem.description &&
       newItem.city === oldItem.city &&
-      newItem.rptgEntity === oldItem.rptgEntity &&
-      newItem.rptgDetails === oldItem.rptgDetails
+      newItem.rptgEntity === oldItem.rptgEntity 
+      // newItem.rptgDetails === oldItem.rptgDetails
     )
   );
 };
@@ -125,15 +126,16 @@ export const JsiFindDifferencesFromTempData = (data: any, data2: any) => {
   const normalize = (item: any) => ({
     vin: item?.vin,
     titleBrandDate: item?.titleBrandDate,
-    // status: item?.status,
+    email: item?.email,
+    mobile: item?.mobile,
     brand: item?.brand,
     export: item?.export,
     state: item?.state,
     alertType: item?.alertType,
     description: item?.description,
     city: item?.city,
-    rptgEntity: item?.rptgEntity,
-    rptgDetails: item?.rptgDetails,
+    rptgEntity: item?.rptgEntity 
+    // rptgDetails: item?.rptgDetails,
   });
 
   return data2.filter((item2: any) => {
@@ -145,15 +147,16 @@ export const JsiFindDifferencesFromTempData = (data: any, data2: any) => {
       return (
         normalizedItem1.vin === normalizedItem2.vin &&
         normalizedItem1.titleBrandDate === normalizedItem2.titleBrandDate &&
-        // normalizedItem1.status === normalizedItem2.status &&
+        normalizedItem1.email === normalizedItem2.email &&
+        normalizedItem1.mobile === normalizedItem2.mobile &&
         normalizedItem1.brand === normalizedItem2.brand &&
         normalizedItem1.export === normalizedItem2.export &&
         normalizedItem1.state === normalizedItem2.state &&
         normalizedItem1.alertType === normalizedItem2.alertType &&
         normalizedItem1.description === normalizedItem2.description &&
         normalizedItem1.city === normalizedItem2.city &&
-        normalizedItem1.rptgEntity === normalizedItem2.rptgEntity &&
-        normalizedItem1.rptgDetails === normalizedItem2.rptgDetails
+        normalizedItem1.rptgEntity === normalizedItem2.rptgEntity  
+        // normalizedItem1.rptgDetails === normalizedItem2.rptgDetails
       );
     });
   });

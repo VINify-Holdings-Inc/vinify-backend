@@ -55,8 +55,13 @@ export class VehicleDataTemp extends BaseEntity {
   @Column({ name: "rptgEntity", type: "varchar", default:'-'})
   rptgEntity: string; 
 
-  @Column({ name: "rptgDetails", type: "varchar", default:'-'})
-  rptgDetails: string; 
+  @Column({ name: "email", type: "varchar", default:'-'})
+  email: string; 
+
+  
+  @Column({ name: "mobile", type: "varchar", default:'-'})
+  mobile: string; 
+
 
   @Column({ name: "isRead", type: "boolean", default: false })
   isRead: boolean;
