@@ -33,7 +33,7 @@ routerAdmin.get("/notification-top-ten", Controllers.UnreadNotificationsTopTenDa
 // Update Seen / Unseen 
 routerAdmin.post("/seen-alert", Controllers.UpdateSeenUpdateAlert);  
 
-// Calculate history
+// Calculate history Comparission
 routerAdmin.get("/title-detail-history", Controllers.CompareHistoryTitalDetails); 
 
 // SOAP Data

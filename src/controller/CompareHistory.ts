@@ -7,111 +7,64 @@ import { isChangeInThePreviousVin } from "../helpers/utils";
 
 export const CompareHistoryTitalDetails = async (req: any, res: any) => {
   try {
-    const { ...filters } = req.query;
+    const { vin } = req.query;
 
-    // Query to fetch current data where isOld = false
-    const currentQueryBuilder = VehicleData.createQueryBuilder("vehicle")
-      .select([
-        "vehicle.*",
-        "masterstate.name AS state",
-        "masterbrand.name AS brand",
-      ])
-      .where("vehicle.isOld = :isOld", { isOld: false })
-      .leftJoin(MasterState, "masterstate", "vehicle.state = masterstate.code")
-      .leftJoin(MasterBrand, "masterbrand", "vehicle.brand = masterbrand.code")
-      .orderBy("vehicle.vin")
-      .addOrderBy("vehicle.titleBrandDate", "DESC");
+    // Function to fetch current and history records
+    const fetchVehicleData = async (isOld: any, alertType: any) => {
+      return VehicleData.createQueryBuilder("vehicle")
+        .select([
+          "vehicle.*",
+          "masterstate.name AS state",
+          "masterbrand.name AS brand",
+        ])
+        .where("vehicle.isOld = :isOld", { isOld })
+        .andWhere("vehicle.vin = :vin", { vin })
+        .andWhere("vehicle.alertType = :alertType", { alertType })
+        .leftJoin(MasterState, "masterstate", "vehicle.state = masterstate.code")
+        .leftJoin(MasterBrand, "masterbrand", "vehicle.brand = masterbrand.code")
+        .orderBy("vehicle.vin")
+        .addOrderBy("vehicle.titleBrandDate", "DESC")
+        .getRawOne();
+    };
 
-    // Apply exact search filters to current data query
-    Object.entries(filters).forEach(([key, value]) => {
-      if (value) {
-        currentQueryBuilder.andWhere(`vehicle.${key} = :${key}`, {
-          [key]: value,
-        });
-      }
-    });
+    // Fetch Title, Brand, and JSI data
+    const [
+      TitleCurrent,
+      TitleHistory,
+      BrandCurrent,
+      BrandHistory,
+      JSICurrent,
+      JSIHistory,
+    ] = await Promise.all([
+      fetchVehicleData(false, "Title"),
+      fetchVehicleData(true, "Title"),
+      fetchVehicleData(false, "Brand"),
+      fetchVehicleData(true, "Brand"),
+      fetchVehicleData(false, "JSI"),
+      fetchVehicleData(true, "JSI"),
+    ]);
 
-    const currentData = await currentQueryBuilder.getRawMany();
+    // Compare data changes
+    const [
+      TitleChangeData,
+      BrandChangeData,
+      JSIChangeData
+    ] = await Promise.all([
+      isChangeInThePreviousVin(TitleCurrent, TitleHistory),
+      isChangeInThePreviousVin(BrandCurrent, BrandHistory),
+      isChangeInThePreviousVin(JSICurrent, JSIHistory),
+    ]);
 
-    // Query to count total VINs for current data
-    const totalCurrentQueryBuilder = VehicleData.createQueryBuilder("vehicle")
-      .where("vehicle.isOld = :isOld", { isOld: false })
-      .select("COUNT(vehicle.vin)", "total")
-      .leftJoin(MasterState, "masterstate", "vehicle.state = masterstate.code");
-
-    Object.entries(filters).forEach(([key, value]) => {
-      if (value) {
-        totalCurrentQueryBuilder.andWhere(`vehicle.${key} = :${key}`, {
-          [key]: value,
-        });
-      }
-    });
-
-    const totalCurrentResult = await totalCurrentQueryBuilder.getRawOne();
-    const totalCurrentRecords = totalCurrentResult?.total || 0;
-
-    // Query to fetch history data where isOld = true
-    const historyQueryBuilder = VehicleData.createQueryBuilder("vehicle")
-      .select([
-        "vehicle.*",
-        "masterstate.name AS state",
-        "masterbrand.name AS brand",
-      ])
-      .leftJoin(MasterState, "masterstate", "vehicle.state = masterstate.code")
-      .leftJoin(MasterBrand, "masterbrand", "vehicle.brand = masterbrand.code")
-      .where("vehicle.isOld = :isOld", { isOld: true })
-      .orderBy("vehicle.vin")
-      .addOrderBy("vehicle.titleBrandDate", "DESC");
-
-    // Apply exact search filters to history data query
-    Object.entries(filters).forEach(([key, value]) => {
-      if (value) {
-        historyQueryBuilder.andWhere(`vehicle.${key} = :${key}`, {
-          [key]: value,
-        });
-      }
-    });
-
-    const historyData = await historyQueryBuilder.getRawMany();
-
-    // Query to count total VINs for history data
-    const totalHistoryQueryBuilder = VehicleData.createQueryBuilder("vehicle")
-      .select("COUNT(vehicle.vin)", "total")
-      .leftJoin(MasterState, "masterstate", "vehicle.state = masterstate.code")
-      .where("vehicle.isOld = :isOld", { isOld: true });
-
-    Object.entries(filters).forEach(([key, value]) => {
-      if (value) {
-        totalHistoryQueryBuilder.andWhere(`vehicle.${key} = :${key}`, {
-          [key]: value,
-        });
-      }
-    });
-
-    const totalHistoryResult = await totalHistoryQueryBuilder.getRawOne();
-    const totalHistoryRecords = totalHistoryResult?.total || 0;
-    const changeData = await isChangeInThePreviousVin(currentData[0], historyData[0]);
-    if (currentData?.length > 0) {
-      currentData.shift();
-      currentData.unshift(changeData);
-    }
-
-    // Create response with current and history data
+    // Return response
     return createResponse(res, 200, MESSAGES?.DATA_FETCH_SUCCESS, {
-      current: {
-        totalRecords: totalCurrentRecords,
-        items: currentData,
-      },
-      history: {
-        totalRecords: totalHistoryRecords,
-        items: historyData,
-      },
+      title: { current: TitleChangeData ?? {}, history: TitleHistory ?? {} },
+      brand: { current: BrandChangeData ?? {}, history: BrandHistory ?? {} },
+      jsi: { current: JSIChangeData ?? {}, history: JSIHistory ?? {} },
     });
   } catch (error: any) {
-    // tslint:disable-next-line:no-console
     console.error(MESSAGES?.INTERNAL_SERVER_ERROR, error);
-
     return createResponse(res, 500, MESSAGES?.INTERNAL_SERVER_ERROR, [], false, true);
   }
 };
+
 
