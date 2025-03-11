@@ -10,6 +10,7 @@ import fs from "fs";
 import { Parser } from "xml2js";
 import { transformVehicleDataToJson } from "../helpers/SoapHelper";
 import { SingleSoapDataToPdf } from "../Entities/SingleSoapDataToPdf";
+import { categorizeDataSIngleSearch } from "../helpers/SortCollection";
 
 export const SoapToken = async (req: any, res: any) => {
      try {
@@ -153,7 +154,8 @@ export const NewValidateVinData = async (req: any, res: any) => {
        // Delete the record based on VIN
        await  SingleSoapDataToPdf.delete({ vin: insertRow[0]?.vin });
        
-        return createResponse(res, 200, "Data fetched successfully.", {generatePdf: distinctVINs}, true, false);
+      const reportData= await categorizeDataSIngleSearch(distinctVINs)
+        return createResponse(res, 200, "Data fetched successfully.", {generatePdf: distinctVINs,reportData}, true, false);
     } catch (error: any) {
         return createResponse(res, 400, "Data fetched unsuccessful.", error, false, true);
     }

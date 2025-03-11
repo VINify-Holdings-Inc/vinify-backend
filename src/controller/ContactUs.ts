@@ -1,9 +1,9 @@
- 
+
 import { ContactUs } from "../Entities/ContactUs";
-import { MESSAGES } from "../helpers/constants"; 
+import { MESSAGES } from "../helpers/constants";
 import { sendContactFormEmail } from "../helpers/email";
 import { createResponse } from "../helpers/response";
- 
+
 export const insertContactUs = async (req: any, res: any) => {
     try {
         const { name, email, phone, message, subject } = req.body;
@@ -20,8 +20,8 @@ export const insertContactUs = async (req: any, res: any) => {
         newContactUs.subject = subject;
 
         await newContactUs.save();
-        
-       await sendContactFormEmail(name , email , phone , message , subject);
+
+        await sendContactFormEmail(name, email, phone, message, subject);
         const responseData = {
             id: newContactUs.id,
             email: newContactUs.email,
@@ -39,29 +39,29 @@ export const insertContactUs = async (req: any, res: any) => {
 
 export const readContactUs = async (req: any, res: any) => {
     try {
-        const { page = 1, limit = 10, ...filters } = req.query; 
-        const queryBuilder = ContactUs.createQueryBuilder("ContactUs"); 
+        const { page = 1, limit = 10, ...filters } = req.query;
+        const queryBuilder = ContactUs.createQueryBuilder("ContactUs");
         Object.entries(filters).forEach(([key, value]) => {
-          if (value && key !== "page" && key !== "limit") {
-            queryBuilder.andWhere(`LOWER(ContactUs.${key}) LIKE LOWER(:${key})`, {
-              [key]: `%${value}%` 
-            });
-          }
+            if (value && key !== "page" && key !== "limit") {
+                queryBuilder.andWhere(`LOWER(ContactUs.${key}) LIKE LOWER(:${key})`, {
+                    [key]: `%${value}%`
+                });
+            }
         });
-     
+
         const offset = (parseInt(page as string) - 1) * parseInt(limit as string);
         const [items, totalItems] = await queryBuilder
-          .skip(offset)  
-          .take(parseInt(limit as string)) 
-          .getManyAndCount();  
-    
+            .skip(offset)
+            .take(parseInt(limit as string))
+            .getManyAndCount();
+
         const totalPages = Math.ceil(totalItems / parseInt(limit as string));
 
         return createResponse(res, 200, MESSAGES?.DATA_FETCH_SUCCESS, {
-          currentPage: parseInt(page as string),
-          totalPages,
-          totalItems,
-          items,
+            currentPage: parseInt(page as string),
+            totalPages,
+            totalItems,
+            items,
         }, true, false);
     } catch (error) {
         // tslint:disable-next-line:no-console
@@ -73,7 +73,7 @@ export const readContactUs = async (req: any, res: any) => {
 
 export const deleteContactUs = async (req: any, res: any) => {
     try {
-        const { id } = req.params; 
+        const { id } = req.params;
         const contactMessage = await ContactUs.findOne(id);
 
         if (!contactMessage) {

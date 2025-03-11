@@ -1,61 +1,52 @@
-
 import express from "express";
-import { deleteContactUs, insertContactUs, readContactUs } from "../controller/ContactUs";
-import {
-    getSearchVinPop, getTotalKpiesData, DashboardSummaryVIN,
-    ExportPdfVINData, DashboardSummaryVINUpdated, NewAlertVIN,
-    TotalUnreadAlerts
-} from "../controller/BulkInsert";
-import {
-    ForgetPassword, LoginController, ResetPassword,
-    userProfileUpdate, ProfileUpdate, ResetTockenCheck,
-    // TestRoute
-} from "../controller/LoginController";
-import { NewValidateVinData, SoapToken, TrackVinPopController } from "../controller/soapController";
-import { CompareHistoryTitalDetails, SeenUpdateAlert } from "../controller/CompareHistory";
-import { UnreadNotificationsAlert, UnreadNotificationsTopTenData, VinListAutomateFileCreatetion } from "../controller/Notification";
-// import { insertBulkSheetData } from "../controller/StoreNewPreviousData";
-import { CreateVinTxtFileAndUpload, FTPController,
-    //  FTPReadAllController
-     } from "../controller/FTPUpload";
- const routerAdmin = express.Router();
+import * as Controllers from "./importController"; 
+const routerAdmin = express.Router();
 
-routerAdmin.post("/user-login", LoginController);
-routerAdmin.put("/user-profile-update", userProfileUpdate);
-routerAdmin.get("/user-profile/:email", ProfileUpdate);
-routerAdmin.post("/forget-password", ForgetPassword);
-routerAdmin.post("/reset-password", ResetPassword);
-routerAdmin.post("/reset-token-check", ResetTockenCheck);
+// User Details
+routerAdmin.post("/user-login", Controllers.LoginController);  
+routerAdmin.put("/user-profile-update", Controllers.userProfileUpdate); 
+routerAdmin.get("/user-profile/:email", Controllers.ProfileUpdate); 
+routerAdmin.post("/forget-password", Controllers.ForgetPassword); 
+routerAdmin.post("/reset-password", Controllers.ResetPassword); 
+routerAdmin.post("/reset-token-check", Controllers.ResetTockenCheck); 
 
-routerAdmin.post("/contact-us", insertContactUs);
-routerAdmin.get("/contact-us", readContactUs);
-routerAdmin.delete("/contact-us/:id", deleteContactUs);
+// Contact Details
+routerAdmin.post("/contact-us", Controllers.insertContactUs);  
+routerAdmin.get("/contact-us", Controllers.readContactUs); 
+routerAdmin.delete("/contact-us/:id", Controllers.deleteContactUs); 
 
-// routerAdmin.post("/csv-import", insertBulkSheetData);
-routerAdmin.get("/search-pop-vin", getSearchVinPop);
-routerAdmin.get("/kpi-data", getTotalKpiesData);
-routerAdmin.get("/dashboard-vin-summary", DashboardSummaryVIN);
-routerAdmin.get("/dashboard-vin-summary-updated", DashboardSummaryVINUpdated);
-routerAdmin.get("/new-alerts", NewAlertVIN);
-routerAdmin.post("/export-pdf", ExportPdfVINData);
-// soap data
-routerAdmin.get("/get-soap-token", SoapToken);
-routerAdmin.post("/new-validate-vin-data", NewValidateVinData);
-// track vin me populate
-routerAdmin.get("/track-vin-pop", TrackVinPopController);
-// history
-routerAdmin.get("/title-detail-history", CompareHistoryTitalDetails);
-routerAdmin.post("/seen-alert", SeenUpdateAlert);
-// unread notification
+// DataGrid Content 
+routerAdmin.get("/kpi-data", Controllers.getTotalKpiesData);
+routerAdmin.get("/dashboard-vin-summary", Controllers.DashboardSummaryVIN );  
+routerAdmin.get("/dashboard-vin-summary-updated", Controllers.DashboardSummaryVINUpdated);   
+routerAdmin.get("/new-alerts", Controllers.NewAlertVIN);
+routerAdmin.get("/unread-notification", Controllers.UnreadNotificationsAlert); 
+routerAdmin.get("/search-pop-vin", Controllers.getSearchVinPop);
+routerAdmin.post("/export-pdf", Controllers.ExportPdfVINData); 
+//export-vin-selection-list
+routerAdmin.get("/export-vin-selection-list", Controllers.ExportPdfVINDataList); 
 
-routerAdmin.get("/total-unread-alert", TotalUnreadAlerts);
-routerAdmin.get("/unread-notification", UnreadNotificationsAlert); // Tptal data
-routerAdmin.get("/notification-top-ten", UnreadNotificationsTopTenData);
-// dashboard-vin-summary
-routerAdmin.post("/upload-ftp-txt", FTPController);
-// routerAdmin.get("/upload-ftp-txt", FTPReadAllController);
+// Bell icon section--
+routerAdmin.get("/total-unread-alert", Controllers.TotalUnreadAlerts); 
+routerAdmin.get("/notification-top-ten", Controllers.UnreadNotificationsTopTenData);
 
-// VIn List for the file createtion
-routerAdmin.get("/file-create-automation", VinListAutomateFileCreatetion);
-routerAdmin.post("/file-create-automation", CreateVinTxtFileAndUpload);
+// Update Seen / Unseen 
+routerAdmin.post("/seen-alert", Controllers.UpdateSeenUpdateAlert);  
+
+// Calculate history Comparission
+routerAdmin.get("/title-detail-history", Controllers.CompareHistoryTitalDetails); 
+
+// SOAP Data
+routerAdmin.get("/get-soap-token", Controllers.SoapToken);  
+routerAdmin.post("/new-validate-vin-data", Controllers.NewValidateVinData); 
+routerAdmin.get("/track-vin-pop", Controllers.TrackVinPopController);
+
+// FTP organization
+routerAdmin.post("/upload-ftp-txt", Controllers.FTPController);  
+routerAdmin.get("/file-create-automation", Controllers.VinListAutomateFileCreatetion);  
+routerAdmin.post("/file-create-automation", Controllers.CreateVinTxtFileAndUpload);  
+
+// Test Route
+routerAdmin.get("/test-csv-export", Controllers.testR);  
+
 export default routerAdmin;
