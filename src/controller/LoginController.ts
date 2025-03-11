@@ -41,7 +41,6 @@ export const TestRoute = async (req: any, res: any) => {
         });
     }
 };
-
 export const LoginController = async (req: any, res: any) => {
     try {
         const { email, password } = req.body;
@@ -320,10 +319,10 @@ export const userProfileUpdate = async (req: any, res: any) => {
         const updatedUserData = result.raw[0];
 
         return createResponse(res, 200, MESSAGES?.PROFILE_UPDATED,
-             { ...updatedUserData, profileComplete },
-              true, false);
+            { ...updatedUserData, profileComplete },
+            true, false);
     } catch (err) {
-         // tslint:disable-next-line:no-console
+        // tslint:disable-next-line:no-console
         console.error(MESSAGES?.RESET_ERROR, err);
 
         return createResponse(res, 200, MESSAGES?.INTERNAL_SERVER_ERROR, true, false);

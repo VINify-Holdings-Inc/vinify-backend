@@ -1,8 +1,15 @@
 import { Client } from "basic-ftp";
 import path from "path";
 import fs from "fs";
+import { parseVehicleDataJSI } from "../helpers/ReadTxtFile";
+import { parseVehicleDataBrand } from "../helpers/ReadTxtFile";
 import { ReadTheTxtFomatJson } from "../helpers/ReadTxtFile";
-import { insertBulkSheetData } from "./StoreNewPreviousData";
+import { insertBulkSheetData } from "./StoreDataInTable"; 
+import { MESSAGES } from "../helpers/constants";
+import { createResponse } from "../helpers/response";
+import { MasterState } from "../Entities/master_state";
+import { MasterBrand } from "../Entities/master_brand";
+import { VehicleData } from "../Entities/vehicle_data";
 
 const ftpConfig = {
   host: "ftp-cert.aamva.org",
@@ -19,10 +26,10 @@ export const uploadToFTP = async (filePath: string, fileName: string) => {
     await client.access(ftpConfig);
     await client.ensureDir("/");
     await client.uploadFrom(filePath, `/${fileName}`);
-     // tslint:disable-next-line:no-console
+    // tslint:disable-next-line:no-console
     console.log("✅ File uploaded successfully to FTP.");
   } catch (error) {
-     // tslint:disable-next-line:no-console
+    // tslint:disable-next-line:no-console
     console.error("❌ FTP Upload Error:", error);
     throw error;
   } finally {
@@ -40,107 +47,64 @@ export const FTPController = async (req: any, res: any) => {
     const uploadPath = path.join(__dirname, "../uploads", uploadedFile.name);
 
     await uploadedFile.mv(uploadPath);
-    await uploadToFTP(uploadPath, uploadedFile.name); 
+    await uploadToFTP(uploadPath, uploadedFile.name);
 
-    await new Promise(resolve => setTimeout(resolve, 45000)); 
+    await new Promise(resolve => setTimeout(resolve, 45000));
     try {
       await FTPReadAllController();
     } catch (error) {
-       // tslint:disable-next-line:no-console
+      // tslint:disable-next-line:no-console
       console.error("❌ Error reading from FTP:", error);
 
       return res.status(500).json({ error: "Failed to read from FTP", success: false });
-    } 
-    
+    }
+
     return res.json({ code: 200, message: "File uploaded successfully!", success: true, error: false });
   } catch (error) {
-     // tslint:disable-next-line:no-console
+    // tslint:disable-next-line:no-console
     console.error("❌ Upload Error:", error);
 
     return res.status(500).json({ error: "File upload failed." });
   }
-}; 
+};
 const retryOperation = async (operation: Function, retries: number = 3) => {
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
       return await operation();
     } catch (error) {
-       // tslint:disable-next-line:no-console
+      // tslint:disable-next-line:no-console
       console.error(`Attempt ${attempt} failed:`, error);
       if (attempt === retries) throw error;
     }
   }
-}; 
-const removeAllFilesFromFTP = async (client: any) => {
+};
+export const removeAllFilesFromFTP = async (client: any) => {
   try {
     const fileList = await client.list("/"); // Get all files in root directory
     for (const file of fileList) {
       await client.remove(`/${file.name}`); // Delete each file
-       // tslint:disable-next-line:no-console
+      // tslint:disable-next-line:no-console
       console.log(`🗑️ Deleted file: ${file.name}`);
-    } 
+    }
   } catch (error: any) {
-     // tslint:disable-next-line:no-console
+    // tslint:disable-next-line:no-console
     console.error("❌ Error while deleting files from FTP:", error);
   }
 };
-export const FTPReadAllController = async () => {
-  const client: any = new Client();
-  client.ftp.verbose = true;
-  client.ftp.keepAlive = 10000;
-  client.ftp.timeout = 30000;
 
-  try {
-    await client.access(ftpConfig);
-    await client.ensureDir("/");
-
-    const targetFileName = "MY.T.CINQ.TITLE.txt";
-    const localPath = path.join(__dirname, "../AAMVAFTP", targetFileName);
-
-    // Retry connection in case of failure
-    await retryOperation(() => client.downloadTo(localPath, `/${targetFileName}`));
-    // tslint:disable-next-line:no-console
-    console.log(`✅ File ${targetFileName} downloaded successfully.`);
-
-    if (!fs.existsSync(localPath)) {
-       // tslint:disable-next-line:no-console
-      console.log("Downloaded file not found in local directory.");
-
-      return
-        ;
-    }
-
-    const fileContent = fs.readFileSync(localPath, "utf8").replace(/\r\n/g, "\n");
-    const parsedData = await ReadTheTxtFomatJson(fileContent);
-    if (parsedData?.length > 0) {
-      await insertBulkSheetData(parsedData);
-    } 
-    await removeAllFilesFromFTP(client);
-
-    return;
-  } catch (error: any) {
-     // tslint:disable-next-line:no-console
-    console.error("❌ FTP Read All Error:", error);
-
-    return;
-  } finally {
-    await client.close();
-  }
-};  
-
-const  formatNumber = (data: any) => { 
+const formatNumber = (data: any) => {
   const totalCount = data?.length || 0; // Handle null/undefined cases
   const numDigits = totalCount.toString().length; // Count digits in totalCount
   const numSpaces = 9 - numDigits; // Ensure correct spacing
-  const spaces = " ".repeat(numSpaces); 
+  const spaces = " ".repeat(numSpaces);
 
   return spaces + totalCount;
 };
 export const CreateVinTxtFileAndUpload = async (req: any, res: any) => {
   try {
     const { data = [1, 2, 3, 4, 5, 6, 7] } = req.body;
-    const totalCount = await formatNumber(data);  
-    const todayDate = new Date().toISOString().slice(0, 10).replace(/-/g, ""); 
+    const totalCount = await formatNumber(data);
+    const todayDate = new Date().toISOString().slice(0, 10).replace(/-/g, "");
     const firstLine = `CMY${totalCount}${todayDate}`;
     const fileContent = [firstLine, ...data.map((item: any) => `D${item}`)].join("\n");
     const uploadPath = path.join(__dirname, "../uploads", "MY.T.CINQ.INPUT.TXT");
@@ -149,13 +113,13 @@ export const CreateVinTxtFileAndUpload = async (req: any, res: any) => {
     fs.writeFileSync(uploadPath, fileContent, "utf8");
 
     // Upload the file to FTP server
-    await uploadToFTP(uploadPath, "MY.T.CINQ.INPUT.TXT");  
+    await uploadToFTP(uploadPath, "MY.T.CINQ.INPUT.TXT");
     await new Promise(resolve => setTimeout(resolve, 45000));
 
     try {
       await FTPReadAllController();
     } catch (error) {
-       // tslint:disable-next-line:no-console
+      // tslint:disable-next-line:no-console
       console.error("❌ Error reading from FTP:", error);
 
       return res.status(500).json({ error: "Failed to read from FTP", success: false });
@@ -163,46 +127,74 @@ export const CreateVinTxtFileAndUpload = async (req: any, res: any) => {
 
     return res.json({ code: 200, message: "File uploaded successfully!", success: true, error: false });
   } catch (error: any) {
-     // tslint:disable-next-line:no-console
+    // tslint:disable-next-line:no-console
     console.error("❌ Error creating and uploading VIN TXT file:", error);
     res.status(500).json({ error: "Failed to create and upload the file" });
   }
 };
-// export const FTPReadAllController = async (req:any,res:any) => {
-//   const client:any = new Client();
-//   client.ftp.verbose = true;
-//   client.ftp.keepAlive = 10000;
-//   client.ftp.timeout = 30000;
 
-//   try {
-//     await client.access(ftpConfig);
-//     await client.ensureDir("/");
+const downloadAndReadFile = async (client: any, targetFileName: any) => {
+  await client.access(ftpConfig);
+  await client.ensureDir("/");
+  const localPath = path.join(__dirname, "../AAMVAFTP", targetFileName);
+  // Retry connection in case of failure
+  await retryOperation(() => client.downloadTo(localPath, `/${targetFileName}`));
+  console.log(`✅ File ${targetFileName} downloaded successfully.`);
+  if (!fs.existsSync(localPath)) { 
 
-//     const targetFileName = "MY.T.CINQ.TITLE.txt";
-//     const localPath = path.join(__dirname, "../AAMVAFTP", targetFileName);
+    return null;
+  }
 
-//     // Retry connection in case of failure
-//     await retryOperation(() => client.downloadTo(localPath, `/${targetFileName}`));
+  return fs.readFileSync(localPath, "utf8").replace(/\r\n/g, "\n");
+};
 
-//     console.log(`✅ File ${targetFileName} downloaded successfully.`);
+export const FTPReadAllController = async () => {
+  const client: any = new Client();
+  client.ftp.verbose = true;
+  client.ftp.keepAlive = 10000;
+  client.ftp.timeout = 30000;
+  try {
+    const fileContentTitle = await downloadAndReadFile(client, "MY.T.CINQ.TITLE.txt");
+   const titleContent = await ReadTheTxtFomatJson(fileContentTitle); 
+   
+    const fileContentBrand = await downloadAndReadFile(client, "MY.T.CINQ.BRAND.txt");
+    const brandContent = await parseVehicleDataBrand(fileContentBrand);  
+    const fileContentJsi = await downloadAndReadFile(client, "MY.T.CINQ.JSI.txt");
+    const JsiContent = await parseVehicleDataJSI(fileContentJsi); 
+    await insertBulkSheetData(titleContent, brandContent, JsiContent);
 
-//     if (!fs.existsSync(localPath)) {
-//       console.log("Downloaded file not found in local directory.");
-//       return 
-//       ;
-//     }
+    //await removeAllFilesFromFTP(client);
+    return; 
+  } catch (error) {
+    console.error("❌ FTP Read All Error:", error);
+  } finally {
+    await client.close();
+  }
+};
 
-//     const fileContent = fs.readFileSync(localPath, "utf8").replace(/\r\n/g, "\n");
-//     const parsedData = await ReadTheTxtFomatJson(fileContent);
-//     const inserted= await insertBulkSheetData(parsedData);
+export const testR = async (req: any, res: any) => {
+  try { 
+     const historyQueryBuilder = VehicleData.createQueryBuilder("vehicle")
+          .select([
+            "vehicle.*",
+            "masterstate.name AS state",
+            "masterbrand.name AS brand",
+          ])
+          .leftJoin(MasterState, "masterstate", "vehicle.state = masterstate.code")
+          .leftJoin(MasterBrand, "masterbrand", "vehicle.brand = masterbrand.code")
+           .orderBy("vehicle.vin")
+          .addOrderBy("vehicle.titleBrandDate", "DESC");
+          const historyData = await historyQueryBuilder.getRawMany()
+    const newData=await VehicleData.find()
+ return createResponse(res, 200, MESSAGES?.DATA_FETCH_SUCCESS,{
+  csvData:historyData ,
+  newData
+ });
+    
+  } catch (error) {
+    console.error("Error fetching data:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
 
-//      return res.send({fileContent,parsedData,inserted,msg:"okkkay"})
-//     console.log("✅ Data inserted successfully from file.");
-//   } catch (error:any) {
-//     console.error("❌ FTP Read All Error:", error);
-//     return ;
-//   } finally {
-//     await client.close();
-//   }
-// };
- 
+

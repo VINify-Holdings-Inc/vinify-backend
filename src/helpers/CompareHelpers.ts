@@ -1,30 +1,6 @@
  
 import { AppDataSource } from "../DbConfig/TypeOrm"; 
-// Function to format data for sheet1
-export const formatSheet1 = (sheet1: any[]) => {
-  return sheet1?.map(item => ({
-    vin: item?.vin || null,
-    titleStatus: item?.titleStatus || null,
-    brand: item?.brand || null,
-    insurance: item?.insurance || null,
-    junkSalvage: item?.junkSalvage || null,
-  }));
-}; 
-// Function to format data for sheet2
-export const formatSheet2 = (sheet2: any[]) => {
-  return sheet2?.map(item => ({
-    vin: item?.vin || null,
-    vinId: item?.vinId || null,
-    status: item?.status || null,
-    state: item?.state || null,
-    brand: item?.brand || null,
-    model: item?.model || null,
-    modelYear: item?.modelYear || null,
-    titleBrandDate: item?.titleBrandDate || null,
-    member: item?.member || null,
-  }));
-}; 
-
+ 
 export const truncateTable = async (entity: any) => {
   try {
     const repository = AppDataSource.getRepository(entity);
@@ -34,45 +10,36 @@ export const truncateTable = async (entity: any) => {
     console.error(`Error truncating table ${entity.name}:`, error);
     throw new Error("Failed to truncate table.");
   }
+}; 
+export const changedDataToComapreData = (oldArray: any, newArray: any) =>  {
+  return newArray.filter((newItem: any) => 
+      oldArray.some((oldItem: any) => 
+          newItem.vin === oldItem.vin &&
+          newItem.vinId === oldItem.vinId &&
+          newItem.titleBrandDate === oldItem.titleBrandDate &&
+          newItem.status === oldItem.status &&
+          newItem.brand === oldItem.brand &&
+          // newItem.export === oldItem.export &&
+          newItem.state === oldItem.state &&
+          newItem.alertType === oldItem.alertType
+      )
+  );
 };
-
-export const formatSheetData = (sheetData: any) => {
-  return sheetData
-    .filter((item: any) => item?.vin)
-    .map((item: any) => ({
-      vin: item.vin,
-      vinId: item?.vinId || null,
-      status: item?.status || null,
-      state: item?.state || null,
-      brand: item?.brand || null,
-      model: item?.model || null,
-      modelYear: item?.modelYear || null,
-      titleBrandDate: item?.titleBrandDate || null,
-      member: item?.member || null,
-    }));
-}; 
-
-export const updateIsNotFound = (oldArray: any, newArray: any) => {
-  return oldArray?.map((oldItem: any) => {
-      const exists = newArray?.some((newItem: any) => 
-          newItem?.vin === oldItem?.vin &&
-          newItem?.titleBrandDate === oldItem?.titleBrandDate &&
-          newItem?.status === oldItem?.status
-      );
-      
-      return { ...oldItem, isNotFound: !exists };
-  });
-}; 
 
 export const findDifferencesFromTemData = (data: any, data2: any) => {
   // Normalize the data by mapping them to a consistent structure for comparison
   const normalize = (item: any) => ({
-    vin: item?.vin, // Trimming whitespace from vin
+    vin: item?.vin,
+    vinId: item?.vinId, // Trimming whitespace from vinId
     titleBrandDate: item?.titleBrandDate, // Stripping time part from titleBrandDate
     status: item?.status,
+    brand: item?.brand,
+    // export: item?.export,
+    state: item?.state,
+    alertType: item?.alertType,
   });
 
-  // Find records in data2 that are different from data based on vin, titleBrandDate, and status
+  // Find records in data2 that are different from data based on vin, vinId, titleBrandDate, and other fields
   return data2.filter((item2: any) => {
     const normalizedItem2 = normalize(item2);
 
@@ -82,70 +49,115 @@ export const findDifferencesFromTemData = (data: any, data2: any) => {
       // Compare values
       return (
         normalizedItem1.vin === normalizedItem2.vin &&
+        normalizedItem1.vinId === normalizedItem2.vinId &&
         normalizedItem1.titleBrandDate === normalizedItem2.titleBrandDate &&
-        normalizedItem1.status === normalizedItem2.status
+        normalizedItem1.status === normalizedItem2.status &&
+        normalizedItem1.brand === normalizedItem2.brand &&
+        // normalizedItem1.export === normalizedItem2.export &&
+        normalizedItem1.state === normalizedItem2.state &&
+        normalizedItem1.alertType === normalizedItem2.alertType
       );
     });
   });
 };
 
-export const changedDataToComapreData = (oldArray: any, newArray: any) =>  {
-  return newArray.filter((newItem: any) => 
-      oldArray.some((oldItem: any) => 
-          newItem.vin === oldItem.vin &&
-          newItem.titleBrandDate === oldItem.titleBrandDate &&
-          newItem.status === oldItem.status
-      )
+export const brandChangedDataToCompareData = (oldArray: any, newArray: any) => {
+  return newArray.filter((newItem: any) =>
+    oldArray.some((oldItem: any) =>
+      newItem.vin === oldItem.vin &&
+      newItem.titleBrandDate === oldItem.titleBrandDate &&
+      newItem.brand === oldItem.brand &&
+      // newItem.export === oldItem.export &&
+      newItem.state === oldItem.state &&
+      newItem.alertType === oldItem.alertType
+    )
+  );
+};   
+
+export const brandFindDifferencesFromTempData = (data: any, data2: any) => {
+  const normalize = (item: any) => ({
+    vin: item?.vin,
+    titleBrandDate: item?.titleBrandDate,
+    brand: item?.brand,
+    // export: item?.export,
+    state: item?.state,
+    alertType: item?.alertType,
+  });
+
+  return data2.filter((item2: any) => {
+    const normalizedItem2 = normalize(item2);
+
+    return !data.some((item1: any) => {
+      const normalizedItem1 = normalize(item1);
+
+      return (
+        normalizedItem1.vin === normalizedItem2.vin &&
+        normalizedItem1.titleBrandDate === normalizedItem2.titleBrandDate &&
+        normalizedItem1.brand === normalizedItem2.brand &&
+        // normalizedItem1.export === normalizedItem2.export &&
+        normalizedItem1.state === normalizedItem2.state &&
+        normalizedItem1.alertType === normalizedItem2.alertType
+      );
+    });
+  });
+};
+
+
+export const JsiChangedDataToCompareData = (oldArray: any, newArray: any) => {
+  return newArray.filter((newItem: any) =>
+    oldArray.some((oldItem: any) =>
+      newItem.vin === oldItem.vin &&
+      newItem.titleBrandDate === oldItem.titleBrandDate &&
+      newItem.email === oldItem.email &&
+      newItem.mobile === oldItem.mobile &&
+      newItem.brand === oldItem.brand &&
+      newItem.export === oldItem.export &&
+      newItem.state === oldItem.state &&
+      newItem.alertType === oldItem.alertType &&
+      newItem.description === oldItem.description &&
+      newItem.city === oldItem.city &&
+      newItem.rptgEntity === oldItem.rptgEntity 
+      // newItem.rptgDetails === oldItem.rptgDetails
+    )
   );
 };
 
-// export const updateIsNotFound = (oldArray: any, newArray: any) => {
-//   return oldArray?.map((oldItem: any) => {
-//       const exists = newArray?.some((newItem: any) => 
-//           newItem?.vin === oldItem?.vin &&
-//           newItem?.model === oldItem?.model &&
-//           newItem?.titleBrandDate === oldItem?.titleBrandDate &&
-//           newItem?.status === oldItem?.status
-//       );
-      
-//       return { ...oldItem, isNotFound: !exists };
-//   });
-// }; 
+export const JsiFindDifferencesFromTempData = (data: any, data2: any) => {
+  const normalize = (item: any) => ({
+    vin: item?.vin,
+    titleBrandDate: item?.titleBrandDate,
+    email: item?.email,
+    mobile: item?.mobile,
+    brand: item?.brand,
+    export: item?.export,
+    state: item?.state,
+    alertType: item?.alertType,
+    description: item?.description,
+    city: item?.city,
+    rptgEntity: item?.rptgEntity 
+    // rptgDetails: item?.rptgDetails,
+  });
 
-// export const findDifferencesFromTemData = (data: any, data2: any) => {
-//   // Normalize the data by mapping them to a consistent structure for comparison
-//   const normalize = (item: any) => ({
-//     vin: item?.vin, // Trimming whitespace from vin
-//     model: item?.model, // Include model in comparison
-//     titleBrandDate: item?.titleBrandDate, // Stripping time part from titleBrandDate
-//     status: item?.status,
-//   });
+  return data2.filter((item2: any) => {
+    const normalizedItem2 = normalize(item2);
 
-//   // Find records in data2 that are different from data based on vin, model, titleBrandDate, and status
-//   return data2.filter((item2: any) => {
-//     const normalizedItem2 = normalize(item2);
+    return !data.some((item1: any) => {
+      const normalizedItem1 = normalize(item1);
 
-//     return !data.some((item1: any) => {
-//       const normalizedItem1 = normalize(item1);
-
-//       // Compare values
-//       return (
-//         normalizedItem1.vin === normalizedItem2.vin &&
-//         normalizedItem1.model === normalizedItem2.model &&
-//         normalizedItem1.titleBrandDate === normalizedItem2.titleBrandDate &&
-//         normalizedItem1.status === normalizedItem2.status
-//       );
-//     });
-//   });
-// };
-
-// export const changedDataToComapreData = (oldArray: any, newArray: any) =>  {
-//   return newArray.filter((newItem: any) => 
-//       oldArray.some((oldItem: any) => 
-//           newItem.vin === oldItem.vin &&
-//           newItem.model === oldItem.model &&
-//           newItem.titleBrandDate === oldItem.titleBrandDate &&
-//           newItem.status === oldItem.status
-//       )
-//   );
-// };
+      return (
+        normalizedItem1.vin === normalizedItem2.vin &&
+        normalizedItem1.titleBrandDate === normalizedItem2.titleBrandDate &&
+        normalizedItem1.email === normalizedItem2.email &&
+        normalizedItem1.mobile === normalizedItem2.mobile &&
+        normalizedItem1.brand === normalizedItem2.brand &&
+        normalizedItem1.export === normalizedItem2.export &&
+        normalizedItem1.state === normalizedItem2.state &&
+        normalizedItem1.alertType === normalizedItem2.alertType &&
+        normalizedItem1.description === normalizedItem2.description &&
+        normalizedItem1.city === normalizedItem2.city &&
+        normalizedItem1.rptgEntity === normalizedItem2.rptgEntity  
+        // normalizedItem1.rptgDetails === normalizedItem2.rptgDetails
+      );
+    });
+  });
+};
