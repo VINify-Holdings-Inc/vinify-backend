@@ -8,9 +8,10 @@ import https from "https";
 import axios from "axios";
 import fs from "fs";
 import { Parser } from "xml2js";
-import { transformVehicleDataToJson } from "../helpers/SoapHelper";
+import { findMaxTitleBrandDate, transformVehicleDataToJson, transformVehicleDataToJsonTitle } from "../helpers/SoapHelper";
 import { SingleSoapDataToPdf } from "../Entities/SingleSoapDataToPdf";
 import { categorizeDataSIngleSearch } from "../helpers/SortCollection";
+import { truncateTable } from "../helpers/CompareHelpers";
 
 export const SoapToken = async (req: any, res: any) => {
      try {
@@ -81,9 +82,7 @@ const convertXmlToJson = async (data: string): Promise<any> => {
 
     try {
         const result = await parser.parseStringPromise(data);
-         // tslint:disable-next-line:no-console
-        console.log("Parsed JSON:", JSON.stringify(result, null, 2)); // Debugging
-
+         // tslint:disable-next-line:no-console 
         // Dynamically find the correct response path
         const envelope = result?.Envelope || result?.["s:Envelope"];
         const body = envelope?.Body || envelope?.["s:Body"];
@@ -136,8 +135,18 @@ export const NewValidateVinData = async (req: any, res: any) => {
             return createResponse(res, 400, "No data received from SOAP service.", null, false, true);
         }
             const JsonData = await convertXmlToJson(response.data); 
-           const jsonDataToInsert = transformVehicleDataToJson(JSON.parse(JsonData));
-         const insertRow =  await SingleSoapDataToPdf.save(jsonDataToInsert);
+            console.log(JsonData,"JsonData");
+            const titleArrayData = await transformVehicleDataToJsonTitle(JSON.parse(JsonData));
+            const jsonDataToInsert =await transformVehicleDataToJson(JSON.parse(JsonData));
+            
+            // Remove empty arrays before merging
+            const final: any[] = [
+              ...(titleArrayData.length > 0 ? titleArrayData : []),
+              ...(jsonDataToInsert.length > 0 ? jsonDataToInsert : [])
+            ];
+            
+            const insertRow = await SingleSoapDataToPdf.save(final);
+            
          const queryBuilder = SingleSoapDataToPdf.createQueryBuilder("vehicle")
          .select([
            "vehicle.*", 
@@ -152,10 +161,13 @@ export const NewValidateVinData = async (req: any, res: any) => {
        const distinctVINs = await queryBuilder.getRawMany();
        
        // Delete the record based on VIN
-       await  SingleSoapDataToPdf.delete({ vin: insertRow[0]?.vin });
-       
-      const reportData= await categorizeDataSIngleSearch(distinctVINs)
-        return createResponse(res, 200, "Data fetched successfully.", {generatePdf: distinctVINs,reportData}, true, false);
+       await  truncateTable(SingleSoapDataToPdf) 
+      const reportData= await categorizeDataSIngleSearch(distinctVINs);
+      const titleMaxDate=await  findMaxTitleBrandDate(reportData?.titleData);
+      const brandMaxDate=await  findMaxTitleBrandDate(reportData?.brandData);
+      const jsiMaxDate=await  findMaxTitleBrandDate(reportData?.JSI);
+
+        return createResponse(res, 200, "Data fetched successfully.", {generatePdf: distinctVINs,reportData:{ ...reportData, titleMaxDate,  brandMaxDate,  jsiMaxDate}}, true, false);
     } catch (error: any) {
         return createResponse(res, 400, "Data fetched unsuccessful.", error, false, true);
     }
