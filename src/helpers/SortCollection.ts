@@ -31,7 +31,7 @@ export const  categorizeDataSIngleSearch=(data:any)=> {
                 result?.brandData?.push(item);
                 result.brandDataCount++;
                 break;
-            case "I":
+            case "T":
                 result?.titleData?.push(item);
                 result.titleDataCount++;
                 break;
