@@ -278,7 +278,8 @@ export const getSearchVinPop = async (req: any, res: any) => {
       .leftJoin(MasterBrand, "masterbrand", "vd.brand = masterbrand.code")
       .leftJoin(MasterState, "masterstate", "vd.state = masterstate.code")
       .orderBy("vd.titleBrandDate", "DESC")
-      .addOrderBy("vd.alertType", "DESC")  
+      .addOrderBy("vd.alertType", "DESC");
+
     // **Exact VIN Search**
     if (oldVin) {
       queryBuilder.andWhere("vd.vin = :oldVin", { oldVin });
@@ -301,7 +302,6 @@ export const getSearchVinPop = async (req: any, res: any) => {
 
     // Pagination
     const items = await queryBuilder.limit(limit).offset(offset).getRawMany();
-    // const items = await correctedData(temp);
 
     // Count total records
     const totalQueryBuilder = VehicleData.createQueryBuilder("vd")
@@ -329,6 +329,21 @@ export const getSearchVinPop = async (req: any, res: any) => {
     const totalCount = await totalQueryBuilder.getCount();
     const totalPages = Math.ceil(totalCount / limit);
 
+    // Get count of title changes
+    const titletitleChangeCount = await VehicleData.createQueryBuilder("vehicle")
+      .where("vehicle.isOld = :isOld", { isOld: false })
+      .getCount();
+
+    // Get latest title change date
+    const lastTitleChangeRecord = await VehicleData.createQueryBuilder("vehicle")
+      .where("vehicle.isOld = :isOld", { isOld: false })
+      .orderBy("vehicle.titleBrandDate", "DESC")
+      .addOrderBy("vehicle.alertType", "DESC")
+      .select(["vehicle.titleBrandDate"])
+      .getOne();
+
+    const titletitleChangeLastUpdated = lastTitleChangeRecord?.titleBrandDate || null;
+
     if (items.length === 0) {
       return createResponse(
         res,
@@ -352,12 +367,15 @@ export const getSearchVinPop = async (req: any, res: any) => {
       totalPages,
       totalItems: totalCount,
       items,
+      titletitleChangeCount,
+      titletitleChangeLastUpdated
     });
   } catch (error) {
     console.error(MESSAGES?.INTERNAL_SERVER_ERROR, error);
     return createResponse(res, 500, MESSAGES?.INTERNAL_SERVER_ERROR, [], false, true);
   }
 };
+
 
 
 export const ExportPdfVINData = async (req: any, res: any) => {
