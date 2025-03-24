@@ -163,7 +163,7 @@ export const FTPReadAllController = async () => {
     const JsiContent = await parseVehicleDataJSI(fileContentJsi); 
     await insertBulkSheetData(titleContent, brandContent, JsiContent);
 
-    //await removeAllFilesFromFTP(client);
+    await removeAllFilesFromFTP(client);
     return; 
   } catch (error) {
     console.error("❌ FTP Read All Error:", error);
