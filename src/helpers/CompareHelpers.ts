@@ -11,9 +11,9 @@ export const truncateTable = async (entity: any) => {
     throw new Error("Failed to truncate table.");
   }
 }; 
-export const changedDataToComapreData = (oldArray: any, newArray: any) =>  {
-  return newArray.filter((newItem: any) => 
-      oldArray.some((oldItem: any) => 
+export const changedDataToComapreData = (oldArray: any, newArray: any) => {
+  return oldArray.filter((oldItem: any) => 
+      newArray.some((newItem: any) => 
           newItem.vin === oldItem.vin &&
           newItem.vinId === oldItem.vinId &&
           newItem.titleBrandDate === oldItem.titleBrandDate &&
@@ -25,6 +25,7 @@ export const changedDataToComapreData = (oldArray: any, newArray: any) =>  {
       )
   );
 };
+
 
 export const findDifferencesFromTemData = (data: any, data2: any) => {
   // Normalize the data by mapping them to a consistent structure for comparison
@@ -62,8 +63,8 @@ export const findDifferencesFromTemData = (data: any, data2: any) => {
 };
 
 export const brandChangedDataToCompareData = (oldArray: any, newArray: any) => {
-  return newArray.filter((newItem: any) =>
-    oldArray.some((oldItem: any) =>
+  return oldArray.filter((oldItem: any) =>
+    newArray.some((newItem: any) =>
       newItem.vin === oldItem.vin &&
       newItem.titleBrandDate === oldItem.titleBrandDate &&
       newItem.brand === oldItem.brand &&
@@ -72,7 +73,8 @@ export const brandChangedDataToCompareData = (oldArray: any, newArray: any) => {
       newItem.alertType === oldItem.alertType
     )
   );
-};   
+};
+
 
 export const brandFindDifferencesFromTempData = (data: any, data2: any) => {
   const normalize = (item: any) => ({
@@ -104,8 +106,8 @@ export const brandFindDifferencesFromTempData = (data: any, data2: any) => {
 
 
 export const JsiChangedDataToCompareData = (oldArray: any, newArray: any) => {
-  return newArray.filter((newItem: any) =>
-    oldArray.some((oldItem: any) =>
+  return oldArray.filter((oldItem: any) =>
+    newArray.some((newItem: any) =>
       newItem.vin === oldItem.vin &&
       newItem.titleBrandDate === oldItem.titleBrandDate &&
       newItem.email === oldItem.email &&

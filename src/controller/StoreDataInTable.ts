@@ -39,12 +39,14 @@ export const titleInsertData = async (title: any) => {
     ...item,
     isOld: false
   })) : [];
+  // console.log(changedDataToComapre,"YYYYYYYYYYYYYY");
   const updatedOldData = changedDataToComapre.map((item: any) => ({
     ...item,
     isOld: true,
     createdAt: item?.createdAt,
   }));
-
+   
+  // console.log(updatedOldData,"after");
   const finalData = [...updatedOldData, ...newDataToInsert];
 
   return finalData;
