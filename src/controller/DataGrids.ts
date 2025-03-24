@@ -332,6 +332,7 @@ export const getSearchVinPop = async (req: any, res: any) => {
     // Get count of title changes
     const titletitleChangeCount = await VehicleData.createQueryBuilder("vehicle")
       .where("vehicle.isOld = :isOld", { isOld: false })
+      .andWhere("vehicle.vin = :vin", { vin: filters.vin })
       .getCount();
 
     // Get latest title change date
