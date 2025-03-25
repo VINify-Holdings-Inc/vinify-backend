@@ -26,7 +26,6 @@ export const changedDataToComapreData = (oldArray: any, newArray: any) => {
   );
 };
 
-
 export const findDifferencesFromTemData = (data: any, data2: any) => {
   // Normalize the data by mapping them to a consistent structure for comparison
   const normalize = (item: any) => ({
@@ -75,7 +74,6 @@ export const brandChangedDataToCompareData = (oldArray: any, newArray: any) => {
   );
 };
 
-
 export const brandFindDifferencesFromTempData = (data: any, data2: any) => {
   const normalize = (item: any) => ({
     vin: item?.vin,
@@ -103,7 +101,6 @@ export const brandFindDifferencesFromTempData = (data: any, data2: any) => {
     });
   });
 };
-
 
 export const JsiChangedDataToCompareData = (oldArray: any, newArray: any) => {
   return oldArray.filter((oldItem: any) =>

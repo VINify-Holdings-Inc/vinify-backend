@@ -76,17 +76,16 @@ export const transformVehicleDataToJsonTitle = (data: any) => {
   return result;
 };
 
-
-
-export const  findMaxTitleBrandDate=(data:any) =>{
+export const  findMaxTitleBrandDate = (data: any) => {
   if (!Array.isArray(data) || data.length === 0) {
-      return '-'; // Return null if data is not an array or empty
+      return "-"; // Return null if data is not an array or empty
   }
   
   return data.reduce((maxDate, item) => {
       if (item.titleBrandDate && (!maxDate || new Date(item.titleBrandDate) > new Date(maxDate))) {
           return item.titleBrandDate;
       }
+
       return maxDate;
   }, null);
-}
+};

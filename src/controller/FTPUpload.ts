@@ -1,9 +1,7 @@
 import { Client } from "basic-ftp";
 import path from "path";
 import fs from "fs";
-import { parseVehicleDataJSI } from "../helpers/ReadTxtFile";
-import { parseVehicleDataBrand } from "../helpers/ReadTxtFile";
-import { ReadTheTxtFomatJson } from "../helpers/ReadTxtFile";
+import { parseVehicleDataJSI, parseVehicleDataBrand, ReadTheTxtFomatJson} from "../helpers/ReadTxtFile"; 
 import { insertBulkSheetData } from "./StoreDataInTable"; 
 import { MESSAGES } from "../helpers/constants";
 import { createResponse } from "../helpers/response";
@@ -139,6 +137,7 @@ const downloadAndReadFile = async (client: any, targetFileName: any) => {
   const localPath = path.join(__dirname, "../AAMVAFTP", targetFileName);
   // Retry connection in case of failure
   await retryOperation(() => client.downloadTo(localPath, `/${targetFileName}`));
+   // tslint:disable-next-line:no-console
   console.log(`✅ File ${targetFileName} downloaded successfully.`);
   if (!fs.existsSync(localPath)) { 
 
@@ -164,8 +163,10 @@ export const FTPReadAllController = async () => {
     await insertBulkSheetData(titleContent, brandContent, JsiContent);
 
     await removeAllFilesFromFTP(client);
+
     return; 
   } catch (error) {
+     // tslint:disable-next-line:no-console
     console.error("❌ FTP Read All Error:", error);
   } finally {
     await client.close();
@@ -184,17 +185,17 @@ export const testR = async (req: any, res: any) => {
           .leftJoin(MasterBrand, "masterbrand", "vehicle.brand = masterbrand.code")
            .orderBy("vehicle.vin")
           .addOrderBy("vehicle.titleBrandDate", "DESC");
-          const historyData = await historyQueryBuilder.getRawMany()
-    const newData=await VehicleData.find()
- return createResponse(res, 200, MESSAGES?.DATA_FETCH_SUCCESS,{
-  csvData:historyData ,
+          const historyData = await historyQueryBuilder.getRawMany();
+    const newData = await VehicleData.find();
+
+    return createResponse(res, 200, MESSAGES?.DATA_FETCH_SUCCESS, {
+  csvData: historyData ,
   newData
  });
     
   } catch (error) {
+     // tslint:disable-next-line:no-console
     console.error("Error fetching data:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
-
-
