@@ -2,10 +2,9 @@ export const sortBytitleBrandDateDesc = (data: any[]) => {
     return [...data].sort((a, b) => new Date(b.titleBrandDate).getTime() - new Date(a.titleBrandDate).getTime());
 };
 
-
-export const getLatesttitleBrandDate=(data:any)=> {
+export const getLatesttitleBrandDate = (data: any) => {
     const vinMap = new Map(); 
-    data.forEach((item:any) => {
+    data.forEach((item: any) => {
       const existing = vinMap.get(item.vin);
       if (!existing || new Date(item.titleBrandDate) > new Date(existing.titleBrandDate)) {
         vinMap.set(item.vin, item);
@@ -13,10 +12,10 @@ export const getLatesttitleBrandDate=(data:any)=> {
     });
   
     return Array.from(vinMap.values());
-  } 
+  }; 
 
-export const  categorizeDataSIngleSearch=(data:any)=> {
-    const result :any= {
+export const  categorizeDataSIngleSearch = (data: any) => {
+    const result: any = {
         brandDataCount: 0,
         titleDataCount: 0,
         JSICount: 0,
@@ -25,7 +24,7 @@ export const  categorizeDataSIngleSearch=(data:any)=> {
         JSI: []
     };
 
-    data.forEach((item:any) => {
+    data.forEach((item: any) => {
         switch (item?.ReportingEntityCategoryCode) {
             case "S":
                 result?.brandData?.push(item);
@@ -43,4 +42,4 @@ export const  categorizeDataSIngleSearch=(data:any)=> {
     });
 
     return result;
-}
+};

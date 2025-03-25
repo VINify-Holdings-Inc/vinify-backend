@@ -15,6 +15,7 @@ export const updateLastFileProcess = async () => {
       await lastFileProcess.save();
     }
   } catch (error) {
+     // tslint:disable-next-line:no-console
     console.error("Error updating LastFileProcess:", error);
   }
 };
