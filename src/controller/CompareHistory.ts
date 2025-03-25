@@ -62,9 +62,9 @@ export const CompareHistoryTitalDetails = async (req: any, res: any) => {
       jsi: { current: JSIChangeData ?? {}, history: JSIHistory ?? {} },
     });
   } catch (error: any) {
+     // tslint:disable-next-line:no-console
     console.error(MESSAGES?.INTERNAL_SERVER_ERROR, error);
+
     return createResponse(res, 500, MESSAGES?.INTERNAL_SERVER_ERROR, [], false, true);
   }
 };
-
-

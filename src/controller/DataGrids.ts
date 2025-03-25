@@ -35,7 +35,7 @@ export const DashboardSummaryVIN = async (req: any, res: any) => {
     // const distinctVINs = await correctedData(items);
     const totalQueryBuilder = VehicleData.createQueryBuilder("vehicle")
       .select("COUNT(DISTINCT vehicle.vin)", "total")
-      .leftJoin(MasterState, "masterstate", "vehicle.state = masterstate.code")
+      .leftJoin(MasterState, "masterstate", "vehicle.state = masterstate.code");
     Object.entries(filters).forEach(([key, value]) => {
       if (value) {
         totalQueryBuilder.andWhere(`LOWER(vehicle."${key}") LIKE LOWER(:${key})`, { [key]: `%${value}%` });
@@ -53,6 +53,7 @@ export const DashboardSummaryVIN = async (req: any, res: any) => {
       items: distinctVINs,
     });
   } catch (error: any) {
+     // tslint:disable-next-line:no-console
     console.error(MESSAGES?.INTERNAL_SERVER_ERROR, error);
 
     return createResponse(res, 500, MESSAGES?.INTERNAL_SERVER_ERROR, [], false, true);
@@ -84,13 +85,12 @@ export const DashboardSummaryVINUpdated = async (req: any, res: any) => {
       }
     });
 
-
     const distinctVINs = await queryBuilder.getRawMany();
     // const distinctVINs = await correctedData(items);
     const totalQueryBuilder = VehicleData.createQueryBuilder("vehicle")
       .select("COUNT(DISTINCT vehicle.vin)", "total")
       .leftJoin(MasterState, "masterstate", "vehicle.state = masterstate.code")
-      .where("vehicle.isOld = :isOld", { isOld: false })
+      .where("vehicle.isOld = :isOld", { isOld: false });
     Object.entries(filters).forEach(([key, value]) => {
       if (value) {
         totalQueryBuilder.andWhere(`LOWER(vehicle."${key}") LIKE LOWER(:${key})`, { [key]: `%${value}%` });
@@ -108,7 +108,9 @@ export const DashboardSummaryVINUpdated = async (req: any, res: any) => {
       items: distinctVINs,
     });
   } catch (error: any) {
+     // tslint:disable-next-line:no-console
     console.error(MESSAGES?.INTERNAL_SERVER_ERROR, error);
+
     return createResponse(res, 500, MESSAGES?.INTERNAL_SERVER_ERROR, [], false, true);
   }
 };
@@ -278,7 +280,8 @@ export const getSearchVinPop = async (req: any, res: any) => {
       .leftJoin(MasterBrand, "masterbrand", "vd.brand = masterbrand.code")
       .leftJoin(MasterState, "masterstate", "vd.state = masterstate.code")
       .orderBy("vd.titleBrandDate", "DESC")
-      .addOrderBy("vd.alertType", "DESC")  
+      .addOrderBy("vd.alertType", "DESC");
+
     // **Exact VIN Search**
     if (oldVin) {
       queryBuilder.andWhere("vd.vin = :oldVin", { oldVin });
@@ -301,7 +304,6 @@ export const getSearchVinPop = async (req: any, res: any) => {
 
     // Pagination
     const items = await queryBuilder.limit(limit).offset(offset).getRawMany();
-    // const items = await correctedData(temp);
 
     // Count total records
     const totalQueryBuilder = VehicleData.createQueryBuilder("vd")
@@ -329,6 +331,22 @@ export const getSearchVinPop = async (req: any, res: any) => {
     const totalCount = await totalQueryBuilder.getCount();
     const totalPages = Math.ceil(totalCount / limit);
 
+    // Get count of title changes
+    const titletitleChangeCount = await VehicleData.createQueryBuilder("vehicle")
+      .where("vehicle.isOld = :isOld", { isOld: false })
+      .andWhere("vehicle.vin = :vin", { vin: filters.vin })
+      .getCount();
+
+    // Get latest title change date
+    const lastTitleChangeRecord = await VehicleData.createQueryBuilder("vehicle")
+      .where("vehicle.isOld = :isOld", { isOld: false })
+      .orderBy("vehicle.titleBrandDate", "DESC")
+      .addOrderBy("vehicle.alertType", "DESC")
+      .select(["vehicle.titleBrandDate"])
+      .getOne();
+
+    const titletitleChangeLastUpdated = lastTitleChangeRecord?.titleBrandDate || null;
+
     if (items.length === 0) {
       return createResponse(
         res,
@@ -352,13 +370,16 @@ export const getSearchVinPop = async (req: any, res: any) => {
       totalPages,
       totalItems: totalCount,
       items,
+      titletitleChangeCount,
+      titletitleChangeLastUpdated
     });
   } catch (error) {
+     // tslint:disable-next-line:no-console
     console.error(MESSAGES?.INTERNAL_SERVER_ERROR, error);
+
     return createResponse(res, 500, MESSAGES?.INTERNAL_SERVER_ERROR, [], false, true);
   }
 };
-
 
 export const ExportPdfVINData = async (req: any, res: any) => {
   try {
@@ -379,7 +400,7 @@ export const ExportPdfVINData = async (req: any, res: any) => {
       .orderBy("vehicle.titleBrandDate", "DESC")
       .addOrderBy("vehicle.vin", "ASC")
       .addOrderBy("vehicle.alertType", "DESC")
-      .where("vehicle.id IN (:...vins)", { vins }) 
+      .where("vehicle.id IN (:...vins)", { vins }); 
 
       data = await queryBuilder.getRawMany();
     // data = await correctedData(items);  
@@ -395,8 +416,7 @@ export const ExportPdfVINData = async (req: any, res: any) => {
         .leftJoin(MasterBrand, "masterbrand", "vehicle.brand = masterbrand.code")
         .orderBy("vehicle.titleBrandDate", "DESC")
         .addOrderBy("vehicle.vin", "ASC")
-        .addOrderBy("vehicle.alertType", "DESC")
-
+        .addOrderBy("vehicle.alertType", "DESC");
 
         data = await queryBuilder.getRawMany();
       // data = await correctedData(items);
@@ -414,11 +434,12 @@ export const ExportPdfVINData = async (req: any, res: any) => {
       .orderBy("vehicle.titleBrandDate", "DESC")
       .addOrderBy("vehicle.vin", "ASC")
       .addOrderBy("vehicle.alertType", "DESC")
-      .where("vehicle.isOld = :isOld", { isOld: false }) 
-   data= await queryBuilder.getRawMany();
+      .where("vehicle.isOld = :isOld", { isOld: false }); 
+   data = await queryBuilder.getRawMany();
     // data = await correctedData(items);
     } 
     // Return the fetched data
+    
     return createResponse(res, 200, MESSAGES?.DATA_FETCH_SUCCESS, { items: data });
   } catch (error: any) {
     // tslint:disable-next-line:no-console  

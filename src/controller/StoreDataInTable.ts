@@ -1,6 +1,14 @@
 import { VehicleData } from "../Entities/vehicle_data";
 import { VehicleDataTemp } from "../Entities/vehicle_data_temp";
-import { brandChangedDataToCompareData, brandFindDifferencesFromTempData, changedDataToComapreData, findDifferencesFromTemData, JsiChangedDataToCompareData, JsiFindDifferencesFromTempData, truncateTable } from "../helpers/CompareHelpers";
+import {
+  brandChangedDataToCompareData,
+  brandFindDifferencesFromTempData,
+  changedDataToComapreData,
+  findDifferencesFromTemData,
+  JsiChangedDataToCompareData,
+  JsiFindDifferencesFromTempData,
+  truncateTable
+} from "../helpers/CompareHelpers";
 import { getLatesttitleBrandDate, sortBytitleBrandDateDesc } from "../helpers/SortCollection";
 import { updateLastFileProcess } from "../helpers/UpdateLastRecord";
 
@@ -14,11 +22,11 @@ export const insertBulkSheetData = async (title: any, brand: any, JsiContent: an
       .filter(arr => arr.length > 0) // Filter out empty arrays
       .flat();
 
-    const SortedfinalDataStore = await sortBytitleBrandDateDesc(finalDataStore)
-    const TempSortedfinalDataStore = await getLatesttitleBrandDate(SortedfinalDataStore)
+    const SortedfinalDataStore = await sortBytitleBrandDateDesc(finalDataStore);
+    const TempSortedfinalDataStore = await getLatesttitleBrandDate(SortedfinalDataStore);
     await truncateTable(VehicleData);
     await truncateTable(VehicleDataTemp);
-    await updateLastFileProcess()
+    await updateLastFileProcess();
     await VehicleData.save(SortedfinalDataStore);
     await VehicleDataTemp.save(TempSortedfinalDataStore);
 
@@ -39,12 +47,14 @@ export const titleInsertData = async (title: any) => {
     ...item,
     isOld: false
   })) : [];
+  // console.log(changedDataToComapre,"YYYYYYYYYYYYYY");
   const updatedOldData = changedDataToComapre.map((item: any) => ({
     ...item,
     isOld: true,
     createdAt: item?.createdAt,
   }));
 
+  // console.log(updatedOldData,"after");
   const finalData = [...updatedOldData, ...newDataToInsert];
 
   return finalData;
