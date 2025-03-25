@@ -32,6 +32,36 @@
                 
                 @Column({ name: "EntityName", type: "varchar", nullable: true })
                 EntityName: string; 
+
+                @Column({ name: "export", type: "varchar", nullable: true })
+                export: string;
+
+                @Column({ name: "status", type: "varchar", nullable: true })
+                status: string;
+              
+                @Column({ name: "VehicleDispositionText", type: "varchar", nullable: true })
+                VehicleDispositionText: string; 
+              
+                @Column({ name: "VehicleIntendedForExportCode", type: "varchar", nullable: true })
+                VehicleIntendedForExportCode: string; 
+              
+                @Column({ name: "ContactEmailID", type: "varchar", nullable: true })
+                ContactEmailID: string; 
+              
+                @Column({ name: "TelephoneNumberFullID", type: "varchar", nullable: true })
+                TelephoneNumberFullID: string; 
+              
+                @Column({ name: "LocationCityName", type: "varchar", nullable: true })
+                LocationCityName: string; 
+              
+                @Column({ name: "RecordMatchSequenceID", type: "varchar", nullable: true })
+                RecordMatchSequenceID: string; 
+                
+                @Column({ name: "VehicleOdometerReadingUnitCode", type: "varchar", nullable: true })
+                VehicleOdometerReadingUnitCode: string; 
+              
+                @Column({ name: "VehicleOdometerReadingMeasure", type: "varchar", nullable: true })
+                VehicleOdometerReadingMeasure: string; 
                 
                 @Column({
                   name: "createdAt",

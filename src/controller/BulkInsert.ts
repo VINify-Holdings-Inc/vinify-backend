@@ -6,7 +6,6 @@ import { MasterState } from "../Entities/master_state";
 import { MasterBrand } from "../Entities/master_brand";
 import { LastFileProcess } from "../Entities/LastFileProcess";
  
-
 export const getTotalKpiesData = async (req: any, res: any) => {
   try {
     const query1 = VehicleData.createQueryBuilder("vehicleData")
@@ -18,10 +17,10 @@ export const getTotalKpiesData = async (req: any, res: any) => {
       ])
       .distinctOn(["vehicle.vin"])
       .orderBy("vehicle.vin", "ASC") // Ensure vin is the first ORDER BY field
-      .addOrderBy("vehicle.titleBrandDate", "DESC")
+      .addOrderBy("vehicle.titleBrandDate", "DESC");
       // .addOrderBy("vehicle.createdAt", "DESC")
       // .addOrderBy("vehicle.alertType", "DESC");
-    let rawUpdated = await queryBuilder.getRawMany();
+    const rawUpdated = await queryBuilder.getRawMany();
     // // Apply filtering correctly and store the filtered array
     const filteredData = rawUpdated?.filter((item: any) => !item.isOld);
     const totalUpdatedData = filteredData?.length;
@@ -38,9 +37,7 @@ export const getTotalKpiesData = async (req: any, res: any) => {
       .addOrderBy("vehicle.isOld", "ASC")
       .limit(3);
 
-    let RecentAlert = await currentQueryBuilder.getRawMany();
-
-
+    const RecentAlert = await currentQueryBuilder.getRawMany();
 
     return createResponse(
       res,
@@ -78,10 +75,11 @@ export const TotalUnreadAlerts = async (req: any, res: any) => {
       .select("COUNT(vehicle.vin)", "count") // Removed DISTINCT
       .getRawOne();
 
-    let lastFileProcess = await LastFileProcess.createQueryBuilder("lastFileProcess")
+    const lastFileProcess = await LastFileProcess.createQueryBuilder("lastFileProcess")
        .select()
        .getOne(); 
     // Create response
+    
     return createResponse(res, 200, MESSAGES?.DATA_FETCH_SUCCESS, {
       totalNotificationCount: totalNotificationCount?.count,
       lastUpdatedDate: lastFileProcess?.createdAt
