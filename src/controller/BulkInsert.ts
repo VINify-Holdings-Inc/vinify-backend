@@ -5,25 +5,16 @@ import { VehicleData } from "../Entities/vehicle_data";
 import { MasterState } from "../Entities/master_state";
 import { MasterBrand } from "../Entities/master_brand";
 import { LastFileProcess } from "../Entities/LastFileProcess";
+import { VehicleDataTemp } from "../Entities/vehicle_data_temp";
  
 export const getTotalKpiesData = async (req: any, res: any) => {
   try {
     const query1 = VehicleData.createQueryBuilder("vehicleData")
       .select("COUNT(DISTINCT vehicleData.vin)", "uniqueVinCount");
     const totalKpiData = await query1.getRawOne();
-    const queryBuilder = VehicleData.createQueryBuilder("vehicle")
-      .select([
-        "vehicle.*",
-      ])
-      .distinctOn(["vehicle.vin"])
-      .orderBy("vehicle.vin", "ASC") // Ensure vin is the first ORDER BY field
-      .addOrderBy("vehicle.titleBrandDate", "DESC");
-      // .addOrderBy("vehicle.createdAt", "DESC")
-      // .addOrderBy("vehicle.alertType", "DESC");
-    const rawUpdated = await queryBuilder.getRawMany();
-    // // Apply filtering correctly and store the filtered array
-    const filteredData = rawUpdated?.filter((item: any) => !item.isOld);
-    const totalUpdatedData = filteredData?.length;
+    const totalUpdatedData = await VehicleDataTemp.count({
+      where: { isOld: false },
+    });
 
     const currentQueryBuilder = VehicleData.createQueryBuilder("vehicle")
       .select([

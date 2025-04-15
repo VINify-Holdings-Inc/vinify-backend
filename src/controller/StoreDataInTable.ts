@@ -3,8 +3,7 @@ import { VehicleDataTemp } from "../Entities/vehicle_data_temp";
 import {
   brandChangedDataToCompareData,
   brandFindDifferencesFromTempData,
-  changedDataToComapreData,
-  findDifferencesFromTemData,
+  changedDataToComapreData, 
   JsiChangedDataToCompareData,
   JsiFindDifferencesFromTempData,
   truncateTable
@@ -27,7 +26,7 @@ export const insertBulkSheetData = async (title: any, brand: any, JsiContent: an
     await truncateTable(VehicleData);
     await truncateTable(VehicleDataTemp);
     await updateLastFileProcess();
-    await VehicleData.save(SortedfinalDataStore);
+    await VehicleData.save(SortedfinalDataStore);//
     await VehicleDataTemp.save(TempSortedfinalDataStore);
 
     return;
@@ -40,24 +39,9 @@ export const insertBulkSheetData = async (title: any, brand: any, JsiContent: an
 };
 
 export const titleInsertData = async (title: any) => {
-  const vehicleTemData = await VehicleData.find({ where: { alertType: "Title" } });
-  const changedDataToComapre = await changedDataToComapreData(vehicleTemData, title);
-  const NewData = await findDifferencesFromTemData(changedDataToComapre, title);
-  const newDataToInsert = NewData.length > 0 ? NewData.map((item: any) => ({
-    ...item,
-    isOld: false
-  })) : [];
-  // console.log(changedDataToComapre,"YYYYYYYYYYYYYY");
-  const updatedOldData = changedDataToComapre.map((item: any) => ({
-    ...item,
-    isOld: true,
-    createdAt: item?.createdAt,
-  }));
-
-  // console.log(updatedOldData,"after");
-  const finalData = [...updatedOldData, ...newDataToInsert];
-
-  return finalData;
+  const vehicleTemData = await VehicleData.find({ where: { alertType: "Title" } });  
+  const changedDataToComapre :any= await changedDataToComapreData(vehicleTemData, title); 
+  return changedDataToComapre;
 };
 
 export const BrandInsertData = async (title: any) => {

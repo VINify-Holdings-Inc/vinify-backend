@@ -87,7 +87,7 @@ export const DashboardSummaryVINUpdated = async (req: any, res: any) => {
 
     const distinctVINs = await queryBuilder.getRawMany();
     // const distinctVINs = await correctedData(items);
-    const totalQueryBuilder = VehicleData.createQueryBuilder("vehicle")
+    const totalQueryBuilder = VehicleDataTemp.createQueryBuilder("vehicle")
       .select("COUNT(DISTINCT vehicle.vin)", "total")
       .leftJoin(MasterState, "masterstate", "vehicle.state = masterstate.code")
       .where("vehicle.isOld = :isOld", { isOld: false });
@@ -282,15 +282,18 @@ export const getSearchVinPop = async (req: any, res: any) => {
       .orderBy("vd.titleBrandDate", "DESC")
       .addOrderBy("vd.alertType", "DESC");
 
-    // **Exact VIN Search**
+    // Exact VIN Search using oldVin
     if (oldVin) {
       queryBuilder.andWhere("vd.vin = :oldVin", { oldVin });
     }
 
-    // Apply other filters
+    // Apply filters
     Object.entries(filters).forEach(([key, value]) => {
       if (value && key !== "page" && key !== "limit") {
-        if (key === "isRead") {
+        if (key === "vin") {
+          // Exact VIN match if key is 'vin'
+          queryBuilder.andWhere(`vd.${key} = :${key}`, { [key]: value });
+        } else if (key === "isRead") {
           queryBuilder.andWhere(`vd.${key} = :${key}`, {
             [key]: value === "true" ? true : value === "false" ? false : value
           });
@@ -303,7 +306,7 @@ export const getSearchVinPop = async (req: any, res: any) => {
     });
 
     // Pagination
-    const items = await queryBuilder.limit(limit).offset(offset).getRawMany();
+    const items = await queryBuilder.limit(Number(limit)).offset(Number(offset)).getRawMany();
 
     // Count total records
     const totalQueryBuilder = VehicleData.createQueryBuilder("vd")
@@ -316,7 +319,9 @@ export const getSearchVinPop = async (req: any, res: any) => {
 
     Object.entries(filters).forEach(([key, value]) => {
       if (value && key !== "page" && key !== "limit") {
-        if (key === "isRead") {
+        if (key === "vin") {
+          totalQueryBuilder.andWhere(`vd.${key} = :${key}`, { [key]: value });
+        } else if (key === "isRead") {
           totalQueryBuilder.andWhere(`vd.${key} = :${key}`, {
             [key]: value === "true" ? true : value === "false" ? false : value
           });
@@ -331,16 +336,17 @@ export const getSearchVinPop = async (req: any, res: any) => {
     const totalCount = await totalQueryBuilder.getCount();
     const totalPages = Math.ceil(totalCount / limit);
 
-    // Get count of title changes
+    // Count of title changes
     const titletitleChangeCount = await VehicleData.createQueryBuilder("vehicle")
       .where("vehicle.isOld = :isOld", { isOld: false })
       .andWhere("vehicle.vin = :vin", { vin: filters.vin })
       .getCount();
 
-    // Get latest title change date
+    // Latest title change date
     const lastTitleChangeRecord = await VehicleData.createQueryBuilder("vehicle")
-      .where("vehicle.isOld = :isOld", { isOld: false })
+      // .where("vehicle.isOld = :isOld", { isOld: false })
       .orderBy("vehicle.titleBrandDate", "DESC")
+      .andWhere("vehicle.vin = :vin", { vin: filters.vin })
       .addOrderBy("vehicle.alertType", "DESC")
       .select(["vehicle.titleBrandDate"])
       .getOne();
@@ -374,12 +380,12 @@ export const getSearchVinPop = async (req: any, res: any) => {
       titletitleChangeLastUpdated
     });
   } catch (error) {
-     // tslint:disable-next-line:no-console
     console.error(MESSAGES?.INTERNAL_SERVER_ERROR, error);
 
     return createResponse(res, 500, MESSAGES?.INTERNAL_SERVER_ERROR, [], false, true);
   }
 };
+
 
 export const ExportPdfVINData = async (req: any, res: any) => {
   try {

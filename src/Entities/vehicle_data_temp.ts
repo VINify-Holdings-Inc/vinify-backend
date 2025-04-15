@@ -8,65 +8,75 @@ import {
 
 @Entity({ name: "VehicleDataTemp" })
 export class VehicleDataTemp extends BaseEntity {
+
   @PrimaryGeneratedColumn({ name: "id" })
   @Generated("uuid")
   uuid: string;
 
-  @Column({ name: "vin", type: "varchar", default: "-"})
+  @Column({ name: "vin", type: "varchar", default: " " })
   vin: string;
 
-  @Column({ name: "vinId", type: "varchar", default: "-"})
-  vinId: string; 
+  @Column({ name: "idSequence", type: "int", })
+  @Generated('rowid')
+  idSequence: any
 
-  @Column({ name: "model", type: "varchar", default: "-"})
+  @Column({ name: "vinId", type: "varchar", default: "" })
+  vinId: string;
+
+  @Column({ name: "model", type: "varchar", default: "" })
   model: string;
 
-  @Column({ name: "make", type: "varchar", default: "-"})
+  @Column({ name: "make", type: "varchar", default: "" })
   make: string;
 
-  @Column({ name: "brand", type: "varchar", default: "-"})
-  brand: string;  
+  @Column({ name: "brand", type: "varchar", default: "" })
+  brand: string;
 
-  @Column({ name: "state", type: "varchar", default: "-"})
+  @Column({ name: "state", type: "varchar", default: "" })
   state: string;
- 
-  @Column({ name: "alertType", type: "varchar", default: "-"})
+
+  @Column({ name: "alertType", type: "varchar", default: "" })
   alertType: string;
 
-  @Column({ name: "titleBrandDate", type: "varchar", default: "-"})
+  @Column({ name: "titleBrandDate", type: "varchar", default: "" })
   titleBrandDate: string;
 
-  @Column({ name: "modelYear", type: "varchar", default: "-"})
+  @Column({ name: "modelYear", type: "varchar", default: "" })
   modelYear: string;
 
-  @Column({ name: "status", type: "varchar", default: "-"})
+  @Column({ name: "status", type: "varchar", default: "" })
   status: string;
-  //             
+  //        
+  @Column({ name: "titleUnique", type: "varchar", default: "" })
+  titleUnique: string;
 
-  @Column({ name: "description", type: "varchar", default: "-"})
+  @Column({ name: "description", type: "varchar", default: "" })
   description: string;
 
-  @Column({ name: "export", type: "varchar", default: "-"})
+  @Column({ name: "export", type: "varchar", default: "" })
   export: string;
 
-  @Column({ name: "city", type: "varchar", default: "-"})
+  @Column({ name: "extra", type: "varchar", default: "" })
+  extra: string;
+
+  @Column({ name: "city", type: "varchar", default: "" })
   city: string;
 
-  @Column({ name: "rptgEntity", type: "varchar", default: "-"})
-  rptgEntity: string; 
+  @Column({ name: "rptgEntity", type: "varchar", default: "" })
+  rptgEntity: string;
 
-  @Column({ name: "email", type: "varchar", default: "-"})
-  email: string; 
+  @Column({ name: "email", type: "varchar", default: "" })
+  email: string;
 
-  @Column({ name: "mobile", type: "varchar", default: "-"})
-  mobile: string; 
+  @Column({ name: "mobile", type: "varchar", default: "" })
+  mobile: string;
 
   @Column({ name: "isRead", type: "boolean", default: false })
   isRead: boolean;
 
   @Column({ name: "isOld", type: "boolean", default: true })
-  isOld: boolean; 
-  
+  isOld: boolean;
+
   @Column({
     name: "createdAt",
     type: "timestamptz",
