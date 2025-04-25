@@ -30,19 +30,19 @@
 //   return finalResult;
 // };
 
-export const ReadTheTxtFomatJson = (input:any) => {
+export const ReadTheTxtFomatJson = (input: any) => {
   const lines = input?.split("\n");
-  const RowLines:any = [];
+  const RowLines: any = [];
 
-  lines?.map((item:any) => {
+  lines?.map((item: any) => {
     const subArray = item?.split(" ")?.filter(Boolean);
     RowLines.push({ raw: item, parsed: subArray });
   });
 
-  const finalResult:any = [];
+  const finalResult: any = [];
 
-  RowLines?.slice(0, -1)?.map(({ raw, parsed: item2 }:any) => {
-    const obj :any= {};
+  RowLines?.slice(0, -1)?.map(({ raw, parsed: item2 }: any) => {
+    const obj: any = {};
 
     if (item2?.length > 3) {
       const isCurrent = item2[0]?.startsWith("V");
@@ -64,12 +64,18 @@ export const ReadTheTxtFomatJson = (input:any) => {
       obj.extra = extraContent;
 
       // Get titleUnique: first word after titleBrandDate
-      const afterTitle = extraContent.split(/\s+/).filter(Boolean);
-      // obj.titleUnique = afterTitle[0] || "";
-      const matchedNumber = afterTitle[0]?.match(/\d+/);
-      obj.titleUnique = matchedNumber ? matchedNumber[0] : afterTitle[0] || "";
-      
-
+      const afterTitle = extraContent?.split(/\s+/)?.filter(Boolean);
+      // const matchedNumber = afterTitle[0]?.match(/\d+/);
+      // obj.titleUnique = matchedNumber ? matchedNumber[0] : afterTitle[0] || "";
+      obj.titleUnique = (afterTitle[0] || "")?.slice(0, 10);
+      const match = afterTitle[0]?.match(/^0*(\d+)([A-Za-z])?/);
+      if (match) {
+        const rawNumber = match[1]; // "122343434"
+        const withCommas = rawNumber.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        obj.odometer = match[2] ? `${withCommas} ${match[2]}` : withCommas;
+      } else {
+        obj.odometer = afterTitle[0] || "";
+      }
 
       obj.alertType = "Title";
 

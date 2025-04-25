@@ -52,6 +52,9 @@ export class VehicleData extends BaseEntity {
   @Column({ name: "description", type: "varchar", default: ""})
   description: string;
 
+  @Column({ name: "odometer", type: "varchar", default: ""})
+  odometer: string;
+
   @Column({ name: "export", type: "varchar", default: ""})
   export: string;
 

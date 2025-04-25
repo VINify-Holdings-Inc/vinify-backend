@@ -1,8 +1,10 @@
+import { LastFileProcess } from "../Entities/LastFileProcess";
 import { MasterBrand } from "../Entities/master_brand";
 import { MasterState } from "../Entities/master_state";
 import { VehicleData } from "../Entities/vehicle_data";
 import { VehicleDataTemp } from "../Entities/vehicle_data_temp";
 import { MESSAGES } from "../helpers/constants";
+import { correctedData } from "../helpers/DashBoardHelpers";
 // import { correctedData } from "../helpers/DashBoardHelpers";
 import { createResponse } from "../helpers/response";
 
@@ -11,106 +13,115 @@ export const DashboardSummaryVIN = async (req: any, res: any) => {
     const { page = 1, limit = 9, ...filters } = req.query;
     const offset = (page - 1) * limit;
 
-    const queryBuilder = VehicleDataTemp.createQueryBuilder("vehicle")
-      .select([
-        "vehicle.*",
-        "masterstate.name AS state",
-        "masterbrand.name AS brand"
-      ])
-      .leftJoin(MasterState, "masterstate", "vehicle.state = masterstate.code")
-      .leftJoin(MasterBrand, "masterbrand", "vehicle.brand = masterbrand.code")
-      .orderBy("vehicle.titleBrandDate", "DESC")
-      .addOrderBy("vehicle.vin", "ASC")
+    // Build main query with DISTINCT ON vehicle.vin
+    const queryBuilder = VehicleData.createQueryBuilder("vehicle")
+      .distinctOn(["vehicle.vin"]) // DISTINCT ON
+      .select(["vehicle.*"])
+      .orderBy("vehicle.vin", "ASC") // must be first for DISTINCT ON
+      .addOrderBy("vehicle.titleBrandDate", "DESC")
       .addOrderBy("vehicle.alertType", "DESC")
-      .limit(limit)
-      .offset(offset);
+      .limit(Number(limit))
+      .offset(Number(offset));
 
+    // Add filters dynamically
     Object.entries(filters).forEach(([key, value]) => {
       if (value) {
-        queryBuilder.andWhere(`LOWER(vehicle."${key}") LIKE LOWER(:${key})`, { [key]: `%${value}%` });
+        queryBuilder.andWhere(`LOWER(vehicle."${key}") LIKE LOWER(:${key})`, {
+          [key]: `%${value}%`,
+        });
       }
     });
 
     const distinctVINs = await queryBuilder.getRawMany();
-    // const distinctVINs = await correctedData(items);
+    const finalData = await correctedData(distinctVINs);
+
+    // Total count query - only count DISTINCT vin
     const totalQueryBuilder = VehicleData.createQueryBuilder("vehicle")
-      .select("COUNT(DISTINCT vehicle.vin)", "total")
-      .leftJoin(MasterState, "masterstate", "vehicle.state = masterstate.code");
+      .select("COUNT(DISTINCT vehicle.vin)", "total");
+
+    // Reapply filters to the total count query
     Object.entries(filters).forEach(([key, value]) => {
       if (value) {
-        totalQueryBuilder.andWhere(`LOWER(vehicle."${key}") LIKE LOWER(:${key})`, { [key]: `%${value}%` });
+        totalQueryBuilder.andWhere(`LOWER(vehicle."${key}") LIKE LOWER(:${key})`, {
+          [key]: `%${value}%`,
+        });
       }
     });
 
     const totalResult = await totalQueryBuilder.getRawOne();
-    const totalDistinctVINs = totalResult?.total || 0;
-    const totalPages = Math.ceil(totalDistinctVINs / limit);
+    const totalDistinctVINs = parseInt(totalResult?.total || 0, 10);
+    const totalPages = Math.ceil(totalDistinctVINs / Number(limit));
 
     return createResponse(res, 200, MESSAGES?.DATA_FETCH_SUCCESS, {
-      currentPage: page,
+      currentPage: Number(page),
       totalPages,
       totalRecords: totalDistinctVINs,
-      items: distinctVINs,
+      items: finalData,
     });
   } catch (error: any) {
-     // tslint:disable-next-line:no-console
     console.error(MESSAGES?.INTERNAL_SERVER_ERROR, error);
 
     return createResponse(res, 500, MESSAGES?.INTERNAL_SERVER_ERROR, [], false, true);
   }
 };
+
 export const DashboardSummaryVINUpdated = async (req: any, res: any) => {
   try {
     const { page = 1, limit = 9, ...filters } = req.query;
-    const offset = (page - 1) * limit;
+    const offset = (Number(page) - 1) * Number(limit);
 
-    const queryBuilder = VehicleDataTemp.createQueryBuilder("vehicle")
+    // Start query to fetch distinct VINs and join with MasterState and MasterBrand
+    const queryBuilder = VehicleData.createQueryBuilder("vd")
       .select([
-        "vehicle.*",
-        "masterstate.name AS state",
-        "masterbrand.name AS brand"
+        "vd.*",
       ])
-      .leftJoin(MasterState, "masterstate", "vehicle.state = masterstate.code")
-      .leftJoin(MasterBrand, "masterbrand", "vehicle.brand = masterbrand.code")
-      .orderBy("vehicle.titleBrandDate", "DESC")
-      .addOrderBy("vehicle.vin", "ASC")
-      .addOrderBy("vehicle.alertType", "DESC")
-      .where("vehicle.isOld = :isOld", { isOld: false })
-      .limit(limit)
-      .offset(offset);
+      .distinctOn(["vd.vin"]) // Ensure distinct VIN  Filter by status
+      .andWhere("vd.isOld = :isOld", { isOld: false }) // Filter by 'isOld' flag
+      .orderBy("vd.vin") // Order by VIN
+      .addOrderBy("vd.titleBrandDate", "DESC") // Order by titleBrandDate for VIN
+      .limit(Number(limit)) // Pagination limit
+      .offset(offset); // Pagination offset
 
+    // Apply dynamic filters based on query parameters
     Object.entries(filters).forEach(([key, value]) => {
       if (value) {
-        queryBuilder.andWhere(`LOWER(vehicle."${key}") LIKE LOWER(:${key})`, { [key]: `%${value}%` });
+        queryBuilder.andWhere(`LOWER(vd."${key}") ILIKE LOWER(:${key})`, { [key]: `%${value}%` });
       }
     });
 
+    // Execute the query and get the distinct VINs
     const distinctVINs = await queryBuilder.getRawMany();
-    // const distinctVINs = await correctedData(items);
-    const totalQueryBuilder = VehicleDataTemp.createQueryBuilder("vehicle")
-      .select("COUNT(DISTINCT vehicle.vin)", "total")
-      .leftJoin(MasterState, "masterstate", "vehicle.state = masterstate.code")
-      .where("vehicle.isOld = :isOld", { isOld: false });
+    const finalData = await correctedData(distinctVINs);
+    // Start counting the total distinct VINs
+    const totalQueryBuilder = VehicleData.createQueryBuilder("vd")
+      .select("COUNT(DISTINCT vd.vin)", "total")
+      .andWhere("vd.isOld = :isOld", { isOld: false });
+
+    // Apply the same filters to the total count query
     Object.entries(filters).forEach(([key, value]) => {
       if (value) {
-        totalQueryBuilder.andWhere(`LOWER(vehicle."${key}") LIKE LOWER(:${key})`, { [key]: `%${value}%` });
+        totalQueryBuilder.andWhere(`LOWER(vd."${key}") ILIKE LOWER(:${key})`, { [key]: `%${value}%` });
       }
     });
 
+    // Execute the total count query
     const totalResult = await totalQueryBuilder.getRawOne();
-    const totalDistinctVINs = totalResult?.total || 0;
-    const totalPages = Math.ceil(totalDistinctVINs / limit);
+    const totalDistinctVINs = parseInt(totalResult?.total || "0", 10);
+    const totalPages = Math.ceil(totalDistinctVINs / Number(limit)); // Calculate total pages
 
+    // Return the final response with paginated results
     return createResponse(res, 200, MESSAGES?.DATA_FETCH_SUCCESS, {
-      currentPage: page,
+      currentPage: Number(page),
+      limit,
       totalPages,
       totalRecords: totalDistinctVINs,
-      items: distinctVINs,
+      items: finalData,
     });
   } catch (error: any) {
-     // tslint:disable-next-line:no-console
+    // Log any errors that occur
     console.error(MESSAGES?.INTERNAL_SERVER_ERROR, error);
 
+    // Return an internal server error response
     return createResponse(res, 500, MESSAGES?.INTERNAL_SERVER_ERROR, [], false, true);
   }
 };
@@ -343,15 +354,8 @@ export const getSearchVinPop = async (req: any, res: any) => {
       .getCount();
 
     // Latest title change date
-    const lastTitleChangeRecord = await VehicleData.createQueryBuilder("vehicle")
-      // .where("vehicle.isOld = :isOld", { isOld: false })
-      .orderBy("vehicle.titleBrandDate", "DESC")
-      .andWhere("vehicle.vin = :vin", { vin: filters.vin })
-      .addOrderBy("vehicle.alertType", "DESC")
-      .select(["vehicle.titleBrandDate"])
-      .getOne();
-
-    const titletitleChangeLastUpdated = lastTitleChangeRecord?.titleBrandDate || null;
+    const lastTitleChangeRecord: any= await LastFileProcess.find();
+    const titletitleChangeLastUpdated = lastTitleChangeRecord[0]?.createdAt || null;
 
     if (items.length === 0) {
       return createResponse(
@@ -396,56 +400,39 @@ export const ExportPdfVINData = async (req: any, res: any) => {
     if (type === "single" && vins.length > 0) {
 
       const queryBuilder = VehicleDataTemp.createQueryBuilder("vehicle")
-      .select([
-        "vehicle.*",
-        "masterstate.name AS state",
-        "masterbrand.name AS brand"
-      ])
-      .leftJoin(MasterState, "masterstate", "vehicle.state = masterstate.code")
-      .leftJoin(MasterBrand, "masterbrand", "vehicle.brand = masterbrand.code")
-      .orderBy("vehicle.titleBrandDate", "DESC")
-      .addOrderBy("vehicle.vin", "ASC")
-      .addOrderBy("vehicle.alertType", "DESC")
-      .where("vehicle.id IN (:...vins)", { vins }); 
+        .select(["vehicle.*",])
+        .addOrderBy("vehicle.vin", "ASC")
+        .addOrderBy("vehicle.alertType", "DESC")
+        .where("vehicle.id IN (:...vins)", { vins });
 
-      data = await queryBuilder.getRawMany();
-    // data = await correctedData(items);  
+      const distinctVINs = await queryBuilder.getRawMany();
+      data = await correctedData(distinctVINs);
+      // data = await correctedData(items);  
     } else if (type === "all") {
       // Fetch all data with status "Current" 
-      const queryBuilder = VehicleDataTemp.createQueryBuilder("vehicle")
-        .select([
-          "vehicle.*",
-          "masterstate.name AS state",
-          "masterbrand.name AS brand"
-        ])
-        .leftJoin(MasterState, "masterstate", "vehicle.state = masterstate.code")
-        .leftJoin(MasterBrand, "masterbrand", "vehicle.brand = masterbrand.code")
-        .orderBy("vehicle.titleBrandDate", "DESC")
-        .addOrderBy("vehicle.vin", "ASC")
-        .addOrderBy("vehicle.alertType", "DESC");
-
-        data = await queryBuilder.getRawMany();
-      // data = await correctedData(items);
+      const queryBuilder = VehicleData.createQueryBuilder("vehicle")
+        .distinctOn(["vehicle.vin"]) // DISTINCT ON
+        .select(["vehicle.*"])
+        .orderBy("vehicle.vin", "ASC") // must be first for DISTINCT ON
+        .addOrderBy("vehicle.titleBrandDate", "DESC")
+        .addOrderBy("vehicle.alertType", "DESC")
+      const distinctVINs = await queryBuilder.getRawMany();
+      data = await correctedData(distinctVINs);
 
     } else if (type === "updated") {
       // Handle invalid parameters
-      const queryBuilder = VehicleDataTemp.createQueryBuilder("vehicle")
-      .select([
-        "vehicle.*",
-        "masterstate.name AS state",
-        "masterbrand.name AS brand"
-      ])
-      .leftJoin(MasterState, "masterstate", "vehicle.state = masterstate.code")
-      .leftJoin(MasterBrand, "masterbrand", "vehicle.brand = masterbrand.code")
-      .orderBy("vehicle.titleBrandDate", "DESC")
-      .addOrderBy("vehicle.vin", "ASC")
-      .addOrderBy("vehicle.alertType", "DESC")
-      .where("vehicle.isOld = :isOld", { isOld: false }); 
-   data = await queryBuilder.getRawMany();
-    // data = await correctedData(items);
-    } 
+      const queryBuilder = VehicleData.createQueryBuilder("vehicle")
+        .distinctOn(["vehicle.vin"]) // DISTINCT ON
+        .select(["vehicle.*"])
+        .orderBy("vehicle.vin", "ASC") // must be first for DISTINCT ON
+        .addOrderBy("vehicle.titleBrandDate", "DESC")
+        .addOrderBy("vehicle.alertType", "DESC")
+        .where("vehicle.isOld = :isOld", { isOld: false });
+      const distinctVINs = await queryBuilder.getRawMany();
+      data = await correctedData(distinctVINs);
+    }
     // Return the fetched data
-    
+
     return createResponse(res, 200, MESSAGES?.DATA_FETCH_SUCCESS, { items: data });
   } catch (error: any) {
     // tslint:disable-next-line:no-console  

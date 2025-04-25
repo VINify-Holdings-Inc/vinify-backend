@@ -20,16 +20,19 @@ export const changedDataToComapreData = (oldArray: any[], newArray: any[]) => {
     ); 
     if (matchedOld) {
       result.push({
-        vin:matchedOld.vin, 
-        titleBrandDate: newItem.titleBrandDate,
-        state: newItem.state,
+        vin:newItem?.vin, 
+        titleBrandDate: newItem?.titleBrandDate,
+        state: newItem?.state,
         alertType: "Title",
-        vinId: newItem.vinId,
-        extra: newItem.extra,
+        vinId: newItem?.vinId,
+        extra: newItem?.extra,
         isRead:matchedOld?.isRead,
-        titleUnique: newItem.titleUnique,
-        status: newItem.status,
+        titleUnique: newItem?.titleUnique,
+        status: newItem?.status,
         isOld: true,
+        odometer: newItem?.odometer,
+        createdAt:matchedOld?.createdAt,
+        updatedAt:matchedOld?.updatedAt,
       });
     } else {
       result.push({
@@ -44,7 +47,26 @@ export const changedDataToComapreData = (oldArray: any[], newArray: any[]) => {
 
 
 
-
+// if (matchedOld) {
+//   result.push({
+//     vin:matchedOld.vin, 
+//     titleBrandDate: newItem.titleBrandDate,
+//     state: newItem.state,
+//     alertType: "Title",
+//     vinId: newItem.vinId,
+//     extra: newItem.extra,
+//     isRead:matchedOld?.isRead,
+//     titleUnique: newItem.titleUnique,
+//     status: newItem.status,
+//     isOld: true,
+//     odometer: matchedOld?.odometer,
+//   });
+// } else {
+//   result.push({
+//     ...newItem,
+//     isOld: false,
+//   });
+// }
  
 
 export const brandChangedDataToCompareData = (oldArray: any, newArray: any) => {
