@@ -4,6 +4,7 @@ import { VehicleData } from "../Entities/vehicle_data";
 import { MESSAGES } from "../helpers/constants";
 import { createResponse } from "../helpers/response";
 import { isChangeInThePreviousVin } from "../helpers/utils";
+// import { isChangeInThePreviousVin } from "../helpers/utils";
 
 export const CompareHistoryTitalDetails = async (req: any, res: any) => {
   try {
@@ -24,7 +25,7 @@ export const CompareHistoryTitalDetails = async (req: any, res: any) => {
         .leftJoin(MasterBrand, "masterbrand", "vehicle.brand = masterbrand.code")
         .orderBy("vehicle.vin")
         .addOrderBy("vehicle.titleBrandDate", "DESC")
-        .getRawOne();
+        .getRawMany();
     };
 
     // Fetch Title, Brand, and JSI data
@@ -44,25 +45,33 @@ export const CompareHistoryTitalDetails = async (req: any, res: any) => {
       fetchVehicleData(true, "JSI"),
     ]);
 
-    // Compare data changes
-    const [
-      TitleChangeData,
-      BrandChangeData,
-      JSIChangeData
-    ] = await Promise.all([
-      isChangeInThePreviousVin(TitleCurrent, TitleHistory),
-      isChangeInThePreviousVin(BrandCurrent, BrandHistory),
-      isChangeInThePreviousVin(JSICurrent, JSIHistory),
-    ]);
+    const titlechanged = await isChangeInThePreviousVin(TitleCurrent[0], TitleHistory[0])
+    const brandchanged = await isChangeInThePreviousVin(BrandCurrent[0], BrandHistory[0])
+    const jsichanged = await isChangeInThePreviousVin(JSICurrent[0], JSIHistory[0])
 
+    let TitleCurrentFinal = TitleCurrent;
+    if (TitleCurrent?.length > 0) {
+      TitleCurrentFinal?.shift()
+      TitleCurrentFinal?.unshift(titlechanged)
+    }
+    let brandCurrentFinal = BrandCurrent;
+    if (BrandCurrent?.length > 0) {
+      brandCurrentFinal?.shift()
+      brandCurrentFinal?.unshift(brandchanged)
+    }
+    let JSICurrentFinal = JSICurrent;
+    if (JSICurrent?.length > 0) {
+      JSICurrentFinal?.shift()
+      JSICurrentFinal?.unshift(jsichanged)
+    }
     // Return response
     return createResponse(res, 200, MESSAGES?.DATA_FETCH_SUCCESS, {
-      title: { current: TitleChangeData ?? {}, history: TitleHistory ?? {} },
-      brand: { current: BrandChangeData ?? {}, history: BrandHistory ?? {} },
-      jsi: { current: JSIChangeData ?? {}, history: JSIHistory ?? {} },
+      title: { current: TitleCurrentFinal, history: TitleHistory },
+      brand: { current: brandCurrentFinal, history: BrandHistory },
+      jsi: { current: JSICurrentFinal, history: JSIHistory },
     });
   } catch (error: any) {
-     // tslint:disable-next-line:no-console
+    // tslint:disable-next-line:no-console
     console.error(MESSAGES?.INTERNAL_SERVER_ERROR, error);
 
     return createResponse(res, 500, MESSAGES?.INTERNAL_SERVER_ERROR, [], false, true);

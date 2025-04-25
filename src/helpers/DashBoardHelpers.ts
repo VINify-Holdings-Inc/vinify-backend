@@ -1,44 +1,34 @@
- 
-import { MasterBrand } from "../Entities/master_brand"; 
-import { MasterState } from "../Entities/master_state";
 import { VehicleData } from "../Entities/vehicle_data";
 
 export const correctedData = async (data: any[]) => {
     const result: any[] = [];
 
     for (const item of data) {
-        const [queryTitle, queryBrand, queryJsi] = await Promise.all([
+        const vin = item?.vin;
+
+        const [hasTitle, hasBrand, hasJSI] = await Promise.all([
             VehicleData.createQueryBuilder("vehicle")
-                .select([
-                    "vehicle.*", 
-                ]) 
-                .where("vehicle.vin = :vin", { vin: item?.vin })
+                .where("vehicle.vin = :vin", { vin })
                 .andWhere("vehicle.alertType = :alertType", { alertType: "Title" })
+                .andWhere("vehicle.isOld = false")
                 .orderBy("vehicle.titleBrandDate", "DESC")
                 .addOrderBy("vehicle.createdAt", "DESC")
                 .limit(1)
                 .getRawOne(),
 
             VehicleData.createQueryBuilder("vehicle")
-                .select([
-                    "vehicle.*", 
-                    "masterbrand.name AS brand"
-                ]) 
-                .leftJoin(MasterBrand, "masterbrand", "vehicle.brand = masterbrand.code")
-                .where("vehicle.vin = :vin", { vin: item?.vin })
+                .where("vehicle.vin = :vin", { vin })
                 .andWhere("vehicle.alertType = :alertType", { alertType: "Brand" })
+                .andWhere("vehicle.isOld = false")
                 .orderBy("vehicle.titleBrandDate", "DESC")
                 .addOrderBy("vehicle.createdAt", "DESC")
                 .limit(1)
                 .getRawOne(),
 
             VehicleData.createQueryBuilder("vehicle")
-                .select(["vehicle.*",
-                     "masterstate.name AS state"
-                ])
-                .where("vehicle.vin = :vin", { vin: item?.vin })
-                .leftJoin(MasterState, "masterstate", "vehicle.state = masterstate.code")
+                .where("vehicle.vin = :vin", { vin })
                 .andWhere("vehicle.alertType = :alertType", { alertType: "JSI" })
+                .andWhere("vehicle.isOld = false")
                 .orderBy("vehicle.titleBrandDate", "DESC")
                 .addOrderBy("vehicle.createdAt", "DESC")
                 .limit(1)
@@ -47,28 +37,12 @@ export const correctedData = async (data: any[]) => {
 
         result.push({
             id: item?.id,
-            vin: item?.vin,
-            vinId: queryTitle?.vinId ?? null,
-            model: item?.model,
-            make: item?.make,
-            brand: item?.brand ? item?.brand :  queryBrand?.brand ,
-            state: queryJsi?.city ?  queryJsi?.state : item?.state,
-            alertType: item?.alertType,
-            titleBrandDate: item?.titleBrandDate,
-            modelYear: item?.modelYear ?? null,
-            status: item?.alertType === "Title" ? item?.status : "History",
-            description: queryJsi?.description ?? null,
-            export: queryJsi?.export ?? null,
-            city: queryJsi?.city ?? null,
-            rptgEntity: queryJsi?.rptgEntity ?? null,
-            rptgDetails: queryJsi?.rptgDetails ?? null,
-            isRead: item?.isRead,
-            isOld: item?.isOld,
-            createdAt: item?.createdAt,
-            updatedAt: item?.updatedAt,
-            createdBy: item?.createdBy,
-            updatedBy: item?.updatedBy
-        });
+            vin,
+            Title: !!hasTitle,
+            Brand: !!hasBrand,
+            JSI: !!hasJSI,
+            isOld: !(hasTitle || hasBrand || hasJSI)
+        }); 
     }
 
     return result;

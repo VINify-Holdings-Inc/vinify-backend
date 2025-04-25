@@ -76,3 +76,4 @@ export const isChangeInThePreviousVin = (current: any, previous: any) => {
   return result;
 };
  
+
