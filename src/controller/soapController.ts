@@ -132,9 +132,20 @@ export const NewValidateVinData = async (req: any, res: any) => {
     });
 
     if (!response.data) {
-      return createResponse(res, 400, "No data received from SOAP service.", null, false, true);
+      return createResponse(res, 400, "Something went worng!", null, false, true);
     }
+ 
+    
     const JsonData = await convertXmlToJson(response.data);
+    const jsonResponseVin=JSON.parse(JsonData)
+    console.log(jsonResponseVin,"23456789");
+    
+    if(!jsonResponseVin?.Title){  
+      return createResponse(res, 400,"No data received from SOAP service.", null, false, true); 
+  }
+    if(jsonResponseVin?.Exception?.ExceptionText && !jsonResponseVin?.Title){
+      return createResponse(res, 400,jsonResponseVin?.Exception?.ExceptionText, null, false, true);
+    } 
     const titleArrayData = await transformVehicleDataToJsonTitle(JSON.parse(JsonData));
     const jsonDataToInsert = await transformVehicleDataToJson(JSON.parse(JsonData));
 
@@ -238,7 +249,7 @@ export const TrackVinPopController = async (req: any, res: any) => {
       return createResponse(
         res,
         200,
-        MESSAGES?.VIN_NOT_FOUND,
+       `We are not monitoring the entered VIN ${req?.query?.vin}. Do you want to run a new VIN report?`,
         {
           page,
           limit,
