@@ -354,7 +354,7 @@ export const getSearchVinPop = async (req: any, res: any) => {
       .getCount();
 
     // Latest title change date
-    const lastTitleChangeRecord: any= await LastFileProcess.find();
+    const lastTitleChangeRecord: any = await LastFileProcess.find();
     const titletitleChangeLastUpdated = lastTitleChangeRecord[0]?.createdAt || null;
 
     if (items.length === 0) {
@@ -436,6 +436,44 @@ export const ExportPdfVINData = async (req: any, res: any) => {
     return createResponse(res, 200, MESSAGES?.DATA_FETCH_SUCCESS, { items: data });
   } catch (error: any) {
     // tslint:disable-next-line:no-console  
+    console.error(MESSAGES?.INTERNAL_SERVER_ERROR, error);
+
+    return createResponse(res, 500, MESSAGES?.INTERNAL_SERVER_ERROR, [], false, true);
+  }
+};
+
+
+export const NavigateSidebarFirstItem = async (req: any, res: any) => {
+  try {
+    const { page = 1, } = req.query;
+    // Build main query with DISTINCT ON vehicle.vin
+    // Try to fetch records with isOld = false first
+    let queryBuilder = VehicleData.createQueryBuilder("vehicle")
+      .select(["vehicle.*"])
+      .where("vehicle.isOld = :isOld", { isOld: false })
+      .orderBy("vehicle.titleBrandDate", "DESC") 
+      .limit(8);
+
+    let data = await queryBuilder.getRawMany();
+
+    // If no records found, fallback to isOld = true
+    if (data.length === 0) {
+      queryBuilder = VehicleData.createQueryBuilder("vehicle")
+        .select(["vehicle.*"])
+        .where("vehicle.isOld = :isOld", { isOld: true })
+        .orderBy("vehicle.titleBrandDate", "DESC") 
+        .limit(8);
+
+      data = await queryBuilder.getRawMany();
+    } 
+
+    return createResponse(res, 200, MESSAGES?.DATA_FETCH_SUCCESS, {
+      currentPage: page,
+      totalPages: 1,
+      totalRecords: 1,
+      items: data,
+    });
+  } catch (error: any) {
     console.error(MESSAGES?.INTERNAL_SERVER_ERROR, error);
 
     return createResponse(res, 500, MESSAGES?.INTERNAL_SERVER_ERROR, [], false, true);

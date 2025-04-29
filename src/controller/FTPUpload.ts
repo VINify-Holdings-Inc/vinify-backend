@@ -176,6 +176,8 @@ export const FTPReadAllController = async () => {
 export const testR = async (req: any, res: any) => {
   try { 
     await FTPReadAllController(); 
+    console.log("after cron");
+    
     return res.json({ code: 200, message: "cron done ", success: true, error: false });
   } catch (error) {
      // tslint:disable-next-line:no-console

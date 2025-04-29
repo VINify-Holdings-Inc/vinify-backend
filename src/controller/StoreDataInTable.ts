@@ -13,7 +13,10 @@ import { updateLastFileProcess } from "../helpers/UpdateLastRecord";
 
 export const insertBulkSheetData = async (title: any, brand: any, JsiContent: any) => {
   try {
+    console.log("insertBulkSheetData");
+    
     const titleData = await titleInsertData(title);
+    console.log("baad me");
     const brandData = await BrandInsertData(brand);
     const JsiData = await JsiInsertData(JsiContent);
 
@@ -28,7 +31,7 @@ export const insertBulkSheetData = async (title: any, brand: any, JsiContent: an
     await updateLastFileProcess();
     await VehicleData.save(SortedfinalDataStore);//
     await VehicleDataTemp.save(TempSortedfinalDataStore);
-
+    console.log("okkay final");
     return;
   } catch (error) {
     // tslint:disable-next-line:no-console
