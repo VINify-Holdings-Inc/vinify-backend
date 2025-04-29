@@ -13,10 +13,12 @@ export const truncateTable = async (entity: any) => {
 };
  
 export const changedDataToComapreData = (oldArray: any[], newArray: any[]) => {
+  console.log("changedDataToComapreData");
+  
   const result: any[] = []; 
   newArray.forEach(newItem => {
     const matchedOld = oldArray.find(oldItem =>
-      oldItem.vin?.toString().trim() === newItem.vin?.toString().trim() && oldItem.titleUnique?.toString().trim() === newItem.titleUnique?.toString().trim()
+      oldItem.vin?.trim() == newItem.vin?.trim() && oldItem.titleUnique?.trim() == newItem.titleUnique?.trim()
     ); 
     if (matchedOld) {
       result.push({
@@ -41,7 +43,7 @@ export const changedDataToComapreData = (oldArray: any[], newArray: any[]) => {
       });
     }
   });
-
+  console.log("changedDataToComapreData baad me"); 
   return result;
 };
 
