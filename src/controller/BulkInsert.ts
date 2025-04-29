@@ -5,25 +5,20 @@ import { VehicleData } from "../Entities/vehicle_data";
 import { MasterState } from "../Entities/master_state";
 import { MasterBrand } from "../Entities/master_brand";
 import { LastFileProcess } from "../Entities/LastFileProcess";
- 
+import { VehicleDataTemp } from "../Entities/vehicle_data_temp";
+
 export const getTotalKpiesData = async (req: any, res: any) => {
   try {
     const query1 = VehicleData.createQueryBuilder("vehicleData")
       .select("COUNT(DISTINCT vehicleData.vin)", "uniqueVinCount");
     const totalKpiData = await query1.getRawOne();
-    const queryBuilder = VehicleData.createQueryBuilder("vehicle")
-      .select([
-        "vehicle.*",
-      ])
-      .distinctOn(["vehicle.vin"])
-      .orderBy("vehicle.vin", "ASC") // Ensure vin is the first ORDER BY field
-      .addOrderBy("vehicle.titleBrandDate", "DESC");
-      // .addOrderBy("vehicle.createdAt", "DESC")
-      // .addOrderBy("vehicle.alertType", "DESC");
-    const rawUpdated = await queryBuilder.getRawMany();
-    // // Apply filtering correctly and store the filtered array
-    const filteredData = rawUpdated?.filter((item: any) => !item.isOld);
-    const totalUpdatedData = filteredData?.length;
+
+    const queryUpdated = VehicleData.createQueryBuilder("vehicleData")
+      .select("COUNT(DISTINCT vehicleData.vin)", "uniqueVinCount")
+      .where("vehicleData.isOld = :isOld", { isOld: false });
+
+    const totalUpdatedData = await queryUpdated.getRawOne();
+
 
     const currentQueryBuilder = VehicleData.createQueryBuilder("vehicle")
       .select([
@@ -45,7 +40,7 @@ export const getTotalKpiesData = async (req: any, res: any) => {
       MESSAGES?.DATA_FETCH_SUCCESS,
       {
         uniqueVinCount: totalKpiData?.uniqueVinCount,
-        totalUpdatedData: totalUpdatedData,
+        totalUpdatedData: totalUpdatedData?.uniqueVinCount,
         RecentAlert,
       },
       true,
@@ -64,7 +59,7 @@ export const getTotalKpiesData = async (req: any, res: any) => {
       true
     );
   }
-}; 
+};
 
 export const TotalUnreadAlerts = async (req: any, res: any) => {
   try {
@@ -76,10 +71,10 @@ export const TotalUnreadAlerts = async (req: any, res: any) => {
       .getRawOne();
 
     const lastFileProcess = await LastFileProcess.createQueryBuilder("lastFileProcess")
-       .select()
-       .getOne(); 
+      .select()
+      .getOne();
     // Create response
-    
+
     return createResponse(res, 200, MESSAGES?.DATA_FETCH_SUCCESS, {
       totalNotificationCount: totalNotificationCount?.count,
       lastUpdatedDate: lastFileProcess?.createdAt
@@ -94,9 +89,9 @@ export const TotalUnreadAlerts = async (req: any, res: any) => {
 
 export const ExportPdfVINDataList = async (req: any, res: any) => {
   try {
-    const query = VehicleData.createQueryBuilder("vehicle")
-    .select("DISTINCT vehicle.vin", "vin")
-    .addSelect("vehicle.id", "id");
+    const query = VehicleDataTemp.createQueryBuilder("vehicle")
+      .select("DISTINCT vehicle.vin", "vin")
+      .addSelect("vehicle.id", "id");
 
     // Check if vin query param exists and apply filtering
     if (req.query.vin) {
@@ -108,7 +103,7 @@ export const ExportPdfVINDataList = async (req: any, res: any) => {
     // Create response
     return createResponse(res, 200, MESSAGES?.DATA_FETCH_SUCCESS, data);
   } catch (error: any) {
-     // tslint:disable-next-line:no-console
+    // tslint:disable-next-line:no-console
     console.error("Error fetching vehicle data:", error);
 
     return createResponse(res, 500, MESSAGES?.INTERNAL_SERVER_ERROR || "Internal Server Error", [], false, true);

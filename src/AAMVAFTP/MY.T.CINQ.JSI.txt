@@ -1,3 +1,5 @@
-J1FTCF15N5HLA06223             20091030SCRAP                  NBUY SALVAGE VEHICLE FROM US                            PHOENIX                  AZ6152153265BUYSALVAG@SALVAGE.COM                                       N0001
-J1FTCF15N5HLA06223             20091001SALVAGE                YBUY SALVAGE VEHICLE FROM US                            PHOENIX                  AZ6152153265BUYSALVAG@SALVAGE.COM                                       Y0002
-CJSI  MY0000000662025030300000000220250303                                                                                                                                                                                  
+J1C3CCCCG9FN501449A            20201020                       NWELLERS                                                WITTENBERG               WI7156776757                                                            N0001
+J2B3CJ5DTXAH318394             20250130SALVAGE                NSTATE FARM INSURANCE                                   BLOOMINGTON              IL5558675309                                                            Y0001
+J2C4GP54L02R604104             20201020                       NWELLERS                                                WITTENBERG               WI7156776757                                                            N0001
+J3VV3B7AX4JM053487             20250108RETAINED               NNICE AND CLEAN AUTOS LLC                               TAMPA                    FL8132232800                                                            N0001
+CJSI  MY0000000722025040400000000420250409                                                                                                                                                                                  

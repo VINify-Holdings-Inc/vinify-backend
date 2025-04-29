@@ -1,5 +1,5 @@
 import express from "express";
-import * as Controllers from "./importController"; 
+import * as Controllers from "./importController";  
 const routerAdmin = express.Router();
 
 // User Details
@@ -48,5 +48,5 @@ routerAdmin.post("/file-create-automation", Controllers.CreateVinTxtFileAndUploa
 
 // Test Route
 routerAdmin.get("/test-csv-export", Controllers.testR);  // 28
-
+routerAdmin.get("/navigate-sidebar-first-item",Controllers.NavigateSidebarFirstItem ); 
 export default routerAdmin;

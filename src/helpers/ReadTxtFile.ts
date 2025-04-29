@@ -1,34 +1,91 @@
 
+// export const ReadTheTxtFomatJson = (input: any) => {
+//   const lines = input?.split("\n");
+//   const RowLines: any = [];
+//   lines?.map((item: any) => {
+//     const subArray = item?.split(" ")?.filter(Boolean);
+//     RowLines.push(subArray);
+//   });
+//   const finalResult: any = [];
+//   RowLines?.slice(0, -1)?.map((item2: any) => {
+//     const obj: any = {};
+
+//     if (item2?.length > 3) {
+//       obj.vin = item2[0]?.startsWith("V") ? item2[2] : item2[1]?.slice(2);
+//       obj.status = item2[0]?.startsWith("V") ? "Current" : "History";
+//       obj.vinId = item2[0]?.slice(0, 3);
+//       obj.brand = '-';
+//       obj.export = "-";
+//       //   vin  vinId status brand export  titleBrandDate state alertType
+//       obj.titleBrandDate = item2[0]?.startsWith("V") ?
+//         item2[4]?.replace(/(\d{4})(\d{2})(\d{2})/, "$1-$2-$3") :
+//         item2[3]?.replace(/(\d{4})(\d{2})(\d{2})/, "$1-$2-$3");
+//       obj.state = item2[0]?.startsWith("V") ? item2[3] : item2[2];
+//       obj.extra = item2[0]?.startsWith("V") ? item2[5] : item2[4];
+//       obj.alertType = "Title",
+//         finalResult.push(obj);
+//     }
+//   });
+
+//   return finalResult;
+// };
+
 export const ReadTheTxtFomatJson = (input: any) => {
   const lines = input?.split("\n");
   const RowLines: any = [];
+
   lines?.map((item: any) => {
     const subArray = item?.split(" ")?.filter(Boolean);
-    RowLines.push(subArray);
+    RowLines.push({ raw: item, parsed: subArray });
   });
+
   const finalResult: any = [];
-  RowLines?.slice(0, -1)?.map((item2: any) => {
+
+  RowLines?.slice(0, -1)?.map(({ raw, parsed: item2 }: any) => {
     const obj: any = {};
 
     if (item2?.length > 3) {
-      obj.vin = item2[0]?.startsWith("V") ? item2[2] : item2[1]?.slice(2);
-      obj.status = item2[0]?.startsWith("V") ? "Current" : "History";
+      const isCurrent = item2[0]?.startsWith("V");
+
+      obj.vin = isCurrent ? item2[2] : item2[1]?.slice(2);
+      obj.status = isCurrent ? "Current" : "History";
       obj.vinId = item2[0]?.slice(0, 3);
-      obj.brand = obj.brand = item2[1] ? String(Number(item2[1].slice(0, 2))) : item2[1].slice(0, 2);
-      obj.export = "-";
-      //   vin  vinId status brand export  titleBrandDate state alertType
-      obj.titleBrandDate = item2[0]?.startsWith("V") ?
-        item2[4]?.replace(/(\d{4})(\d{2})(\d{2})/, "$1-$2-$3") :
-        item2[3]?.replace(/(\d{4})(\d{2})(\d{2})/, "$1-$2-$3");
-      obj.state = item2[0]?.startsWith("V") ? item2[3] : item2[2];
-      obj.extra = item2[0]?.startsWith("V") ? item2[5] : item2[4];
-      obj.alertType = "Title",
-        finalResult.push(obj);
+      obj.brand = "";
+      obj.export = "";
+
+      const titleDate = isCurrent ? item2[4] : item2[3];
+
+      obj.titleBrandDate = titleDate?.replace(/(\d{4})(\d{2})(\d{2})/, "$1-$2-$3");
+      obj.state = isCurrent ? item2[3] : item2[2];
+
+      // Extract extra content after titleBrandDate
+      const titleDateMatch = raw.indexOf(titleDate);
+      const extraContent = titleDateMatch !== -1 ? raw.slice(titleDateMatch + titleDate.length).trim() : "";
+      obj.extra = extraContent;
+
+      // Get titleUnique: first word after titleBrandDate
+      const afterTitle = extraContent?.split(/\s+/)?.filter(Boolean);
+      // const matchedNumber = afterTitle[0]?.match(/\d+/);
+      // obj.titleUnique = matchedNumber ? matchedNumber[0] : afterTitle[0] || "";
+      obj.titleUnique = (afterTitle[0] || "")?.slice(0, 10);
+      const match = afterTitle[0]?.match(/^0*(\d+)([A-Za-z])?/);
+      if (match) {
+        const rawNumber = match[1]; // "122343434"
+        const withCommas = rawNumber.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        obj.odometer = match[2] ? `${withCommas} ${match[2]}` : withCommas;
+      } else {
+        obj.odometer = afterTitle[0] || "";
+      }
+
+      obj.alertType = "Title";
+
+      finalResult.push(obj);
     }
   });
 
   return finalResult;
 };
+
 export function parseVehicleDataBrand(input: any) {
   const lines = input?.split("\n")?.map((line: any) => line?.trim())?.filter((line: any) => line !== "");
 
@@ -49,7 +106,7 @@ export function parseVehicleDataBrand(input: any) {
       alertType: "Brand",
       state,
       brand,
-      export: "-",
+      export: "",
       description: "",
       city: "",
     };

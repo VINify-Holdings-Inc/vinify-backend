@@ -1,6 +1,5 @@
 INSERT INTO "masterState" ("code", "name")
-VALUES     
-('AA', 'Armed Forces Americas'), 
+VALUES 
 ('AK', 'Alaska'),
 ('AL', 'Alabama'),
 ('AR', 'Arkansas'),

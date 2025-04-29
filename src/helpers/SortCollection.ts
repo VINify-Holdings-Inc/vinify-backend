@@ -2,19 +2,27 @@ export const sortBytitleBrandDateDesc = (data: any[]) => {
     return [...data].sort((a, b) => new Date(b.titleBrandDate).getTime() - new Date(a.titleBrandDate).getTime());
 };
 
-export const getLatesttitleBrandDate = (data: any) => {
-    const vinMap = new Map(); 
-    data.forEach((item: any) => {
-      const existing = vinMap.get(item.vin);
-      if (!existing || new Date(item.titleBrandDate) > new Date(existing.titleBrandDate)) {
-        vinMap.set(item.vin, item);
-      }
-    });
-  
-    return Array.from(vinMap.values());
-  }; 
+// // export const sortBytitleBrandDateDesc = (data: any[]) => {
+// //     return [...data].sort((a, b) => a.idSequence - b.idSequence);
+// // };
+// export const sortBytitleBrandDateDesc = (data:any) => {
+//     return [...data].sort((a, b) => b.idSequence - a.idSequence);
+// };
 
-export const  categorizeDataSIngleSearch = (data: any) => {
+
+export const getLatesttitleBrandDate = (data: any) => {
+    const vinMap = new Map();
+    data.forEach((item: any) => {
+        const existing = vinMap.get(item.vin);
+        if (!existing || new Date(item.titleBrandDate) > new Date(existing.titleBrandDate)) {
+            vinMap.set(item.vin, item);
+        }
+    });
+
+    return Array.from(vinMap.values());
+};
+
+export const categorizeDataSIngleSearch = (data: any) => {
     const result: any = {
         brandDataCount: 0,
         titleDataCount: 0,
