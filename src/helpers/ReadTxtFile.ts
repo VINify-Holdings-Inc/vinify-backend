@@ -105,10 +105,7 @@ export function parseVehicleDataBrand(input: any) {
       titleBrandDate,
       alertType: "Brand",
       state,
-      brand,
-      export: "",
-      description: "",
-      city: "",
+      brand, 
     };
   }).filter((item: any) => item !== null);
 }
@@ -142,24 +139,18 @@ export function parseVehicleDataJSI(input: any) {
       const match = rptgDetails.match(/^(\d+)([A-Z@.]+)$/);
       const mobile = match ? match[1] : "";
       const email = match ? match[2] : "";
-
+      
       return {
         alertType: "JSI",
         titleBrandDate,
-        state,
-        brand: "",
+        state, 
         export: exportStatus,
         vin,
         rptgEntity: rptgEntity,
         email,
-        mobile,
-        make: "",
-        model: "",
-        modelYear: "",
+        mobile, 
         description,
         city
       };
     })?.filter((item: any) => item !== null); // Remove null entries
-}
-
-// vin  vinId status brand export  titleBrandDate state alertType description city rptgEntity rptgDetails
+}  

@@ -4,8 +4,8 @@ import { createResponse } from "../helpers/response";
 import { VehicleData } from "../Entities/vehicle_data";
 import { MasterState } from "../Entities/master_state";
 import { MasterBrand } from "../Entities/master_brand";
-import { LastFileProcess } from "../Entities/LastFileProcess";
-import { VehicleDataTemp } from "../Entities/vehicle_data_temp";
+import { LastFileProcess } from "../Entities/LastFileProcess"; 
+import { DashboardDataList } from "../Entities/DashboardDataList";
 
 export const getTotalKpiesData = async (req: any, res: any) => {
   try {
@@ -89,7 +89,7 @@ export const TotalUnreadAlerts = async (req: any, res: any) => {
 
 export const ExportPdfVINDataList = async (req: any, res: any) => {
   try {
-    const query = VehicleDataTemp.createQueryBuilder("vehicle")
+    const query = DashboardDataList.createQueryBuilder("vehicle")
       .select("DISTINCT vehicle.vin", "vin")
       .addSelect("vehicle.id", "id");
 

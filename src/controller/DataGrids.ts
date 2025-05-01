@@ -1,31 +1,34 @@
+import { DashboardDataList } from "../Entities/DashboardDataList";
 import { LastFileProcess } from "../Entities/LastFileProcess";
 import { MasterBrand } from "../Entities/master_brand";
 import { MasterState } from "../Entities/master_state";
-import { VehicleData } from "../Entities/vehicle_data";
-import { VehicleDataTemp } from "../Entities/vehicle_data_temp";
-import { MESSAGES } from "../helpers/constants";
-import { correctedData } from "../helpers/DashBoardHelpers";
+import { VehicleData } from "../Entities/vehicle_data"; 
+import { MESSAGES } from "../helpers/constants"; 
 // import { correctedData } from "../helpers/DashBoardHelpers";
 import { createResponse } from "../helpers/response";
 
 export const DashboardSummaryVIN = async (req: any, res: any) => {
   try {
-    const { page = 1, limit = 9, ...filters } = req.query;
-    const offset = (page - 1) * limit;
+    const { page = 1, limit = 9, alertType, ...filters } = req.query;
+    const numericLimit = Number(limit);
+    const numericPage = Number(page);
+    const offset = (numericPage - 1) * numericLimit;
 
-    // Build main query with DISTINCT ON vehicle.vin
-    const queryBuilder = VehicleData.createQueryBuilder("vehicle")
-      .distinctOn(["vehicle.vin"]) // DISTINCT ON
+    const queryBuilder = DashboardDataList.createQueryBuilder("vehicle")
+      .distinctOn(["vehicle.vin"])
       .select(["vehicle.*"])
-      .orderBy("vehicle.vin", "ASC") // must be first for DISTINCT ON
-      .addOrderBy("vehicle.titleBrandDate", "DESC")
-      .addOrderBy("vehicle.alertType", "DESC")
-      .limit(Number(limit))
-      .offset(Number(offset));
+      .orderBy("vehicle.vin", "ASC")
+      .limit(numericLimit)
+      .offset(offset);
 
-    // Add filters dynamically
+    // Apply alertType using template literals
+    if (["Title", "Brand", "JSI"].includes(alertType)) {
+      queryBuilder.andWhere(`vehicle."${alertType}" = true`);
+    }
+
+    // Dynamic filters
     Object.entries(filters).forEach(([key, value]) => {
-      if (value) {
+      if (value !== undefined && value !== "") {
         queryBuilder.andWhere(`LOWER(vehicle."${key}") LIKE LOWER(:${key})`, {
           [key]: `%${value}%`,
         });
@@ -33,15 +36,17 @@ export const DashboardSummaryVIN = async (req: any, res: any) => {
     });
 
     const distinctVINs = await queryBuilder.getRawMany();
-    const finalData = await correctedData(distinctVINs);
 
-    // Total count query - only count DISTINCT vin
-    const totalQueryBuilder = VehicleData.createQueryBuilder("vehicle")
+    // Count total distinct VINs for pagination
+    const totalQueryBuilder = DashboardDataList.createQueryBuilder("vehicle")
       .select("COUNT(DISTINCT vehicle.vin)", "total");
 
-    // Reapply filters to the total count query
+    if (["Title", "Brand", "JSI"].includes(alertType)) {
+      totalQueryBuilder.andWhere(`vehicle."${alertType}" = true`);
+    }
+
     Object.entries(filters).forEach(([key, value]) => {
-      if (value) {
+      if (value !== undefined && value !== "") {
         totalQueryBuilder.andWhere(`LOWER(vehicle."${key}") LIKE LOWER(:${key})`, {
           [key]: `%${value}%`,
         });
@@ -49,79 +54,83 @@ export const DashboardSummaryVIN = async (req: any, res: any) => {
     });
 
     const totalResult = await totalQueryBuilder.getRawOne();
-    const totalDistinctVINs = parseInt(totalResult?.total || 0, 10);
-    const totalPages = Math.ceil(totalDistinctVINs / Number(limit));
+    const totalDistinctVINs = parseInt(totalResult?.total || "0", 10);
+    const totalPages = Math.ceil(totalDistinctVINs / numericLimit);
 
     return createResponse(res, 200, MESSAGES?.DATA_FETCH_SUCCESS, {
-      currentPage: Number(page),
+      currentPage: numericPage,
       totalPages,
       totalRecords: totalDistinctVINs,
-      items: finalData,
+      items: distinctVINs,
     });
   } catch (error: any) {
     console.error(MESSAGES?.INTERNAL_SERVER_ERROR, error);
-
     return createResponse(res, 500, MESSAGES?.INTERNAL_SERVER_ERROR, [], false, true);
   }
 };
 
+ 
 export const DashboardSummaryVINUpdated = async (req: any, res: any) => {
   try {
-    const { page = 1, limit = 9, ...filters } = req.query;
-    const offset = (Number(page) - 1) * Number(limit);
+    const { page = 1, limit = 9, alertType, ...filters } = req.query;
+    const numericLimit = Number(limit);
+    const numericPage = Number(page);
+    const offset = (numericPage - 1) * numericLimit;
 
-    // Start query to fetch distinct VINs and join with MasterState and MasterBrand
-    const queryBuilder = VehicleData.createQueryBuilder("vd")
-      .select([
-        "vd.*",
-      ])
-      .distinctOn(["vd.vin"]) // Ensure distinct VIN  Filter by status
-      .andWhere("vd.isOld = :isOld", { isOld: false }) // Filter by 'isOld' flag
-      .orderBy("vd.vin") // Order by VIN
-      .addOrderBy("vd.titleBrandDate", "DESC") // Order by titleBrandDate for VIN
-      .limit(Number(limit)) // Pagination limit
-      .offset(offset); // Pagination offset
+    const queryBuilder = DashboardDataList.createQueryBuilder("vd")
+      .select(["vd.*"])
+      .distinctOn(["vd.vin"])
+      .where("vd.isOld = :isOld", { isOld: false })
+      .orderBy("vd.vin", "ASC")
+      .limit(numericLimit)
+      .offset(offset);
 
-    // Apply dynamic filters based on query parameters
+    // Use template literals for alertType condition
+    if (alertType === "Title" || alertType === "Brand" || alertType === "JSI") {
+      queryBuilder.andWhere(`vd."${alertType}" = true`);
+    }
+
+    // Dynamic filters with template literals
     Object.entries(filters).forEach(([key, value]) => {
-      if (value) {
-        queryBuilder.andWhere(`LOWER(vd."${key}") ILIKE LOWER(:${key})`, { [key]: `%${value}%` });
+      if (value !== undefined && value !== "") {
+        queryBuilder.andWhere(`LOWER(vd."${key}") ILIKE LOWER(:${key})`, {
+          [key]: `%${value}%`,
+        });
       }
     });
 
-    // Execute the query and get the distinct VINs
     const distinctVINs = await queryBuilder.getRawMany();
-    const finalData = await correctedData(distinctVINs);
-    // Start counting the total distinct VINs
-    const totalQueryBuilder = VehicleData.createQueryBuilder("vd")
-      .select("COUNT(DISTINCT vd.vin)", "total")
-      .andWhere("vd.isOld = :isOld", { isOld: false });
 
-    // Apply the same filters to the total count query
+    // Total count builder
+    const totalQueryBuilder = DashboardDataList.createQueryBuilder("vd")
+      .select("COUNT(DISTINCT vd.vin)", "total")
+      .where("vd.isOld = :isOld", { isOld: false });
+
+    if (alertType === "Title" || alertType === "Brand" || alertType === "JSI") {
+      totalQueryBuilder.andWhere(`vd."${alertType}" = true`);
+    }
+
     Object.entries(filters).forEach(([key, value]) => {
-      if (value) {
-        totalQueryBuilder.andWhere(`LOWER(vd."${key}") ILIKE LOWER(:${key})`, { [key]: `%${value}%` });
+      if (value !== undefined && value !== "") {
+        totalQueryBuilder.andWhere(`LOWER(vd."${key}") ILIKE LOWER(:${key})`, {
+          [key]: `%${value}%`,
+        });
       }
     });
 
-    // Execute the total count query
     const totalResult = await totalQueryBuilder.getRawOne();
     const totalDistinctVINs = parseInt(totalResult?.total || "0", 10);
-    const totalPages = Math.ceil(totalDistinctVINs / Number(limit)); // Calculate total pages
+    const totalPages = Math.ceil(totalDistinctVINs / numericLimit);
 
-    // Return the final response with paginated results
     return createResponse(res, 200, MESSAGES?.DATA_FETCH_SUCCESS, {
-      currentPage: Number(page),
-      limit,
+      currentPage: numericPage,
+      limit: numericLimit,
       totalPages,
       totalRecords: totalDistinctVINs,
-      items: finalData,
+      items: distinctVINs,
     });
   } catch (error: any) {
-    // Log any errors that occur
     console.error(MESSAGES?.INTERNAL_SERVER_ERROR, error);
-
-    // Return an internal server error response
     return createResponse(res, 500, MESSAGES?.INTERNAL_SERVER_ERROR, [], false, true);
   }
 };
@@ -399,37 +408,29 @@ export const ExportPdfVINData = async (req: any, res: any) => {
 
     if (type === "single" && vins.length > 0) {
 
-      const queryBuilder = VehicleDataTemp.createQueryBuilder("vehicle")
+      const queryBuilder = DashboardDataList.createQueryBuilder("vehicle")
         .select(["vehicle.*",])
-        .addOrderBy("vehicle.vin", "ASC")
-        .addOrderBy("vehicle.alertType", "DESC")
+        .addOrderBy("vehicle.vin", "ASC") 
         .where("vehicle.id IN (:...vins)", { vins });
 
-      const distinctVINs = await queryBuilder.getRawMany();
-      data = await correctedData(distinctVINs);
+        data = await queryBuilder.getRawMany(); 
       // data = await correctedData(items);  
     } else if (type === "all") {
       // Fetch all data with status "Current" 
-      const queryBuilder = VehicleData.createQueryBuilder("vehicle")
+      const queryBuilder = DashboardDataList.createQueryBuilder("vehicle")
         .distinctOn(["vehicle.vin"]) // DISTINCT ON
         .select(["vehicle.*"])
-        .orderBy("vehicle.vin", "ASC") // must be first for DISTINCT ON
-        .addOrderBy("vehicle.titleBrandDate", "DESC")
-        .addOrderBy("vehicle.alertType", "DESC")
-      const distinctVINs = await queryBuilder.getRawMany();
-      data = await correctedData(distinctVINs);
+        .orderBy("vehicle.vin", "ASC")  
+        data = await queryBuilder.getRawMany(); 
 
     } else if (type === "updated") {
       // Handle invalid parameters
-      const queryBuilder = VehicleData.createQueryBuilder("vehicle")
+      const queryBuilder = DashboardDataList.createQueryBuilder("vehicle")
         .distinctOn(["vehicle.vin"]) // DISTINCT ON
         .select(["vehicle.*"])
-        .orderBy("vehicle.vin", "ASC") // must be first for DISTINCT ON
-        .addOrderBy("vehicle.titleBrandDate", "DESC")
-        .addOrderBy("vehicle.alertType", "DESC")
+        .orderBy("vehicle.vin", "ASC") 
         .where("vehicle.isOld = :isOld", { isOld: false });
-      const distinctVINs = await queryBuilder.getRawMany();
-      data = await correctedData(distinctVINs);
+        data = await queryBuilder.getRawMany(); 
     }
     // Return the fetched data
 
@@ -440,9 +441,7 @@ export const ExportPdfVINData = async (req: any, res: any) => {
 
     return createResponse(res, 500, MESSAGES?.INTERNAL_SERVER_ERROR, [], false, true);
   }
-};
-
-
+}; 
 export const NavigateSidebarFirstItem = async (req: any, res: any) => {
   try {
     const { page = 1, } = req.query;
