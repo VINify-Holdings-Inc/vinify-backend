@@ -80,6 +80,9 @@ export class VehicleDataTemp extends BaseEntity {
   @Column({ name: "isOld", type: "boolean", default: true })
   isOld: boolean;
 
+  @Column({ name: "isDel", type: "boolean", default: false })
+  isDel: boolean;
+
   @Column({
     name: "createdAt",
     type: "timestamptz",
