@@ -4,23 +4,25 @@ import { createResponse } from "../helpers/response";
 import { VehicleData } from "../Entities/vehicle_data";
 import { MasterState } from "../Entities/master_state";
 import { MasterBrand } from "../Entities/master_brand";
-import { LastFileProcess } from "../Entities/LastFileProcess"; 
+import { LastFileProcess } from "../Entities/LastFileProcess";
 import { DashboardDataList } from "../Entities/DashboardDataList";
+import { VehicleDataTemp } from "../Entities/vehicle_data_temp";
 
 export const getTotalKpiesData = async (req: any, res: any) => {
   try {
-    const query1 = VehicleData.createQueryBuilder("vehicleData")
-      .select("COUNT(DISTINCT vehicleData.vin)", "uniqueVinCount");
+    const query1 = DashboardDataList.createQueryBuilder("vehicleData")
+      .select("COUNT(vehicleData.vin)", "uniqueVinCount");
     const totalKpiData = await query1.getRawOne();
 
-    const queryUpdated = VehicleData.createQueryBuilder("vehicleData")
-      .select("COUNT(DISTINCT vehicleData.vin)", "uniqueVinCount")
+    const queryUpdated = DashboardDataList.createQueryBuilder("vehicleData")
+      .select("COUNT(vehicleData.vin)", "uniqueVinCount")
       .where("vehicleData.isOld = :isOld", { isOld: false });
 
     const totalUpdatedData = await queryUpdated.getRawOne();
 
 
-    const currentQueryBuilder = VehicleData.createQueryBuilder("vehicle")
+
+    const currentQueryBuilder = VehicleDataTemp.createQueryBuilder("vehicle")
       .select([
         "vehicle.*",
         "masterstate.name AS state",
