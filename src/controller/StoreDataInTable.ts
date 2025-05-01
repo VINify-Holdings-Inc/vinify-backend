@@ -1,22 +1,22 @@
+import { DashboardDataList } from "../Entities/DashboardDataList";
 import { VehicleData } from "../Entities/vehicle_data";
 import { VehicleDataTemp } from "../Entities/vehicle_data_temp";
 import {
-  brandChangedDataToCompareData,
-  brandFindDifferencesFromTempData,
+  brandChangedDataToCompareData, 
   changedDataToComapreData, 
-  JsiChangedDataToCompareData,
-  JsiFindDifferencesFromTempData,
+  findIsDeletedItems, 
+  findIsDeletedItemsBrand, 
+  findIsDeletedItemsJSI, 
+  JsiChangedDataToCompareData, 
   truncateTable
 } from "../helpers/CompareHelpers";
+import { correctedData } from "../helpers/DashBoardHelpers";
 import { getLatesttitleBrandDate, sortBytitleBrandDateDesc } from "../helpers/SortCollection";
 import { updateLastFileProcess } from "../helpers/UpdateLastRecord";
 
 export const insertBulkSheetData = async (title: any, brand: any, JsiContent: any) => {
-  try {
-    console.log("insertBulkSheetData");
-    
-    const titleData = await titleInsertData(title);
-    console.log("baad me");
+  try { 
+    const titleData = await titleInsertData(title); 
     const brandData = await BrandInsertData(brand);
     const JsiData = await JsiInsertData(JsiContent);
 
@@ -28,10 +28,13 @@ export const insertBulkSheetData = async (title: any, brand: any, JsiContent: an
     const TempSortedfinalDataStore = await getLatesttitleBrandDate(SortedfinalDataStore);
     await truncateTable(VehicleData);
     await truncateTable(VehicleDataTemp);
-    await updateLastFileProcess();
+    await truncateTable(DashboardDataList);
+    await updateLastFileProcess();  
+    
     await VehicleData.save(SortedfinalDataStore);//
     await VehicleDataTemp.save(TempSortedfinalDataStore);
-    console.log("okkay final");
+    const dasboardFinalData:any=await correctedData(TempSortedfinalDataStore);
+    await DashboardDataList.save(dasboardFinalData);
     return;
   } catch (error) {
     // tslint:disable-next-line:no-console
@@ -42,46 +45,38 @@ export const insertBulkSheetData = async (title: any, brand: any, JsiContent: an
 };
 
 export const titleInsertData = async (title: any) => {
-  const vehicleTemData = await VehicleData.find({ where: { alertType: "Title" } });  
-  const changedDataToComapre :any= await changedDataToComapreData(vehicleTemData, title); 
-  return changedDataToComapre;
+  const vehicleTemData = await VehicleData.find({ where: { alertType: "Title" } }) || []; 
+  const changedDataToComapre: any = await changedDataToComapreData(vehicleTemData, title) || []; 
+  const isDeletedItems: any = await findIsDeletedItems(vehicleTemData, changedDataToComapre) || []; 
+  const finalData = [
+    ...(Array.isArray(changedDataToComapre) ? changedDataToComapre : []),
+    ...(Array.isArray(isDeletedItems) ? isDeletedItems : [])
+  ];
+
+  return finalData;
 };
+
 
 export const BrandInsertData = async (title: any) => {
   const vehicleTemData = await VehicleData.find({ where: { alertType: "Brand" } });
-  const changedDataToComapre = await brandChangedDataToCompareData(vehicleTemData, title);
-  const NewData = await brandFindDifferencesFromTempData(changedDataToComapre, title);
-
-  const newDataToInsert = NewData.length > 0 ? NewData.map((item: any) => ({
-    ...item,
-    isOld: false
-  })) : [];
-  const updatedOldData = changedDataToComapre.map((item: any) => ({
-    ...item,
-    isOld: true,
-    createdAt: item?.createdAt,
-  }));
-
-  const finalData = [...updatedOldData, ...newDataToInsert];
+  const changedDataToComapre = await brandChangedDataToCompareData(vehicleTemData, title); 
+  const isDeletedItems=await findIsDeletedItemsBrand(vehicleTemData,changedDataToComapre)
+  const finalData = [
+    ...(Array.isArray(changedDataToComapre) ? changedDataToComapre : []),
+    ...(Array.isArray(isDeletedItems) ? isDeletedItems : [])
+  ];
 
   return finalData;
 };
 
 export const JsiInsertData = async (title: any) => {
   const vehicleTemData = await VehicleData.find({ where: { alertType: "JSI" } });
-  const changedDataToComapre = await JsiChangedDataToCompareData(vehicleTemData, title);
-  const NewData = await JsiFindDifferencesFromTempData(changedDataToComapre, title);
-  const newDataToInsert = NewData.length > 0 ? NewData.map((item: any) => ({
-    ...item,
-    isOld: false
-  })) : [];
-  const updatedOldData = changedDataToComapre.map((item: any) => ({
-    ...item,
-    isOld: true,
-    createdAt: item?.createdAt,
-  }));
-
-  const finalData = [...updatedOldData, ...newDataToInsert];
+  const changedDataToComapre = await JsiChangedDataToCompareData(vehicleTemData, title); 
+  const isDeletedItems=await findIsDeletedItemsJSI(vehicleTemData,changedDataToComapre)
+  const finalData = [
+    ...(Array.isArray(changedDataToComapre) ? changedDataToComapre : []),
+    ...(Array.isArray(isDeletedItems) ? isDeletedItems : [])
+  ];
 
   return finalData;
 };

@@ -15,6 +15,8 @@ export const correctedData = async (data: any[]) => {
                 .addOrderBy("vehicle.createdAt", "DESC")
                 .limit(1)
                 .getRawOne(),
+ 
+
 
             VehicleData.createQueryBuilder("vehicle")
                 .where("vehicle.vin = :vin", { vin })
@@ -34,16 +36,21 @@ export const correctedData = async (data: any[]) => {
                 .limit(1)
                 .getRawOne()
         ]);
-
+ console.log(vin,hasTitle, hasBrand, hasJSI,"processing ");
+ 
         result.push({
             id: item?.id,
             vin,
             Title: !!hasTitle,
             Brand: !!hasBrand,
             JSI: !!hasJSI,
-            isOld: !(hasTitle || hasBrand || hasJSI)
-        }); 
+            isOld: !(hasTitle || hasBrand || hasJSI),
+            isDel: hasTitle?.isDel || hasBrand?.isDel || hasJSI?.isDel
+
+        });
+
     }
 
     return result;
 };
+
