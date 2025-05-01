@@ -11,30 +11,35 @@ export const truncateTable = async (entity: any) => {
     throw new Error("Failed to truncate table.");
   }
 };
- 
+export const deleteISDelItem = async (TableName: any) => {
+  await TableName
+    .createQueryBuilder()
+    .update(TableName)
+    .set({ isDel: true })
+    .execute();
+};
+
 export const changedDataToComapreData = (oldArray: any[], newArray: any[]) => {
-  console.log("changedDataToComapreData");
-  
-  const result: any[] = []; 
+  const result: any[] = [];
   newArray.forEach(newItem => {
     const matchedOld = oldArray.find(oldItem =>
       oldItem.vin?.trim() == newItem.vin?.trim() && oldItem.titleUnique?.trim() == newItem.titleUnique?.trim()
-    ); 
+    );
     if (matchedOld) {
       result.push({
-        vin:newItem?.vin, 
+        vin: newItem?.vin,
         titleBrandDate: newItem?.titleBrandDate,
         state: newItem?.state,
         alertType: "Title",
         vinId: newItem?.vinId,
         extra: newItem?.extra,
-        isRead:matchedOld?.isRead,
+        isRead: matchedOld?.isRead,
         titleUnique: newItem?.titleUnique,
         status: newItem?.status,
         isOld: true,
         odometer: newItem?.odometer,
-        createdAt:matchedOld?.createdAt,
-        updatedAt:matchedOld?.updatedAt,
+        createdAt: matchedOld?.createdAt,
+        updatedAt: matchedOld?.updatedAt,
       });
     } else {
       result.push({
@@ -43,130 +48,149 @@ export const changedDataToComapreData = (oldArray: any[], newArray: any[]) => {
       });
     }
   });
-  console.log("changedDataToComapreData baad me"); 
   return result;
 };
 
+export const findIsDeletedItems = (vehicleTemData: any[], changedDataToComapre: any[]) => {
+  // Step 1: Filter changedDataToComapre for isOld === true
+  const filteredChangedData = changedDataToComapre?.filter(item => item?.isOld === true);
 
+  // Step 2: Extract titleUnique values from the filtered changed data
+  const changedTitleUniques = new Set(filteredChangedData?.map(item => item?.titleUnique));
 
-// if (matchedOld) {
-//   result.push({
-//     vin:matchedOld.vin, 
-//     titleBrandDate: newItem.titleBrandDate,
-//     state: newItem.state,
-//     alertType: "Title",
-//     vinId: newItem.vinId,
-//     extra: newItem.extra,
-//     isRead:matchedOld?.isRead,
-//     titleUnique: newItem.titleUnique,
-//     status: newItem.status,
-//     isOld: true,
-//     odometer: matchedOld?.odometer,
-//   });
-// } else {
-//   result.push({
-//     ...newItem,
-//     isOld: false,
-//   });
-// }
+  // Step 3: Iterate over vehicleTemData to find deletions
+  const deletedItems = vehicleTemData
+    ?.filter(item => !changedTitleUniques?.has(item?.titleUnique))
+    ?.map(item => ({
+      ...item,
+      isOld: false,
+      isDel: true
+    }));
+
+  // Step 4: Return the result
+  return deletedItems;
+};
+
+export const brandChangedDataToCompareData = (oldArray: any[], newArray: any[]) => {
+  const result: any[] = [];
+  newArray.forEach(newItem => {
+    const matchedOld = oldArray.find(oldItem => oldItem.vin === newItem.vin && oldItem.titleBrandDate === newItem.titleBrandDate && oldItem.brand === newItem.brand && oldItem.state === newItem.state && oldItem.alertType === newItem.alertType
+    );
+    if (matchedOld) {
+      result.push({
+        vin: newItem?.vin,
+        titleBrandDate: newItem?.titleBrandDate,
+        state: newItem?.state,
+        alertType: newItem?.alertType,
+        brand: newItem?.brand,
+        isOld: true,
+        isRead: matchedOld?.isRead,
+        createdAt: matchedOld?.createdAt,
+        updatedAt: matchedOld?.updatedAt,
+      });
+    } else {
+      result.push({
+        ...newItem,
+        isOld: false,
+      });
+    }
+  });
+
+  console.log(result, "############");
+
+  return result;
+};
+export const findIsDeletedItemsBrand = (vehicleTemData: any[], changedDataToComapre: any[]) => {
+  // Step 1: Filter changedDataToComapre for isOld === true
+  const filteredChangedData = changedDataToComapre?.filter(item => item?.isOld === true);
+
+  // Step 2: Create a Set of unique keys for comparison from filtered changed data
+  const changedItemKeys = new Set(
+    filteredChangedData?.map(item =>
+      `${item?.vin}|${item?.titleBrandDate}|${item?.brand}|${item?.state}|${item?.alertType}`
+    )
+  );
+
+  // Step 3: Iterate over vehicleTemData to find deletions
+  const deletedItems = vehicleTemData
+    ?.filter(item => {
+      const key = `${item?.vin}|${item?.titleBrandDate}|${item?.brand}|${item?.state}|${item?.alertType}`;
+      return !changedItemKeys.has(key);
+    })
+    ?.map(item => ({
+      ...item,
+      isOld: false,
+      isDel: true
+    }));
+
+  // Step 4: Return the result
+  return deletedItems;
+};
+export const JsiChangedDataToCompareData = (oldArray: any[], newArray: any[]) => {
  
+  const result: any[] = [];
+  newArray.forEach(newItem => {
+    const matchedOld = oldArray.find(oldItem => oldItem?.vin === newItem?.vin &&
+      oldItem?.titleBrandDate === newItem?.titleBrandDate &&
+      oldItem?.email === newItem?.email &&
+      oldItem?.mobile === newItem?.mobile &&
+      oldItem?.export === newItem?.export &&
+      oldItem?.state === newItem?.state &&
+      oldItem?.alertType === newItem?.alertType &&
+      oldItem?.description === newItem?.description &&
+      oldItem?.city === newItem?.city &&
+      oldItem?.rptgEntity === newItem?.rptgEntity
+    );
+    if (matchedOld) {
+      result.push({
+        vin: newItem?.vin,
+        titleBrandDate: newItem?.titleBrandDate,
+        state: newItem?.state,
+        alertType: newItem?.alertType,
+        export: newItem?.export,
+        rptgEntity: newItem?.rptgEntity,
+        email: newItem?.email,
+        mobile: newItem?.mobile,
+        description: newItem?.description,
+        city: newItem?.city,
+        isOld: true,
+        isRead: matchedOld?.isRead,
+        createdAt: matchedOld?.createdAt,
+        updatedAt: matchedOld?.updatedAt,
+      });
+    } else {
+      result.push({
+        ...newItem,
+        isOld: false,
+      });
+    }
+  });
+  return result;
+};
 
-export const brandChangedDataToCompareData = (oldArray: any, newArray: any) => {
-  return oldArray.filter((oldItem: any) =>
-    newArray.some((newItem: any) =>
-      newItem.vin === oldItem.vin &&
-      newItem.titleBrandDate === oldItem.titleBrandDate &&
-      newItem.brand === oldItem.brand &&
-      // newItem.export === oldItem.export &&
-      newItem.state === oldItem.state &&
-      newItem.alertType === oldItem.alertType
+export const findIsDeletedItemsJSI = (vehicleTemData: any[], changedDataToComapre: any[]) => {
+  // Step 1: Filter changedDataToComapre for isOld === true
+  const filteredChangedData = changedDataToComapre?.filter(item => item?.isOld === true);
+
+  // Step 2: Create a Set of unique keys for comparison from filtered changed data
+  const changedItemKeys = new Set(
+    filteredChangedData?.map(item =>
+      `${item?.vin}|${item?.titleBrandDate}|${item?.email}|${item?.mobile}|${item?.export}|${item?.state}|${item?.alertType}|${item?.description}|${item?.city}|${item?.rptgEntity}`
     )
   );
-};
 
-export const brandFindDifferencesFromTempData = (data: any, data2: any) => {
-  const normalize = (item: any) => ({
-    vin: item?.vin,
-    titleBrandDate: item?.titleBrandDate,
-    brand: item?.brand,
-    // export: item?.export,
-    state: item?.state,
-    alertType: item?.alertType,
-  });
+  // Step 3: Iterate over vehicleTemData to find deletions
+  const deletedItems = vehicleTemData
+    ?.filter(item => {
+      const key = `${item?.vin}|${item?.titleBrandDate}|${item?.email}|${item?.mobile}|${item?.export}|${item?.state}|${item?.alertType}|${item?.description}|${item?.city}|${item?.rptgEntity}`;
+      return !changedItemKeys.has(key);
+    })
+    ?.map(item => ({
+      ...item,
+      isOld: false,
+      isDel: true
+    }));
 
-  return data2.filter((item2: any) => {
-    const normalizedItem2 = normalize(item2);
-
-    return !data.some((item1: any) => {
-      const normalizedItem1 = normalize(item1);
-
-      return (
-        normalizedItem1.vin === normalizedItem2.vin &&
-        normalizedItem1.titleBrandDate === normalizedItem2.titleBrandDate &&
-        normalizedItem1.brand === normalizedItem2.brand &&
-        // normalizedItem1.export === normalizedItem2.export &&
-        normalizedItem1.state === normalizedItem2.state &&
-        normalizedItem1.alertType === normalizedItem2.alertType
-      );
-    });
-  });
-};
-
-export const JsiChangedDataToCompareData = (oldArray: any, newArray: any) => {
-  return oldArray.filter((oldItem: any) =>
-    newArray.some((newItem: any) =>
-      newItem.vin === oldItem.vin &&
-      newItem.titleBrandDate === oldItem.titleBrandDate &&
-      newItem.email === oldItem.email &&
-      newItem.mobile === oldItem.mobile &&
-      newItem.brand === oldItem.brand &&
-      newItem.export === oldItem.export &&
-      newItem.state === oldItem.state &&
-      newItem.alertType === oldItem.alertType &&
-      newItem.description === oldItem.description &&
-      newItem.city === oldItem.city &&
-      newItem.rptgEntity === oldItem.rptgEntity
-      // newItem.rptgDetails === oldItem.rptgDetails
-    )
-  );
-};
-
-export const JsiFindDifferencesFromTempData = (data: any, data2: any) => {
-  const normalize = (item: any) => ({
-    vin: item?.vin,
-    titleBrandDate: item?.titleBrandDate,
-    email: item?.email,
-    mobile: item?.mobile,
-    brand: item?.brand,
-    export: item?.export,
-    state: item?.state,
-    alertType: item?.alertType,
-    description: item?.description,
-    city: item?.city,
-    rptgEntity: item?.rptgEntity
-    // rptgDetails: item?.rptgDetails,
-  });
-
-  return data2.filter((item2: any) => {
-    const normalizedItem2 = normalize(item2);
-
-    return !data.some((item1: any) => {
-      const normalizedItem1 = normalize(item1);
-
-      return (
-        normalizedItem1.vin === normalizedItem2.vin &&
-        normalizedItem1.titleBrandDate === normalizedItem2.titleBrandDate &&
-        normalizedItem1.email === normalizedItem2.email &&
-        normalizedItem1.mobile === normalizedItem2.mobile &&
-        normalizedItem1.brand === normalizedItem2.brand &&
-        normalizedItem1.export === normalizedItem2.export &&
-        normalizedItem1.state === normalizedItem2.state &&
-        normalizedItem1.alertType === normalizedItem2.alertType &&
-        normalizedItem1.description === normalizedItem2.description &&
-        normalizedItem1.city === normalizedItem2.city &&
-        normalizedItem1.rptgEntity === normalizedItem2.rptgEntity
-        // normalizedItem1.rptgDetails === normalizedItem2.rptgDetails
-      );
-    });
-  });
-};
+  // Step 4: Return the result
+  return deletedItems;
+}; 

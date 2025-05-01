@@ -3,11 +3,13 @@ import path from "path";
 import fs from "fs";
 import { parseVehicleDataJSI, parseVehicleDataBrand, ReadTheTxtFomatJson} from "../helpers/ReadTxtFile"; 
 import { insertBulkSheetData } from "./StoreDataInTable"; 
+import { deleteISDelItem } from "../helpers/CompareHelpers";
 // import { MESSAGES } from "../helpers/constants";
 // import { createResponse } from "../helpers/response";
 // import { MasterState } from "../Entities/master_state";
 // import { MasterBrand } from "../Entities/master_brand";
-// import { VehicleData } from "../Entities/vehicle_data";
+import { VehicleData } from "../Entities/vehicle_data";
+import { VehicleDataTemp } from "../Entities/vehicle_data_temp";
 
 const ftpConfig = {
   host: "ftp-cert.aamva.org",
@@ -160,6 +162,8 @@ export const FTPReadAllController = async () => {
     const brandContent = await parseVehicleDataBrand(fileContentBrand);  
     const fileContentJsi = await downloadAndReadFile(client, "MY.T.CINQ.JSI.txt");
     const JsiContent = await parseVehicleDataJSI(fileContentJsi); 
+    await deleteISDelItem(VehicleData)
+    await deleteISDelItem(VehicleDataTemp)
     await insertBulkSheetData(titleContent, brandContent, JsiContent);
 
     await removeAllFilesFromFTP(client);
