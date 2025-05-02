@@ -23,17 +23,17 @@ export const getTotalKpiesData = async (req: any, res: any) => {
 
 
     const currentQueryBuilder = VehicleDataTemp.createQueryBuilder("vehicle")
-      .select([
-        "vehicle.*",
-        "masterstate.name AS state",
-        "masterbrand.name AS brand",
-      ])
-      .leftJoin(MasterState, "masterstate", "vehicle.state = masterstate.code")
-      .leftJoin(MasterBrand, "masterbrand", "vehicle.brand = masterbrand.code")
-      .orderBy("vehicle.vin")
-      .addOrderBy("vehicle.isOld", "ASC")
-      .limit(3);
-
+    .select([
+      "vehicle.*",
+      "masterstate.name AS state",
+      "masterbrand.name AS brand",
+    ])
+    .leftJoin(MasterState, "masterstate", "vehicle.state = masterstate.code")
+    .leftJoin(MasterBrand, "masterbrand", "vehicle.brand = masterbrand.code")
+    .orderBy("vehicle.isOld", "ASC")
+    .addOrderBy("vehicle.titleBrandDate", "DESC")
+    .limit(3);
+  
     const RecentAlert = await currentQueryBuilder.getRawMany();
 
     return createResponse(
