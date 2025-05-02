@@ -26,10 +26,16 @@ export class DashboardDataList extends BaseEntity {
     JSI: boolean;
 
     @Column({ name: "isOld", type: "boolean", default: false })
-    isOld: boolean;
+    isOld: boolean;    
 
-    @Column({ name: "isDel", type: "boolean", default: false })
-    isDel: boolean;
+    @Column({ name: "isTitleDel", type: "boolean", default: false })
+    isTitleDel: boolean; 
+
+    @Column({ name: "isBrandDel", type: "boolean", default: false })
+    isBrandDel: boolean;
+
+    @Column({ name: "isJSIDel", type: "boolean", default: false })
+    isJSIDel: boolean;
 
     @Column({
         name: "createdAt",

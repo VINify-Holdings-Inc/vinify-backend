@@ -10,6 +10,8 @@ import { deleteISDelItem } from "../helpers/CompareHelpers";
 // import { MasterBrand } from "../Entities/master_brand";
 import { VehicleData } from "../Entities/vehicle_data";
 import { VehicleDataTemp } from "../Entities/vehicle_data_temp";
+import { correctedData } from "../helpers/DashBoardHelpers";
+import { DashboardDataList } from "../Entities/DashboardDataList";
 
 const ftpConfig = {
   host: "ftp-cert.aamva.org",
@@ -190,4 +192,16 @@ export const testR = async (req: any, res: any) => {
   }
 };
 
+export const testResultController = async (req: any, res: any) => {
+  try { 
+   const data:any=await VehicleDataTemp.find()
+   const final:any=await correctedData(data);
+   await DashboardDataList.save(final)
+    return res.json({ code: 200, message: "cron done ", success: true, error: false });
+  } catch (error) {
+     // tslint:disable-next-line:no-console
+    console.error("Error fetching data:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
 
