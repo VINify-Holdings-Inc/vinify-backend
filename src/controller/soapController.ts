@@ -44,35 +44,7 @@ export const SoapToken = async (req: any, res: any) => {
   }
 };
 
-// const convertXmlToJson = async (data:any) => {
-//     const parser = new Parser({ explicitArray: false });
-
-//     try {
-//       const result = await parser.parseStringPromise(data);
-//       return JSON.stringify(result, null, 2);
-//     } catch (err) {
-//       console.error("Error parsing XML:", err);
-//       return null;
-//     }
-//   };  
-
-//   const convertXmlToJson = async (data: string): Promise<any> => {
-//     const parser = new Parser({ explicitArray: false });
-
-//     try {
-//       const result = await parser.parseStringPromise(data);
-
-//       // Extracting the specific part you want from the result
-//       const jsonData = result['s:Envelope']['s:Body']
-// ['GetConsumerVehicleDataResponse']
-// ['GetConsumerVehicleDataResult'];
-
-//       return JSON.stringify(jsonData, null, 2);
-//     } catch (err) {
-//       console.error("Error parsing XML:", err);
-//       return null;
-//     }
-//   };
+ 
 
 const convertXmlToJson = async (data: string): Promise<any> => {
   const parser = new Parser({
@@ -81,9 +53,7 @@ const convertXmlToJson = async (data: string): Promise<any> => {
   });
 
   try {
-    const result = await parser.parseStringPromise(data);
-    // tslint:disable-next-line:no-console 
-    // Dynamically find the correct response path
+    const result = await parser.parseStringPromise(data); 
     const envelope = result?.Envelope || result?.["s:Envelope"];
     const body = envelope?.Body || envelope?.["s:Body"];
     const response = body?.GetConsumerVehicleDataResponse || body.GetConsumerVehicleDataResponse;
@@ -135,27 +105,29 @@ export const NewValidateVinData = async (req: any, res: any) => {
       return createResponse(res, 400, "Something went worng!", null, false, true);
     }
  
-    
+    // console.log(response.data,"23456789");
     const JsonData = await convertXmlToJson(response.data);
     const jsonResponseVin=JSON.parse(JsonData)
-    console.log(jsonResponseVin,"23456789");
+    // console.log(jsonResponseVin,"23456789");
     
     if(!jsonResponseVin?.Title){  
       return createResponse(res, 400,"No data received from SOAP service.", null, false, true); 
-  }
-    if(jsonResponseVin?.Exception?.ExceptionText && !jsonResponseVin?.Title){
-      return createResponse(res, 400,jsonResponseVin?.Exception?.ExceptionText, null, false, true);
-    } 
+  } 
+
+  // console.log("titleArrayData ");
+
     const titleArrayData = await transformVehicleDataToJsonTitle(JSON.parse(JsonData));
     const jsonDataToInsert = await transformVehicleDataToJson(JSON.parse(JsonData));
-
-    // Remove empty arrays before merging
+// console.log( jsonDataToInsert,"jsonDataToInsert");
+ 
     const final: any[] = [
       ...(titleArrayData.length > 0 ? titleArrayData : []),
       ...(jsonDataToInsert.length > 0 ? jsonDataToInsert : [])
     ];
 
-    const insertRow = await SingleSoapDataToPdf.save(final);
+    // console.log( final,"final");
+
+     await SingleSoapDataToPdf.save(final);
 
     const queryBuilder = SingleSoapDataToPdf.createQueryBuilder("vehicle")
       .select([
@@ -165,11 +137,11 @@ export const NewValidateVinData = async (req: any, res: any) => {
       ])
       .leftJoin(MasterState, "masterstate", "vehicle.IdentificationID = masterstate.code")
       .leftJoin(MasterBrand, "masterbrand", "vehicle.brand = masterbrand.code")
-      .where("vehicle.vin = :vin", { vin: insertRow[0]?.vin })
+      // .where("vehicle.vin = :vin", { vin: insertRow[0]?.vin })
       .orderBy("vehicle.titleBrandDate", "DESC");
 
     const distinctVINs = await queryBuilder.getRawMany();
-
+    console.log( distinctVINs,"distinctVINs");
     // Delete the record based on VIN
     await truncateTable(SingleSoapDataToPdf);
     const reportData = await categorizeDataSIngleSearch(distinctVINs);

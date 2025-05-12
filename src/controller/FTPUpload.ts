@@ -3,11 +3,7 @@ import path from "path";
 import fs from "fs";
 import { parseVehicleDataJSI, parseVehicleDataBrand, ReadTheTxtFomatJson} from "../helpers/ReadTxtFile"; 
 import { insertBulkSheetData } from "./StoreDataInTable"; 
-import { deleteISDelItem } from "../helpers/CompareHelpers";
-// import { MESSAGES } from "../helpers/constants";
-// import { createResponse } from "../helpers/response";
-// import { MasterState } from "../Entities/master_state";
-// import { MasterBrand } from "../Entities/master_brand";
+import { deleteISDelItem } from "../helpers/CompareHelpers"; 
 import { VehicleData } from "../Entities/vehicle_data";
 import { VehicleDataTemp } from "../Entities/vehicle_data_temp";
 import { correctedData } from "../helpers/DashBoardHelpers";
@@ -49,18 +45,7 @@ export const FTPController = async (req: any, res: any) => {
     const uploadPath = path.join(__dirname, "../uploads", uploadedFile.name);
 
     await uploadedFile.mv(uploadPath);
-    await uploadToFTP(uploadPath, uploadedFile.name);
-
-    // // await new Promise(resolve => setTimeout(resolve, 45000));
-    // try {
-    //   // await FTPReadAllController();
-    // } catch (error) {
-    //   // tslint:disable-next-line:no-console
-    //   console.error("❌ Error reading from FTP:", error);
-
-    //   return res.status(500).json({ error: "Failed to read from FTP", success: false });
-    // }
-
+    await uploadToFTP(uploadPath, uploadedFile.name); 
     return res.json({ code: 200, message: "File uploaded successfully!", success: true, error: false });
   } catch (error) {
     // tslint:disable-next-line:no-console
