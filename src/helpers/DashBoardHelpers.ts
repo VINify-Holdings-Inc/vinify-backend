@@ -49,7 +49,7 @@ export const correctedData = async (data: any[]) => {
         });
 
     }
-    console.log(result, "0865");
+    // console.log(result, "0865");
 
     return result;
 };
