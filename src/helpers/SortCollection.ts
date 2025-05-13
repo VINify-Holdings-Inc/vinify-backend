@@ -33,16 +33,16 @@ export const categorizeDataSIngleSearch = (data: any) => {
     };
 
     data.forEach((item: any) => {
-        switch (item?.ReportingEntityCategoryCode) {
-            case "S":
+        switch (item?.alertType) {
+            case "Brand":
                 result?.brandData?.push(item);
                 result.brandDataCount++;
                 break;
-            case "T":
+            case "Title":
                 result?.titleData?.push(item);
                 result.titleDataCount++;
                 break;
-            case "J":
+            case "JSI":
                 result?.JSI?.push(item);
                 result.JSICount++;
                 break;
