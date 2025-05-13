@@ -287,7 +287,7 @@ export const UnreadNotificationsAlert = async (req: any, res: any) => {
 
 export const getSearchVinPop = async (req: any, res: any) => {
   try {
-    const { page = 1, limit = 9, oldVin, ...filters } = req.query;
+    const { page = 1, limit = 9, oldVin, isDel = false, ...filters } = req.query;
     const offset = (page - 1) * limit;
 
     const queryBuilder = VehicleData.createQueryBuilder("vd")
@@ -298,6 +298,7 @@ export const getSearchVinPop = async (req: any, res: any) => {
       ])
       .leftJoin(MasterBrand, "masterbrand", "vd.brand = masterbrand.code")
       .leftJoin(MasterState, "masterstate", "vd.state = masterstate.code")
+      .where("vd.isDel = :isDel", { isDel })
       .orderBy("vd.titleBrandDate", "DESC")
       .addOrderBy("vd.alertType", "DESC");
 
@@ -310,7 +311,6 @@ export const getSearchVinPop = async (req: any, res: any) => {
     Object.entries(filters).forEach(([key, value]) => {
       if (value && key !== "page" && key !== "limit") {
         if (key === "vin") {
-          // Exact VIN match if key is 'vin'
           queryBuilder.andWhere(`vd.${key} = :${key}`, { [key]: value });
         } else if (key === "isRead") {
           queryBuilder.andWhere(`vd.${key} = :${key}`, {
@@ -330,7 +330,8 @@ export const getSearchVinPop = async (req: any, res: any) => {
     // Count total records
     const totalQueryBuilder = VehicleData.createQueryBuilder("vd")
       .leftJoin(MasterBrand, "masterbrand", "vd.brand = masterbrand.code")
-      .leftJoin(MasterState, "masterstate", "vd.state = masterstate.code");
+      .leftJoin(MasterState, "masterstate", "vd.state = masterstate.code")
+      .where("vd.isDel = :isDel", { isDel });
 
     if (oldVin) {
       totalQueryBuilder.andWhere("vd.vin = :oldVin", { oldVin });
@@ -359,6 +360,7 @@ export const getSearchVinPop = async (req: any, res: any) => {
     const titletitleChangeCount = await VehicleData.createQueryBuilder("vehicle")
       .where("vehicle.isOld = :isOld", { isOld: false })
       .andWhere("vehicle.vin = :vin", { vin: filters.vin })
+      .andWhere("vehicle.isDel = :isDel", { isDel })
       .getCount();
 
     // Latest title change date

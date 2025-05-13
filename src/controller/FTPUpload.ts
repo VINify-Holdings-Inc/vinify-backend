@@ -71,7 +71,7 @@ export const removeAllFilesFromFTP = async (client: any) => {
     for (const file of fileList) {
       await client.remove(`/${file.name}`); // Delete each file
       // tslint:disable-next-line:no-console
-      console.log(`🗑️ Deleted file: ${file.name}`);
+      // console.log(`🗑️ Deleted file: ${file.name}`);
     }
   } catch (error: any) {
     // tslint:disable-next-line:no-console
@@ -167,7 +167,7 @@ export const FTPReadAllController = async () => {
 export const testR = async (req: any, res: any) => {
   try { 
     await FTPReadAllController(); 
-    console.log("after cron");
+    // console.log("after cron");
     
     return res.json({ code: 200, message: "cron done ", success: true, error: false });
   } catch (error) {

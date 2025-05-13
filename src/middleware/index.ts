@@ -8,7 +8,7 @@ export const AuthSignIn = (req: any, res: any, next: any): void => {
   const token = authHeader?.split(" ")[1];
 
   if (!token) {
-    return res.status(401).json({
+    return res.json({
       success: false,
       code: 401,
       data: [],
@@ -23,9 +23,9 @@ export const AuthSignIn = (req: any, res: any, next: any): void => {
         ? "Token has expired."
         : "Invalid token.";
 
-      return res.status(403).json({
+      return res.json({
         success: false,
-        code: 403,
+        code: 401,
         message: errorMessage,
         error: true,
       });
