@@ -14,8 +14,8 @@ export const correctedData = async (data: any[]) => {
                 .orderBy("vehicle.titleBrandDate", "DESC")
                 .addOrderBy("vehicle.createdAt", "DESC")
                 .limit(1)
-                .getRawOne(),
- 
+                .getOne(),
+
 
 
             VehicleData.createQueryBuilder("vehicle")
@@ -25,7 +25,7 @@ export const correctedData = async (data: any[]) => {
                 .orderBy("vehicle.titleBrandDate", "DESC")
                 .addOrderBy("vehicle.createdAt", "DESC")
                 .limit(1)
-                .getRawOne(),
+                .getOne(),
 
             VehicleData.createQueryBuilder("vehicle")
                 .where("vehicle.vin = :vin", { vin })
@@ -34,23 +34,24 @@ export const correctedData = async (data: any[]) => {
                 .orderBy("vehicle.titleBrandDate", "DESC")
                 .addOrderBy("vehicle.createdAt", "DESC")
                 .limit(1)
-                .getRawOne()
-        ]);
- console.log(vin,hasTitle, hasBrand, hasJSI,"processing ");
- 
+                .getOne()
+        ]); 
         result.push({
-            id: item?.id,
+            // id: item?.id,
             vin,
             Title: !!hasTitle,
             Brand: !!hasBrand,
             JSI: !!hasJSI,
             isOld: !(hasTitle || hasBrand || hasJSI),
-            isDel: hasTitle?.isDel || hasBrand?.isDel || hasJSI?.isDel
-
+            isTitleDel: !!hasTitle?.isDel,
+            isBrandDel: !!hasBrand?.isDel,
+            isJSIDel: !!hasJSI?.isDel
         });
 
     }
+    // console.log(result, "0865");
 
     return result;
 };
+
 
