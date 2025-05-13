@@ -76,7 +76,7 @@ export const LoginController = async (req: any, res: any) => {
         // Create JWT token
         const JWT_SECRET: any = process.env.JWT_SECRET;
         const token = jwt.sign({ id: user.userId, email: user.emailId }, JWT_SECRET, {
-            expiresIn: "24h",
+            expiresIn:"24h",
         });
 
         const profileComplete = await profileCompletion(user);
