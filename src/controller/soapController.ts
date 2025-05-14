@@ -44,7 +44,7 @@ export const SoapToken = async (req: any, res: any) => {
   }
 };
 
- 
+
 
 const convertXmlToJson = async (data: string): Promise<any> => {
   const parser = new Parser({
@@ -53,7 +53,7 @@ const convertXmlToJson = async (data: string): Promise<any> => {
   });
 
   try {
-    const result = await parser.parseStringPromise(data); 
+    const result = await parser.parseStringPromise(data);
     const envelope = result?.Envelope || result?.["s:Envelope"];
     const body = envelope?.Body || envelope?.["s:Body"];
     const response = body?.GetConsumerVehicleDataResponse || body.GetConsumerVehicleDataResponse;
@@ -104,22 +104,22 @@ export const NewValidateVinData = async (req: any, res: any) => {
     if (!response.data) {
       return createResponse(res, 400, "Something went worng!", null, false, true);
     }
-  
-    console.log(response.data,"response.data");
+
+    console.log(response.data, "response.data");
     const JsonData = await convertXmlToJson(response.data);
-  
-  console.log(JsonData,"JsonData");
+
+    console.log(JsonData, "JsonData");
 
     const titleArrayData = await transformVehicleDataToJsonTitle(JSON.parse(JsonData));
     const jsonDataToInsert = await transformVehicleDataToJson(JSON.parse(JsonData));
- 
+
     const final: any[] = [
       ...(titleArrayData.length > 0 ? titleArrayData : []),
       ...(jsonDataToInsert.length > 0 ? jsonDataToInsert : [])
-    ]; 
-    await SingleSoapDataToPdf.save(final);  
+    ];
+    await SingleSoapDataToPdf.save(final);
     // const firstRow = insertRows[0]; const insertRows =
-    
+
     const queryBuilder = SingleSoapDataToPdf.createQueryBuilder("vehicle")
       .select([
         "vehicle.*",
@@ -128,19 +128,8 @@ export const NewValidateVinData = async (req: any, res: any) => {
       ])
       .leftJoin(MasterState, "masterstate", "vehicle.IdentificationID = masterstate.code")
       .leftJoin(MasterBrand, "masterbrand", "vehicle.brand = masterbrand.code");
-    
-    // // Conditional `.where()` clause
-    // if (firstRow?.vin) {
-    //   queryBuilder.where("LOWER(vehicle.vin) LIKE LOWER(:vin)", { vin: `%${firstRow.vin}%` });
-    // }
-    
-    // Apply `.orderBy()` after conditional `.where()`
     queryBuilder.orderBy("vehicle.titleBrandDate", "DESC");
-    
     const distinctVINs = await queryBuilder.getRawMany();
-    
-    // console.log( distinctVINs,"distinctVINs");
-    // Delete the record based on VIN
     await truncateTable(SingleSoapDataToPdf);
     const reportData = await categorizeDataSIngleSearch(distinctVINs);
     const titleMaxDate = await findMaxTitleBrandDate(reportData?.titleData);
@@ -219,7 +208,7 @@ export const TrackVinPopController = async (req: any, res: any) => {
       return createResponse(
         res,
         200,
-       `We are not monitoring the entered VIN ${req?.query?.vin}. Do you want to run a new VIN report?`,
+        `We are not monitoring the entered VIN ${req?.query?.vin}. Do you want to run a new VIN report?`,
         {
           page,
           limit,
