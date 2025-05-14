@@ -21,25 +21,30 @@ app.use("/api/uploads", express.static("./src/uploads"));
 // Initialize PostgreSQL Database
 AppDataSource.initialize()
   .then(() => {
+
      // tslint:disable-next-line:no-console
     console.log("🚀Data Source has been initialized! ✅");
   })
   .catch((err: any) => {
+
      // tslint:disable-next-line:no-console
     console.error("Error during Data Source initialization", err);
   });
 
 // Swagger setup
 app.use("/api-doc", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
- BatchFileExecution()// batch file logic automate 30 min   
+
+ BatchFileExecution(); // batch file logic automate 30 min   
 // Routes
 app.use("/api", throttleMiddleware, routerAdmin);
 
 app.get("/", throttleMiddleware, (req: Request, res: Response) => {
+
   res.send("Welcome to the server !!!");
 });
 
 app.get("/test", throttleMiddleware, (req: Request, res: Response) => {
+  
   res.send("Welcome to the 2020");
 });
 

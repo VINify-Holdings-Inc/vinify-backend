@@ -18,7 +18,7 @@ routerAdmin.delete("/contact-us/:id", Controllers.deleteContactUs); // 9   -> .9
 // DataGrid Content  
 routerAdmin.get("/kpi-data", Controllers.AuthSignIn, Controllers.getTotalKpiesData); // 10     -> 5.4s
 routerAdmin.get("/dashboard-vin-summary", Controllers.AuthSignIn, Controllers.DashboardSummaryVIN); // 11   5.14 s
-routerAdmin.get("/dashboard-vin-summary-updated", Controllers.AuthSignIn, Controllers.DashboardSummaryVINUpdated);  // 12    ->4.28 s
+routerAdmin.get("/dashboard-vin-summary-updated", Controllers.AuthSignIn, Controllers.DashboardSummaryVINUpdated);  // 12->4.28 s
 routerAdmin.get("/new-alerts", Controllers.AuthSignIn, Controllers.NewAlertVIN); // 13       -> 5.26 s
 routerAdmin.get("/unread-notification", Controllers.AuthSignIn, Controllers.UnreadNotificationsAlert); // 14  ->5.2 s
 routerAdmin.get("/search-pop-vin", Controllers.AuthSignIn, Controllers.getSearchVinPop); // 15   ->2.3 s
@@ -38,8 +38,8 @@ routerAdmin.get("/title-detail-history", Controllers.AuthSignIn, Controllers.Com
 
 // SOAP Data
 routerAdmin.get("/get-soap-token", Controllers.SoapToken);  // 22  ->5.71 s
-routerAdmin.post("/new-validate-vin-data",  Controllers.NewValidateVinData); // 23 -> 8.81 s
-routerAdmin.get("/track-vin-pop",  Controllers.TrackVinPopController); // 24  -> 2.72 s
+routerAdmin.post("/new-validate-vin-data", Controllers.NewValidateVinData); // 23 -> 8.81 s
+routerAdmin.get("/track-vin-pop", Controllers.TrackVinPopController); // 24  -> 2.72 s
 
 // FTP organization
 routerAdmin.post("/upload-ftp-txt", Controllers.AuthSignIn, Controllers.FTPController); // 25   -> 46.20 s

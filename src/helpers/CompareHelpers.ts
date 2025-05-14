@@ -23,7 +23,7 @@ export const changedDataToComapreData = (oldArray: any[], newArray: any[]) => {
   const result: any[] = [];
   newArray.forEach(newItem => {
     const matchedOld = oldArray.find(oldItem =>
-      oldItem.vin?.trim() == newItem.vin?.trim() && oldItem.titleUnique?.trim() == newItem.titleUnique?.trim()
+      oldItem.vin?.trim() === newItem.vin?.trim() && oldItem.titleUnique?.trim() === newItem.titleUnique?.trim()
     );
     if (matchedOld) {
       result.push({
@@ -48,6 +48,7 @@ export const changedDataToComapreData = (oldArray: any[], newArray: any[]) => {
       });
     }
   });
+
   return result;
 };
 
@@ -74,8 +75,15 @@ export const findIsDeletedItems = (vehicleTemData: any[], changedDataToComapre: 
 export const brandChangedDataToCompareData = (oldArray: any[], newArray: any[]) => {
   const result: any[] = [];
   newArray.forEach(newItem => {
-    const matchedOld = oldArray.find(oldItem => oldItem.vin === newItem.vin && oldItem.titleBrandDate === newItem.titleBrandDate && oldItem.brand === newItem.brand && oldItem.state === newItem.state && oldItem.alertType === newItem.alertType
+    const matchedOld = oldArray.find(
+      (oldItem) =>
+        oldItem.vin === newItem.vin &&
+        oldItem.titleBrandDate === newItem.titleBrandDate &&
+        oldItem.brand === newItem.brand &&
+        oldItem.state === newItem.state &&
+        oldItem.alertType === newItem.alertType
     );
+
     if (matchedOld) {
       result.push({
         vin: newItem?.vin,
@@ -96,8 +104,6 @@ export const brandChangedDataToCompareData = (oldArray: any[], newArray: any[]) 
     }
   });
 
-  console.log(result, "############");
-
   return result;
 };
 export const findIsDeletedItemsBrand = (vehicleTemData: any[], changedDataToComapre: any[]) => {
@@ -115,6 +121,7 @@ export const findIsDeletedItemsBrand = (vehicleTemData: any[], changedDataToComa
   const deletedItems = vehicleTemData
     ?.filter(item => {
       const key = `${item?.vin}|${item?.titleBrandDate}|${item?.brand}|${item?.state}|${item?.alertType}`;
+
       return !changedItemKeys.has(key);
     })
     ?.map(item => ({
@@ -127,7 +134,7 @@ export const findIsDeletedItemsBrand = (vehicleTemData: any[], changedDataToComa
   return deletedItems;
 };
 export const JsiChangedDataToCompareData = (oldArray: any[], newArray: any[]) => {
- 
+
   const result: any[] = [];
   newArray.forEach(newItem => {
     const matchedOld = oldArray.find(oldItem => oldItem?.vin === newItem?.vin &&
@@ -165,6 +172,7 @@ export const JsiChangedDataToCompareData = (oldArray: any[], newArray: any[]) =>
       });
     }
   });
+
   return result;
 };
 
@@ -183,6 +191,7 @@ export const findIsDeletedItemsJSI = (vehicleTemData: any[], changedDataToComapr
   const deletedItems = vehicleTemData
     ?.filter(item => {
       const key = `${item?.vin}|${item?.titleBrandDate}|${item?.email}|${item?.mobile}|${item?.export}|${item?.state}|${item?.alertType}|${item?.description}|${item?.city}|${item?.rptgEntity}`;
+
       return !changedItemKeys.has(key);
     })
     ?.map(item => ({

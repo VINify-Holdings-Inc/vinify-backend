@@ -20,8 +20,6 @@ export const getTotalKpiesData = async (req: any, res: any) => {
 
     const totalUpdatedData = await queryUpdated.getRawOne();
 
-
-
     const currentQueryBuilder = VehicleDataTemp.createQueryBuilder("vehicle")
     .select([
       "vehicle.*",

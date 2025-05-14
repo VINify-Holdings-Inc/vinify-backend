@@ -1,8 +1,7 @@
 
-
 export const transformVehicleDataToJsonTitle = (JsonDataTitle: any) => {
    
-  const Title=JsonDataTitle?.Title
+  const Title = JsonDataTitle?.Title;
   const result: any = [];
   if (!Title) {
     return result;

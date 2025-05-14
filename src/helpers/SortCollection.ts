@@ -9,7 +9,6 @@ export const sortBytitleBrandDateDesc = (data: any[]) => {
 //     return [...data].sort((a, b) => b.idSequence - a.idSequence);
 // };
 
-
 export const getLatesttitleBrandDate = (data: any) => {
     const vinMap = new Map();
     data.forEach((item: any) => {
