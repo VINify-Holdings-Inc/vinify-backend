@@ -104,31 +104,22 @@ export const NewValidateVinData = async (req: any, res: any) => {
     if (!response.data) {
       return createResponse(res, 400, "Something went worng!", null, false, true);
     }
- 
-    // console.log(response.data,"23456789");
+  
+    console.log(response.data,"response.data");
     const JsonData = await convertXmlToJson(response.data);
-    const jsonResponseVin=JSON.parse(JsonData)
-    // console.log(jsonResponseVin,"23456789");
-    
-    if(!jsonResponseVin?.Title){  
-      return createResponse(res, 400,"No data received from SOAP service.", null, false, true); 
-  } 
-
-  // console.log("titleArrayData ");
+  
+  console.log(JsonData,"JsonData");
 
     const titleArrayData = await transformVehicleDataToJsonTitle(JSON.parse(JsonData));
     const jsonDataToInsert = await transformVehicleDataToJson(JSON.parse(JsonData));
-// console.log( jsonDataToInsert,"jsonDataToInsert");
  
     const final: any[] = [
       ...(titleArrayData.length > 0 ? titleArrayData : []),
       ...(jsonDataToInsert.length > 0 ? jsonDataToInsert : [])
-    ];
-
-    // console.log( final,"final");
-
-     await SingleSoapDataToPdf.save(final);
-
+    ]; 
+    await SingleSoapDataToPdf.save(final);  
+    // const firstRow = insertRows[0]; const insertRows =
+    
     const queryBuilder = SingleSoapDataToPdf.createQueryBuilder("vehicle")
       .select([
         "vehicle.*",
@@ -136,12 +127,19 @@ export const NewValidateVinData = async (req: any, res: any) => {
         "masterbrand.name AS brand"
       ])
       .leftJoin(MasterState, "masterstate", "vehicle.IdentificationID = masterstate.code")
-      .leftJoin(MasterBrand, "masterbrand", "vehicle.brand = masterbrand.code")
-      // .where("vehicle.vin = :vin", { vin: insertRow[0]?.vin })
-      .orderBy("vehicle.titleBrandDate", "DESC");
-
+      .leftJoin(MasterBrand, "masterbrand", "vehicle.brand = masterbrand.code");
+    
+    // // Conditional `.where()` clause
+    // if (firstRow?.vin) {
+    //   queryBuilder.where("LOWER(vehicle.vin) LIKE LOWER(:vin)", { vin: `%${firstRow.vin}%` });
+    // }
+    
+    // Apply `.orderBy()` after conditional `.where()`
+    queryBuilder.orderBy("vehicle.titleBrandDate", "DESC");
+    
     const distinctVINs = await queryBuilder.getRawMany();
-    console.log( distinctVINs,"distinctVINs");
+    
+    // console.log( distinctVINs,"distinctVINs");
     // Delete the record based on VIN
     await truncateTable(SingleSoapDataToPdf);
     const reportData = await categorizeDataSIngleSearch(distinctVINs);
