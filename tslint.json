@@ -63,7 +63,7 @@
         "no-conditional-assignment": true,
         "no-console": [true, "log", "error", "debug", "info"],
         "no-debugger": true,
-        "max-line-length": [true, 130],
+        "max-line-length": [true, 160],
         "no-empty": true,
         "no-shadowed-variable": false,
         "no-duplicate-imports": true,
