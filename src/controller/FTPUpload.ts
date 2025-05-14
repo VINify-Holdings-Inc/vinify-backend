@@ -46,6 +46,7 @@ export const FTPController = async (req: any, res: any) => {
 
     await uploadedFile.mv(uploadPath);
     await uploadToFTP(uploadPath, uploadedFile.name); 
+    
     return res.json({ code: 200, message: "File uploaded successfully!", success: true, error: false });
   } catch (error) {
     // tslint:disable-next-line:no-console
@@ -149,8 +150,8 @@ export const FTPReadAllController = async () => {
     const brandContent = await parseVehicleDataBrand(fileContentBrand);  
     const fileContentJsi = await downloadAndReadFile(client, "MY.T.CINQ.JSI.txt");
     const JsiContent = await parseVehicleDataJSI(fileContentJsi); 
-    await deleteISDelItem(VehicleData)
-    await deleteISDelItem(VehicleDataTemp)
+    await deleteISDelItem(VehicleData);
+    await deleteISDelItem(VehicleDataTemp);
     await insertBulkSheetData(titleContent, brandContent, JsiContent);
 
     await removeAllFilesFromFTP(client);
@@ -179,14 +180,14 @@ export const testR = async (req: any, res: any) => {
 
 export const testResultController = async (req: any, res: any) => {
   try { 
-   const data:any=await VehicleDataTemp.find()
-   const final:any=await correctedData(data);
-   await DashboardDataList.save(final)
-    return res.json({ code: 200, message: "cron done ", success: true, error: false });
+   const data: any = await VehicleDataTemp.find();
+   const final: any = await correctedData(data);
+   await DashboardDataList.save(final);
+
+   return res.json({ code: 200, message: "cron done ", success: true, error: false });
   } catch (error) {
      // tslint:disable-next-line:no-console
     console.error("Error fetching data:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
-

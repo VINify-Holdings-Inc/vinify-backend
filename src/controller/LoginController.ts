@@ -14,13 +14,7 @@ export const TestRoute = async (req: any, res: any) => {
         const queryBuilder = User.createQueryBuilder("user")
             .leftJoinAndSelect(Login, "login", "user.emailId = login.emailId")
             .where("user.emailId = :email", { email });
-        // .select([
-        //     "user.id",
-        //     "user.emailId",
-        //     "login.password",
-        //     "login.status",
-        // ]); 
-        // Execute the query
+
         const userData = await queryBuilder.getRawOne();
         if (!userData) {
             return res.status(404).json({ message: "Data not found", success: false });
@@ -59,7 +53,9 @@ export const LoginController = async (req: any, res: any) => {
         // Find the associated user by userId and fetch only required fields
         const user = await User.findOne({
             where: { userId: login.userId },
-            select: ["id", "userId", "firstName", "lastName", "emailId", "phoneNumber", "profile", "address", "companyId", "title", "createdAt", "secondaryEmailId"],
+            select: [
+                "id", "userId", "firstName", "lastName", "emailId", "phoneNumber", "profile",
+                "address", "companyId", "title", "createdAt", "secondaryEmailId"],
         });
 
         // Check if user exists
@@ -76,7 +72,7 @@ export const LoginController = async (req: any, res: any) => {
         // Create JWT token
         const JWT_SECRET: any = process.env.JWT_SECRET;
         const token = jwt.sign({ id: user.userId, email: user.emailId }, JWT_SECRET, {
-            expiresIn:"24h",
+            expiresIn: "24h",
         });
 
         const profileComplete = await profileCompletion(user);

@@ -63,12 +63,13 @@ export const DashboardSummaryVIN = async (req: any, res: any) => {
       items: distinctVINs,
     });
   } catch (error: any) {
+    // tslint:disable-next-line:no-console
     console.error(MESSAGES?.INTERNAL_SERVER_ERROR, error);
+
     return createResponse(res, 500, MESSAGES?.INTERNAL_SERVER_ERROR, [], false, true);
   }
 };
 
- 
 export const DashboardSummaryVINUpdated = async (req: any, res: any) => {
   try {
     const { page = 1, limit = 9, alertType, ...filters } = req.query;
@@ -129,7 +130,9 @@ export const DashboardSummaryVINUpdated = async (req: any, res: any) => {
       items: distinctVINs,
     });
   } catch (error: any) {
+    // tslint:disable-next-line:no-console
     console.error(MESSAGES?.INTERNAL_SERVER_ERROR, error);
+
     return createResponse(res, 500, MESSAGES?.INTERNAL_SERVER_ERROR, [], false, true);
   }
 };
@@ -394,12 +397,12 @@ export const getSearchVinPop = async (req: any, res: any) => {
       titletitleChangeLastUpdated
     });
   } catch (error) {
+    // tslint:disable-next-line:no-console
     console.error(MESSAGES?.INTERNAL_SERVER_ERROR, error);
 
     return createResponse(res, 500, MESSAGES?.INTERNAL_SERVER_ERROR, [], false, true);
   }
 };
-
 
 export const ExportPdfVINData = async (req: any, res: any) => {
   try {
@@ -410,7 +413,7 @@ export const ExportPdfVINData = async (req: any, res: any) => {
     if (type === "single" && vins.length > 0) {
 
       const queryBuilder = DashboardDataList.createQueryBuilder("vehicle")
-        .select(["vehicle.*",])
+        .select(["vehicle.*", ])
         .addOrderBy("vehicle.vin", "ASC") 
         .where("vehicle.id IN (:...vins)", { vins });
 
@@ -421,7 +424,7 @@ export const ExportPdfVINData = async (req: any, res: any) => {
       const queryBuilder = DashboardDataList.createQueryBuilder("vehicle")
         .distinctOn(["vehicle.vin"]) // DISTINCT ON
         .select(["vehicle.*"])
-        .orderBy("vehicle.vin", "ASC")  
+        .orderBy("vehicle.vin", "ASC");  
         data = await queryBuilder.getRawMany(); 
 
     } else if (type === "updated") {
@@ -445,9 +448,7 @@ export const ExportPdfVINData = async (req: any, res: any) => {
 }; 
 export const NavigateSidebarFirstItem = async (req: any, res: any) => {
   try {
-    const { page = 1, } = req.query;
-    // Build main query with DISTINCT ON vehicle.vin
-    // Try to fetch records with isOld = false first
+    const { page = 1, } = req.query; 
     let queryBuilder = VehicleData.createQueryBuilder("vehicle")
       .select(["vehicle.*"])
       .where("vehicle.isOld = :isOld", { isOld: false })
@@ -474,6 +475,7 @@ export const NavigateSidebarFirstItem = async (req: any, res: any) => {
       items: data,
     });
   } catch (error: any) {
+    // tslint:disable-next-line:no-console
     console.error(MESSAGES?.INTERNAL_SERVER_ERROR, error);
 
     return createResponse(res, 500, MESSAGES?.INTERNAL_SERVER_ERROR, [], false, true);

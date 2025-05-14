@@ -32,10 +32,11 @@ export const insertBulkSheetData = async (title: any, brand: any, JsiContent: an
     await truncateTable(DashboardDataList);
     await updateLastFileProcess();
 
-    await VehicleData.save(SortedfinalDataStore);//
+    await VehicleData.save(SortedfinalDataStore); //
     await VehicleDataTemp.save(TempSortedfinalDataStore);
     const dasboardFinalData: any = await correctedData(TempSortedfinalDataStore);
     await DashboardDataList.save(dasboardFinalData);
+
     return;
   } catch (error) {
     // tslint:disable-next-line:no-console
@@ -58,12 +59,11 @@ export const titleInsertData = async (title: any) => {
   return finalData;
 };
 
-
 export const BrandInsertData = async (title: any) => {
   const vehicleTemData = await VehicleData.find({ where: { alertType: "Brand" } });
   const deletedExtraVin: any = await deletedExtraVinData(title, vehicleTemData);
   const changedDataToComapre = await brandChangedDataToCompareData(deletedExtraVin, title);
-  const isDeletedItems = await findIsDeletedItemsBrand(deletedExtraVin, changedDataToComapre)
+  const isDeletedItems = await findIsDeletedItemsBrand(deletedExtraVin, changedDataToComapre);
   const finalData = [
     ...(Array.isArray(changedDataToComapre) ? changedDataToComapre : []),
     ...(Array.isArray(isDeletedItems) ? isDeletedItems : [])
@@ -76,7 +76,7 @@ export const JsiInsertData = async (title: any) => {
   const vehicleTemData = await VehicleData.find({ where: { alertType: "JSI" } });
   const deletedExtraVin: any = await deletedExtraVinData(title, vehicleTemData);
   const changedDataToComapre = await JsiChangedDataToCompareData(deletedExtraVin, title);
-  const isDeletedItems = await findIsDeletedItemsJSI(deletedExtraVin, changedDataToComapre)
+  const isDeletedItems = await findIsDeletedItemsJSI(deletedExtraVin, changedDataToComapre);
   const finalData = [
     ...(Array.isArray(changedDataToComapre) ? changedDataToComapre : []),
     ...(Array.isArray(isDeletedItems) ? isDeletedItems : [])

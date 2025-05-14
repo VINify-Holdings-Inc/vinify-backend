@@ -44,8 +44,6 @@ export const SoapToken = async (req: any, res: any) => {
   }
 };
 
-
-
 const convertXmlToJson = async (data: string): Promise<any> => {
   const parser = new Parser({
     explicitArray: false,  // Prevents wrapping single elements in arrays
@@ -104,12 +102,7 @@ export const NewValidateVinData = async (req: any, res: any) => {
     if (!response.data) {
       return createResponse(res, 400, "Something went worng!", null, false, true);
     }
-
-    console.log(response.data, "response.data");
     const JsonData = await convertXmlToJson(response.data);
-
-    console.log(JsonData, "JsonData");
-
     const titleArrayData = await transformVehicleDataToJsonTitle(JSON.parse(JsonData));
     const jsonDataToInsert = await transformVehicleDataToJson(JSON.parse(JsonData));
 

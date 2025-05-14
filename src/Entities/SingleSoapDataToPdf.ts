@@ -63,7 +63,6 @@
                 @Column({ name: "VehicleOdometerReadingMeasure", type: "varchar", nullable: true })
                 VehicleOdometerReadingMeasure: string; 
 
-                 
                 @Column({ name: "alertType", type: "varchar", nullable: true })
                 alertType: string; 
                 

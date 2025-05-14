@@ -17,8 +17,8 @@ export class VehicleDataTemp extends BaseEntity {
   vin: string;
 
   @Column({ name: "idSequence", type: "int", })
-  @Generated('rowid')
-  idSequence: any
+  @Generated("rowid")
+  idSequence: any;
 
   @Column({ name: "vinId", type: "varchar", default: "" })
   vinId: string;

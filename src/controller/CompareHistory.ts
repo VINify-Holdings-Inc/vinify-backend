@@ -45,25 +45,26 @@ export const CompareHistoryTitalDetails = async (req: any, res: any) => {
       fetchVehicleData(true, "JSI"),
     ]);
 
-    const titlechanged = await isChangeInThePreviousVin(TitleCurrent[0], TitleHistory[0])
-    const brandchanged = await isChangeInThePreviousVin(BrandCurrent[0], BrandHistory[0])
-    const jsichanged = await isChangeInThePreviousVin(JSICurrent[0], JSIHistory[0])
+    const titlechanged = await isChangeInThePreviousVin(TitleCurrent[0], TitleHistory[0]);
+    const brandchanged = await isChangeInThePreviousVin(BrandCurrent[0], BrandHistory[0]);
+    const jsichanged = await isChangeInThePreviousVin(JSICurrent[0], JSIHistory[0]);
 
-    let TitleCurrentFinal = TitleCurrent;
+    const TitleCurrentFinal = TitleCurrent;
     if (TitleCurrent?.length > 0) {
-      TitleCurrentFinal?.shift()
-      TitleCurrentFinal?.unshift(titlechanged)
+      TitleCurrentFinal?.shift();
+      TitleCurrentFinal?.unshift(titlechanged);
     }
-    let brandCurrentFinal = BrandCurrent;
+    const brandCurrentFinal = BrandCurrent;
     if (BrandCurrent?.length > 0) {
-      brandCurrentFinal?.shift()
-      brandCurrentFinal?.unshift(brandchanged)
+      brandCurrentFinal?.shift();
+      brandCurrentFinal?.unshift(brandchanged);
     }
-    let JSICurrentFinal = JSICurrent;
+    const JSICurrentFinal = JSICurrent;
     if (JSICurrent?.length > 0) {
-      JSICurrentFinal?.shift()
-      JSICurrentFinal?.unshift(jsichanged)
+      JSICurrentFinal?.shift();
+      JSICurrentFinal?.unshift(jsichanged);
     }
+
     // Return response
     return createResponse(res, 200, MESSAGES?.DATA_FETCH_SUCCESS, {
       title: { current: TitleCurrentFinal, history: TitleHistory },
