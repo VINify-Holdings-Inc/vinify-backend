@@ -53,25 +53,24 @@ export const changedDataToComapreData = (oldArray: any[], newArray: any[]) => {
 };
 
 export const findIsDeletedItems = (vehicleTemData: any[], changedDataToComapre: any[]) => {
-  // Step 1: Filter changedDataToComapre for isOld === true
+  // Step 1: Filter changedDataToComapre where isOld === true
   const filteredChangedData = changedDataToComapre?.filter(item => item?.isOld === true);
+ // Step 2: Create a Set of combined keys from filteredChangedData
+  const changedKeys = new Set(
+    filteredChangedData.map(item => `${item.vin}|${item.titleUnique}`)
+  );
 
-  // Step 2: Extract titleUnique values from the filtered changed data
-  const changedTitleUniques = new Set(filteredChangedData?.map(item => item?.titleUnique));
-
-  // Step 3: Iterate over vehicleTemData to find deletions
+  // Step 3: Identify items in vehicleTemData not present in changedKeys
   const deletedItems = vehicleTemData
-    ?.filter(item => !changedTitleUniques?.has(item?.titleUnique))
-    ?.map(item => ({
+    .filter(item => !changedKeys.has(`${item.vin}|${item.titleUnique}`))
+    .map(item => ({
       ...item,
       isOld: false,
       isDel: true
-    }));
-
+    })); 
   // Step 4: Return the result
   return deletedItems;
-};
-
+}; 
 export const brandChangedDataToCompareData = (oldArray: any[], newArray: any[]) => {
   const result: any[] = [];
   newArray.forEach(newItem => {

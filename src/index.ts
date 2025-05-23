@@ -35,6 +35,7 @@ AppDataSource.initialize()
 app.use("/api-doc", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
  BatchFileExecution(); // batch file logic automate 30 min   
+//  testCronJob()  test cron job
 // Routes
 app.use("/api", throttleMiddleware, routerAdmin);
 
