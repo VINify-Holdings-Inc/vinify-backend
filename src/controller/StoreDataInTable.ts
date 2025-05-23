@@ -148,7 +148,7 @@ export const JsiInsertData = async (title: any) => {
       // Fetching items that are marked as deleted for JSI data
       const isDeletedItems = await findIsDeletedItemsJSI(deletedExtraVin, changedDataToComapre);
 
-      // Combining the changed and deleted items into the final data array
+      // Combining the changed and deleted items into the final data array   
       const finalData = [
           ...(Array.isArray(changedDataToComapre) ? changedDataToComapre : []),
           ...(Array.isArray(isDeletedItems) ? isDeletedItems : [])

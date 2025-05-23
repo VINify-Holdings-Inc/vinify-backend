@@ -165,7 +165,7 @@ export const FTPReadAllController = async () => {
     // Download and read the JSI file from the FTP server
     const fileContentJsi = await downloadAndReadFile(client, "MY.T.CINQ.JSI.txt");
     const JsiContent = await parseVehicleDataJSI(fileContentJsi); // Parse the JSI file content
-
+ 
     // Delete any items that are marked as deleted in VehicleData
     await deleteISDelItem(VehicleData);
     await deleteISDelItem(VehicleDataTemp);
