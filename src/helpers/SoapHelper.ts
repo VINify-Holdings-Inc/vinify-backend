@@ -1,6 +1,6 @@
 
 export const transformVehicleDataToJsonTitle = (JsonDataTitle: any) => {
-   
+
   const Title = JsonDataTitle?.Title;
   const result: any = [];
   if (!Title) {
@@ -16,7 +16,9 @@ export const transformVehicleDataToJsonTitle = (JsonDataTitle: any) => {
       VehicleOdometerReadingMeasure: data?.VehicleOdometerReadingMeasure || null,
       VehicleOdometerReadingUnitCode: data?.VehicleOdometerReadingUnitCode || null,
       RecordMatchSequenceID: data?.RecordMatchSequenceID || null,
-      alertType: "Title"
+      alertType: "Title",
+      odometer: data?.VehicleOdometerReadingMeasure?.trim() || null,
+      odometerMeasure: data?.VehicleOdometerReadingUnitCode?.trim() || null
     };
   };
 
@@ -56,8 +58,8 @@ export const transformVehicleDataToJson = (data: any) => {
   const vehicleDesignationArray = Array.isArray(data?.VehicleDesignationAbstract)
     ? data.VehicleDesignationAbstract
     : data?.VehicleDesignationAbstract
-    ? [data.VehicleDesignationAbstract]
-    : [];
+      ? [data.VehicleDesignationAbstract]
+      : [];
 
   vehicleDesignationArray.forEach((item: any) => {
     // Check if both VehicleBrandDate and VehicleBrandCode are available
@@ -90,7 +92,7 @@ export const transformVehicleDataToJson = (data: any) => {
         ContactEmailID: item?.ReportingEntityAbstract?.ContactEmailID?.trim() || null,
         VehicleIntendedForExportCode: item?.VehicleIntendedForExportCode?.trim() || null,
         VehicleDispositionText: item?.VehicleDispositionText?.trim() || null,
-        export: item?.VehicleIntendedForExportCode === undefined ? null : item.VehicleIntendedForExportCode === "N"  ? "no" : "yes",
+        export: item?.VehicleIntendedForExportCode === undefined ? null : item.VehicleIntendedForExportCode === "N" ? "no" : "yes",
         alertType: "JSI",
       };
       result.push(temp);
@@ -99,7 +101,7 @@ export const transformVehicleDataToJson = (data: any) => {
   // console.log(result,"result");
 
   return result;
-}; 
+};
 
 export const findMaxTitleBrandDate = (data: any) => {
   if (!Array.isArray(data) || data.length === 0) {
