@@ -107,11 +107,12 @@ export const NewValidateVinData = async (req: any, res: any) => {
             return createResponse(res, 400, "Something went wrong!", null, false, true);
         }
 
+         console.log(response.data, "%%%%%%%%%%%%%%%%%%%");
       
         // Convert the XML response to JSON
         const JsonData = await convertXmlToJson(response.data);
 
-  console.log(JsonData, "%%%%%%%%%%%%%%%%%%%");
+//   console.log(JsonData, "%%%%%%%%%%%%%%%%%%%");
         // Transform the vehicle data into title and data for insertion
         const titleArrayData = await transformVehicleDataToJsonTitle(JSON.parse(JsonData));
         //JsI AND BRAND DATA 
