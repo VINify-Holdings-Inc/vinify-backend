@@ -37,20 +37,30 @@ export const uploadToFTP = async (filePath: string, fileName: string) => {
 
 export const FTPController = async (req: any, res: any) => {
   try {
+    // Check if the file is provided in the request
     if (!req.files || !req.files.file) {
       return res.status(400).json({ error: "No file uploaded." });
     }
 
+    // Retrieve the uploaded file from the request
     const uploadedFile = req.files.file;
+
+    // Define the path to save the file locally
     const uploadPath = path.join(__dirname, "../uploads", uploadedFile.name);
 
+    // Move the file to the server's local 'uploads' directory
     await uploadedFile.mv(uploadPath);
+
+    // Upload the file to the FTP server
     await uploadToFTP(uploadPath, uploadedFile.name); 
+    
+    // Respond with a success message if the file is uploaded and transferred successfully
     return res.json({ code: 200, message: "File uploaded successfully!", success: true, error: false });
   } catch (error) {
     // tslint:disable-next-line:no-console
     console.error("❌ Upload Error:", error);
 
+    // Respond with an error if the upload process fails
     return res.status(500).json({ error: "File upload failed." });
   }
 };
@@ -139,27 +149,39 @@ const downloadAndReadFile = async (client: any, targetFileName: any) => {
 
 export const FTPReadAllController = async () => {
   const client: any = new Client();
-  client.ftp.verbose = true;
-  client.ftp.keepAlive = 10000;
-  client.ftp.timeout = 30000;
+  client.ftp.verbose = true; // Enable verbose FTP logging for debugging
+  client.ftp.keepAlive = 10000; // Set FTP keep-alive interval to avoid timeouts
+  client.ftp.timeout = 30000; // Set FTP timeout to 30 seconds
+
   try {
+    // Download and read the Title file from the FTP server
     const fileContentTitle = await downloadAndReadFile(client, "MY.T.CINQ.TITLE.txt");
-   const titleContent = await ReadTheTxtFomatJson(fileContentTitle);  
+    const titleContent = await ReadTheTxtFomatJson(fileContentTitle); // Parse the Title file content
+
+    // Download and read the Brand file from the FTP server
     const fileContentBrand = await downloadAndReadFile(client, "MY.T.CINQ.BRAND.txt");
-    const brandContent = await parseVehicleDataBrand(fileContentBrand);  
+    const brandContent = await parseVehicleDataBrand(fileContentBrand); // Parse the Brand file content
+
+    // Download and read the JSI file from the FTP server
     const fileContentJsi = await downloadAndReadFile(client, "MY.T.CINQ.JSI.txt");
-    const JsiContent = await parseVehicleDataJSI(fileContentJsi); 
-    await deleteISDelItem(VehicleData)
-    await deleteISDelItem(VehicleDataTemp)
+    const JsiContent = await parseVehicleDataJSI(fileContentJsi); // Parse the JSI file content
+ 
+    // Delete any items that are marked as deleted in VehicleData
+    await deleteISDelItem(VehicleData);
+    await deleteISDelItem(VehicleDataTemp);
+
+    // Insert the parsed data into the database
     await insertBulkSheetData(titleContent, brandContent, JsiContent);
 
+    // Remove all files from the FTP server after processing
     await removeAllFilesFromFTP(client);
 
-    return; 
+    return; // Finish execution
   } catch (error) {
-     // tslint:disable-next-line:no-console
-    console.error("❌ FTP Read All Error:", error);
+    // tslint:disable-next-line:no-console
+    console.error("❌ FTP Read All Error:", error); // Log any errors that occur during the process
   } finally {
+    // Ensure the FTP client is closed after processing is complete
     await client.close();
   }
 };
@@ -179,14 +201,14 @@ export const testR = async (req: any, res: any) => {
 
 export const testResultController = async (req: any, res: any) => {
   try { 
-   const data:any=await VehicleDataTemp.find()
-   const final:any=await correctedData(data);
-   await DashboardDataList.save(final)
-    return res.json({ code: 200, message: "cron done ", success: true, error: false });
+   const data: any = await VehicleDataTemp.find();
+   const final: any = await correctedData(data);
+   await DashboardDataList.save(final);
+
+   return res.json({ code: 200, message: "cron done ", success: true, error: false });
   } catch (error) {
      // tslint:disable-next-line:no-console
     console.error("Error fetching data:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
-

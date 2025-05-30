@@ -18,7 +18,6 @@ export class DashboardDataList extends BaseEntity {
     @Column({ name: "Title", type: "boolean", default: false })
     Title: boolean;
 
-
     @Column({ name: "Brand", type: "boolean", default: false })
     Brand: boolean;
 

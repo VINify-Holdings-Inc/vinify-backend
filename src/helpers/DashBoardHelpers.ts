@@ -16,8 +16,6 @@ export const correctedData = async (data: any[]) => {
                 .limit(1)
                 .getOne(),
 
-
-
             VehicleData.createQueryBuilder("vehicle")
                 .where("vehicle.vin = :vin", { vin })
                 .andWhere("vehicle.alertType = :alertType", { alertType: "Brand" })
@@ -53,5 +51,3 @@ export const correctedData = async (data: any[]) => {
 
     return result;
 };
-
-

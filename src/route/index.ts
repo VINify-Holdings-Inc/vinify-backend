@@ -1,53 +1,53 @@
 import express from "express";
-import * as Controllers from "./importController";
+import * as Handler from "./importController";
 const routerAdmin = express.Router();
 
 // User Details
-routerAdmin.post("/user-login", Controllers.LoginController); // 1      -> .782 s
-routerAdmin.put("/user-profile-update", Controllers.userProfileUpdate); // 2  -> .282 s
-routerAdmin.get("/user-profile/:email", Controllers.ProfileUpdate); // 3   -> 2.69 s
-routerAdmin.post("/forget-password", Controllers.ForgetPassword); // 4    -> 6.34 s
-routerAdmin.post("/reset-password", Controllers.ResetPassword); // 5     ->.790 s
-routerAdmin.post("/reset-token-check", Controllers.ResetTockenCheck); // 6  ->.629 s
+routerAdmin.post("/user-login", Handler.LoginController); // 1      -> .782 s
+routerAdmin.put("/user-profile-update", Handler.userProfileUpdate); // 2  -> .282 s
+routerAdmin.get("/user-profile/:email", Handler.ProfileUpdate); // 3   -> 2.69 s
+routerAdmin.post("/forget-password", Handler.ForgetPassword); // 4    -> 6.34 s
+routerAdmin.post("/reset-password", Handler.ResetPassword); // 5     ->.790 s
+routerAdmin.post("/reset-token-check", Handler.ResetTockenCheck); // 6  ->.629 s     
 
 // Contact Details
-routerAdmin.post("/contact-us", Controllers.insertContactUs); // 7 -> 5.7 s
-routerAdmin.get("/contact-us", Controllers.readContactUs); // 8   ->2.54 s
-routerAdmin.delete("/contact-us/:id", Controllers.deleteContactUs); // 9   -> .987 s
+routerAdmin.post("/contact-us", Handler.insertContactUs); // 7 -> 5.7 s ->2.7s
+routerAdmin.get("/contact-us", Handler.readContactUs); // 8   ->2.54 s       1s
+routerAdmin.delete("/contact-us/:id", Handler.deleteContactUs); // 9   -> .987 s
 
 // DataGrid Content  
-routerAdmin.get("/kpi-data", Controllers.AuthSignIn, Controllers.getTotalKpiesData); // 10     -> 5.4s
-routerAdmin.get("/dashboard-vin-summary", Controllers.AuthSignIn, Controllers.DashboardSummaryVIN); // 11   5.14 s
-routerAdmin.get("/dashboard-vin-summary-updated", Controllers.AuthSignIn, Controllers.DashboardSummaryVINUpdated);  // 12    ->4.28 s
-routerAdmin.get("/new-alerts", Controllers.AuthSignIn, Controllers.NewAlertVIN); // 13       -> 5.26 s
-routerAdmin.get("/unread-notification", Controllers.AuthSignIn, Controllers.UnreadNotificationsAlert); // 14  ->5.2 s
-routerAdmin.get("/search-pop-vin", Controllers.AuthSignIn, Controllers.getSearchVinPop); // 15   ->2.3 s
-routerAdmin.post("/export-pdf", Controllers.AuthSignIn, Controllers.ExportPdfVINData); // 16   -> 2.91 s
+routerAdmin.get("/kpi-data", Handler.AuthSignIn, Handler.getTotalKpiesData); // 10     -> 5.4s   259ms
+routerAdmin.get("/dashboard-vin-summary", Handler.AuthSignIn, Handler.DashboardSummaryVIN); // 11   5.14 s    257ms
+routerAdmin.get("/dashboard-vin-summary-updated", Handler.AuthSignIn, Handler.DashboardSummaryVINUpdated);  // 12->4.28 s   434 ms
+routerAdmin.get("/new-alerts", Handler.AuthSignIn, Handler.NewAlertVIN); // 13       -> 5.26 s    286ms
+routerAdmin.get("/unread-notification", Handler.AuthSignIn, Handler.UnreadNotificationsAlert); // 14  ->5.2 s  245ms
+routerAdmin.get("/search-pop-vin", Handler.AuthSignIn, Handler.getSearchVinPop); // 15   ->2.3 s    338ms
+routerAdmin.post("/export-pdf", Handler.AuthSignIn, Handler.ExportPdfVINData); // 16   -> 2.91 s      557ms 
 // export-vin-selection-list
-routerAdmin.get("/export-vin-selection-list", Controllers.AuthSignIn, Controllers.ExportPdfVINDataList); // 17  -> 2.8s
+routerAdmin.get("/export-vin-selection-list", Handler.AuthSignIn, Handler.ExportPdfVINDataList); // 17  -> 2.8s  2.6s
 
 // Bell icon section--
-routerAdmin.get("/total-unread-alert", Controllers.AuthSignIn, Controllers.TotalUnreadAlerts); // 18 -> 2.76 s
-routerAdmin.get("/notification-top-ten", Controllers.AuthSignIn, Controllers.UnreadNotificationsTopTenData); // 19 -> 276 s
+routerAdmin.get("/total-unread-alert", Handler.AuthSignIn, Handler.TotalUnreadAlerts); // 18 -> 2.76 s      4.8s
+routerAdmin.get("/notification-top-ten", Handler.AuthSignIn, Handler.UnreadNotificationsTopTenData); // 19 -> 276 s   2.8s
 
 // Update Seen / Unseen 
-routerAdmin.post("/seen-alert", Controllers.AuthSignIn, Controllers.UpdateSeenUpdateAlert);  // 20  -> 2.44 s
+routerAdmin.post("/seen-alert", Handler.AuthSignIn, Handler.UpdateSeenUpdateAlert);  // 20  -> 2.44 s
 
 // Calculate history Comparission
-routerAdmin.get("/title-detail-history", Controllers.AuthSignIn, Controllers.CompareHistoryTitalDetails); // 21 -> 3.51 s
+routerAdmin.get("/title-detail-history", Handler.AuthSignIn, Handler.CompareHistoryTitalDetails); // 21 -> 3.51 s
 
 // SOAP Data
-routerAdmin.get("/get-soap-token", Controllers.SoapToken);  // 22  ->5.71 s
-routerAdmin.post("/new-validate-vin-data",  Controllers.NewValidateVinData); // 23 -> 8.81 s
-routerAdmin.get("/track-vin-pop",  Controllers.TrackVinPopController); // 24  -> 2.72 s
+routerAdmin.get("/get-soap-token", Handler.SoapToken);  // 22  ->5.71 s
+routerAdmin.post("/new-validate-vin-data", Handler.NewValidateVinData); // 23 -> 8.81 s
+routerAdmin.get("/track-vin-pop", Handler.TrackVinPopController); // 24  -> 2.72 s
 
 // FTP organization
-routerAdmin.post("/upload-ftp-txt", Controllers.AuthSignIn, Controllers.FTPController); // 25   -> 46.20 s
-routerAdmin.get("/file-create-automation", Controllers.AuthSignIn, Controllers.VinListAutomateFileCreatetion);  // 26   -> 2.30 s
-routerAdmin.post("/file-create-automation", Controllers.AuthSignIn, Controllers.CreateVinTxtFileAndUpload);  // 27    ->  46.69 s
+routerAdmin.post("/upload-ftp-txt", Handler.AuthSignIn, Handler.FTPController); // 25   -> 46.20 s
+routerAdmin.get("/file-create-automation", Handler.AuthSignIn, Handler.VinListAutomateFileCreatetion);  // 26   -> 2.30 s
+routerAdmin.post("/file-create-automation", Handler.AuthSignIn, Handler.CreateVinTxtFileAndUpload);  // 27    ->  46.69 s
 
 // Test Route
-routerAdmin.get("/test-csv-export", Controllers.AuthSignIn, Controllers.testR);  // 28
-// routerAdmin.get("/test-csv-exportt", Controllers.testResultController);
-routerAdmin.get("/navigate-sidebar-first-item", Controllers.AuthSignIn, Controllers.NavigateSidebarFirstItem);
+routerAdmin.get("/test-csv-export", Handler.AuthSignIn, Handler.testR);  // 28
+// routerAdmin.get("/test-csv-exportt", Handler.testResultController) ; 
+routerAdmin.get("/navigate-sidebar-first-item", Handler.AuthSignIn, Handler.NavigateSidebarFirstItem);
 export default routerAdmin;

@@ -15,11 +15,11 @@ const swaggerOptions = {
     },
     servers: [
       {
-        url: "https://mvmapi.techwagger.com",
-      },
+        url: "https://mvmapi2.techwagger.com",
+      }, 
       {
-        url: "http://localhost:4800",
-      },
+        url: "http://localhost:8000",
+      } 
     ],
     components: {
       securitySchemes: {
