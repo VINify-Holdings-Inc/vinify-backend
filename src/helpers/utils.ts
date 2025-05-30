@@ -76,18 +76,13 @@ export const isChangeInThePreviousVin = (current: any, previous: any) => {
   return result;
 };
  
-export const deletedExtraVinData = (newDataSet: any, oldDataSet: any) => {
-console.log(newDataSet,"newDataSet");
-console.log(oldDataSet,"oldDataSet");
+export const deletedExtraVinData = (newDataSet: any, oldDataSet: any) => { 
 
   // Create a set of unique VINs from the newDataSet
-  const uniqueVinSet = new Set(newDataSet?.map((item:any) => item?.vin));
+  const uniqueVinSet = new Set(newDataSet?.map((item: any) => item?.vin));
 
   // Filter the oldDataSet to keep only VINs that are present in the uniqueVinSet
-  const filteredData = oldDataSet?.filter((item:any) => uniqueVinSet.has(item?.vin));
-  console.log(filteredData,"filteredData");
+  const filteredData = oldDataSet?.filter((item: any) => uniqueVinSet.has(item?.vin)); 
+
   return filteredData;
 };
-
-
-

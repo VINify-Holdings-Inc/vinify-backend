@@ -23,7 +23,7 @@ export const changedDataToComapreData = (oldArray: any[], newArray: any[]) => {
   const result: any[] = [];
   newArray.forEach(newItem => {
     const matchedOld = oldArray.find(oldItem =>
-      oldItem.vin?.trim() == newItem.vin?.trim() && oldItem.titleUnique?.trim() == newItem.titleUnique?.trim()
+      oldItem.vin?.trim() === newItem.vin?.trim() && oldItem.titleUnique?.trim() === newItem.titleUnique?.trim() &&  oldItem.state?.trim() === newItem.state?.trim() && oldItem.titleBrandDate?.trim() === newItem.titleBrandDate?.trim() 
     );
     if (matchedOld) {
       result.push({
@@ -48,20 +48,22 @@ export const changedDataToComapreData = (oldArray: any[], newArray: any[]) => {
       });
     }
   });
+
   return result;
 };
-
 export const findIsDeletedItems = (vehicleTemData: any[], changedDataToComapre: any[]) => {
-  // Step 1: Filter changedDataToComapre for isOld === true
+  // Step 1: Filter changedDataToComapre where isOld === true
   const filteredChangedData = changedDataToComapre?.filter(item => item?.isOld === true);
 
-  // Step 2: Extract titleUnique values from the filtered changed data
-  const changedTitleUniques = new Set(filteredChangedData?.map(item => item?.titleUnique));
+  // Step 2: Create a Set of combined keys from filteredChangedData
+  const changedKeys = new Set(
+    filteredChangedData.map(item => `${item.vin}|${item.titleUnique}|${item.state}|${item.titleBrandDate}`)
+  );
 
-  // Step 3: Iterate over vehicleTemData to find deletions
+  // Step 3: Identify items in vehicleTemData not present in changedKeys
   const deletedItems = vehicleTemData
-    ?.filter(item => !changedTitleUniques?.has(item?.titleUnique))
-    ?.map(item => ({
+    .filter(item => !changedKeys.has(`${item.vin}|${item.titleUnique}|${item.state}|${item.titleBrandDate}`))
+    .map(item => ({
       ...item,
       isOld: false,
       isDel: true
@@ -71,11 +73,19 @@ export const findIsDeletedItems = (vehicleTemData: any[], changedDataToComapre: 
   return deletedItems;
 };
 
+
 export const brandChangedDataToCompareData = (oldArray: any[], newArray: any[]) => {
   const result: any[] = [];
   newArray.forEach(newItem => {
-    const matchedOld = oldArray.find(oldItem => oldItem.vin === newItem.vin && oldItem.titleBrandDate === newItem.titleBrandDate && oldItem.brand === newItem.brand && oldItem.state === newItem.state && oldItem.alertType === newItem.alertType
+    const matchedOld = oldArray.find(
+      (oldItem) =>
+        oldItem.vin === newItem.vin &&
+        oldItem.titleBrandDate === newItem.titleBrandDate &&
+        oldItem.brand === newItem.brand &&
+        oldItem.state === newItem.state &&
+        oldItem.alertType === newItem.alertType
     );
+
     if (matchedOld) {
       result.push({
         vin: newItem?.vin,
@@ -96,8 +106,6 @@ export const brandChangedDataToCompareData = (oldArray: any[], newArray: any[]) 
     }
   });
 
-  console.log(result, "############");
-
   return result;
 };
 export const findIsDeletedItemsBrand = (vehicleTemData: any[], changedDataToComapre: any[]) => {
@@ -115,6 +123,7 @@ export const findIsDeletedItemsBrand = (vehicleTemData: any[], changedDataToComa
   const deletedItems = vehicleTemData
     ?.filter(item => {
       const key = `${item?.vin}|${item?.titleBrandDate}|${item?.brand}|${item?.state}|${item?.alertType}`;
+
       return !changedItemKeys.has(key);
     })
     ?.map(item => ({
@@ -127,7 +136,7 @@ export const findIsDeletedItemsBrand = (vehicleTemData: any[], changedDataToComa
   return deletedItems;
 };
 export const JsiChangedDataToCompareData = (oldArray: any[], newArray: any[]) => {
- 
+
   const result: any[] = [];
   newArray.forEach(newItem => {
     const matchedOld = oldArray.find(oldItem => oldItem?.vin === newItem?.vin &&
@@ -165,6 +174,7 @@ export const JsiChangedDataToCompareData = (oldArray: any[], newArray: any[]) =>
       });
     }
   });
+
   return result;
 };
 
@@ -183,6 +193,7 @@ export const findIsDeletedItemsJSI = (vehicleTemData: any[], changedDataToComapr
   const deletedItems = vehicleTemData
     ?.filter(item => {
       const key = `${item?.vin}|${item?.titleBrandDate}|${item?.email}|${item?.mobile}|${item?.export}|${item?.state}|${item?.alertType}|${item?.description}|${item?.city}|${item?.rptgEntity}`;
+
       return !changedItemKeys.has(key);
     })
     ?.map(item => ({
