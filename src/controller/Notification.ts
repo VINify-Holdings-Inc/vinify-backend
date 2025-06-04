@@ -43,7 +43,6 @@ export const UnreadNotificationsTopTenData = async (req: any, res: any) => {
   }
 };
 
-
 export const VinListAutomateFileCreatetion = async (req: any, res: any) => {
   try {
       // Create a query to fetch distinct VIN numbers from the VinCreateList table
