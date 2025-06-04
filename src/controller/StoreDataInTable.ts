@@ -68,7 +68,6 @@ export const insertBulkSheetData = async (title: any, brand: any, JsiContent: an
   }
 };
 
-
 // Function to insert title data
 export const titleInsertData = async (title: any) => {
   try {

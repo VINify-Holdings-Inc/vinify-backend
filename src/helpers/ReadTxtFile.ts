@@ -53,8 +53,9 @@ export const ReadTheTxtFomatJson = (input: any) => {
         if (match) {
           const rawNumber = match[1]; // Extract raw odometer number
           const withCommas = rawNumber.replace(/\B(?=(\d{3})+(?!\d))/g, ","); // Format with commas
-          obj.odometer = match[2] ? `${withCommas} ${match[2]}` : withCommas; // Append unit (if any)
-        } else {
+          obj.odometer = match[2]  ? `${withCommas} ${match[2] === 'M' ? 'Miles' : 'KM'}`  : withCommas;
+          } else {
+            
           obj.odometer = afterTitle[0] || ""; // Set odometer if no match
         }
 
@@ -118,7 +119,6 @@ export function parseVehicleDataBrand(input: any) {
     return [];
   }
 }
-
 
 export function parseVehicleDataJSI(input: any) {
   try {
