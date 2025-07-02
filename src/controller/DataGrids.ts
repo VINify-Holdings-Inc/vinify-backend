@@ -164,8 +164,9 @@ export const NewAlertVIN = async (req: any, res: any) => {
         const queryBuilder = VehicleData.createQueryBuilder("vd")
             .select([
                 "vd.*", // Select all fields from the vehicle_data table
-                "masterstate.name AS state", // Get the state name from the masterstate table
+                "masterstate.code AS state", // Get the state name from the masterstate table
                 "masterbrand.name AS brand",
+                "masterstate.name AS fullstate",
                 "masterurl.name AS weburl",   // Get the brand name from the masterbrand table
             ])
             .leftJoin(MasterWebUrl, "masterurl", "vd.state = masterurl.code")
@@ -253,8 +254,9 @@ export const UnreadNotificationsAlert = async (req: any, res: any) => {
         const queryBuilder = VehicleData.createQueryBuilder("vehicle")
             .select([
                 "vehicle.*", // Select all fields from the vehicle table
-                "masterstate.name AS state", // Select the state name from masterstate table
+                "masterstate.code AS state", // Select the state name from masterstate table
                 "masterbrand.name AS brand",
+                "masterstate.name AS fullstate",
                 "masterurl.name AS weburl",   // Get the brand name from the masterbrand table
             ])
             .leftJoin(MasterWebUrl, "masterurl", "vehicle.state = masterurl.code")
@@ -332,7 +334,8 @@ export const getSearchVinPop = async (req: any, res: any) => {
             .select([
                 "vd.*", // Select all vehicle data columns
                 "masterbrand.name AS brand", // Select brand name from masterbrand
-                "masterstate.name AS state",
+                "masterstate.code AS state",
+                "masterstate.name AS fullstate",
                 "masterurl.name AS weburl",   // Get the brand name from the masterbrand table
             ])
             .leftJoin(MasterWebUrl, "masterurl", "vd.state = masterurl.code")

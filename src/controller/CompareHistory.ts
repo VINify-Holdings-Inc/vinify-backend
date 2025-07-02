@@ -17,7 +17,8 @@ export const CompareHistoryTitalDetails = async (req: any, res: any) => {
             return VehicleData.createQueryBuilder("vehicle")
                 .select([
                     "vehicle.*",
-                    "masterstate.name AS state",
+                    "masterstate.code AS state",
+                  "masterstate.name AS fullstate",
                     "masterbrand.name AS brand",
                     "masterurl.name AS weburl",
                 ])

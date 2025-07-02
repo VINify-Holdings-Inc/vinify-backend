@@ -57,24 +57,30 @@ export const profileCompletion = (data: any) => {
 
 export const isChangeInThePreviousVin = (current: any, previous: any) => {
   const result: any = {};
-   if (!previous) {
 
-    return current;
-   }
-  // Loop through each key in the current object
+  // If no previous object, mark all keys as changed (true)
+  if (!previous) {
+    for (const key in current) {
+      if (current.hasOwnProperty(key)) {
+        result[`is${key.charAt(0).toUpperCase() + key.slice(1)}`] = true;
+        result[key] = current[key];
+      }
+    }
+    return result;
+  }
+
+  // Compare each key with the previous object
   for (const key in current) {
-    if (current.hasOwnProperty(key)) { 
-        // Compare the current and previous values
-        result[`is${key?.charAt(0)?.toUpperCase() + key?.slice(1)}`] =
-          current[key] !== previous[key];
-     
-      // Include the original key-value pair
+    if (current.hasOwnProperty(key)) {
+      result[`is${key.charAt(0).toUpperCase() + key.slice(1)}`] =
+        current[key] !== previous[key];
       result[key] = current[key];
     }
-  } 
-  
+  }
+
   return result;
 };
+
  
 export const deletedExtraVinData = (newDataSet: any, oldDataSet: any) => { 
 

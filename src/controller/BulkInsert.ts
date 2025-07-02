@@ -26,8 +26,9 @@ export const getTotalKpiesData = async (req: any, res: any) => {
         const currentQueryBuilder = VehicleDataTemp.createQueryBuilder("vehicle")
             .select([
                 "vehicle.*", // Select all columns from the 'vehicle' table
-                "masterstate.name AS state", // Get state name from 'masterstate'
+                "masterstate.code AS state", // Get state name from 'masterstate'
                 "masterbrand.name AS brand",
+                "masterstate.name AS fullstate",
                 "masterurl.name AS weburl",   // Get the brand name from the masterbrand table
             ])
             .leftJoin(MasterWebUrl, "masterurl", "vehicle.state = masterurl.code")
