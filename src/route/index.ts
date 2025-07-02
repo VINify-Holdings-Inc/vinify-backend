@@ -1,5 +1,6 @@
 import express from "express";
 import * as Handler from "./importController";
+import path from "path";
 const routerAdmin = express.Router();
 
 // User Details
@@ -50,4 +51,12 @@ routerAdmin.post("/file-create-automation", Handler.AuthSignIn, Handler.CreateVi
 routerAdmin.get("/test-csv-export", Handler.AuthSignIn, Handler.testR);  // 28
 // routerAdmin.get("/test-csv-exportt", Handler.testResultController) ; 
 routerAdmin.get("/navigate-sidebar-first-item", Handler.AuthSignIn, Handler.NavigateSidebarFirstItem);
+
+routerAdmin.get("/track-email", (req, res) => {
+  const { email, userId } = req.query;
+  console.log(`✅ Email opened by ${email} | UserID: ${userId} at ${new Date().toISOString()}`);
+
+  const imagePath = path.join(__dirname, "tr.png");
+  res.sendFile(imagePath);
+});
 export default routerAdmin;
