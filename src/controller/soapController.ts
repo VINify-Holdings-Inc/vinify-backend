@@ -12,10 +12,12 @@ import { findMaxTitleBrandDate, transformVehicleDataToJson, transformVehicleData
 import { SingleSoapDataToPdf } from "../Entities/SingleSoapDataToPdf";
 import { categorizeDataSIngleSearch } from "../helpers/SortCollection";
 import { truncateTable } from "../helpers/CompareHelpers";
+import { MasterWebUrl } from "../Entities/master_url";
 
 export const SoapToken = async (req: any, res: any) => {
     try {
-        const soapUrl = "https://authentication-rest-cert.aamva.org/Authentication/authenticate";
+        const soapUrl:any =`${process.env.SOAP_TOKEN_URL}`  
+        // authentication-rest.aamva.org
 
         const httpsAgent = new https.Agent({
             cert: fs.readFileSync("./certificates/TAAMVAcert-file.pem"),
@@ -27,7 +29,7 @@ export const SoapToken = async (req: any, res: any) => {
         const response = await axios.get(soapUrl, {
             headers: {
                 "Content-Type": "text/xml;charset=UTF-8",
-                "SOAPAction": "https://authentication-rest-cert.aamva.org/Authentication/authenticate",
+                "SOAPAction": soapUrl,
             },
             httpsAgent,
         });
@@ -69,11 +71,8 @@ const convertXmlToJson = async (data: string): Promise<any> => {
 export const NewValidateVinData = async (req: any, res: any) => {
     try {
         // Destructuring token and vin from the request body
-        const { token, vin } = req.body;
-
-        // SOAP service URL for vehicle data request
-        const soapUrl = "https://vehiclesystems-cert.aamva.org/Vehicles/ConsumerAccess/2.0/GetData.svc";
-
+        const { token, vin } = req.body; 
+        const soapUrl :any=`${process.env.SOAP_URL}`  
         // Constructing the SOAP request XML
         const soapRequestXml = `<?xml version="1.0" encoding="UTF-8"?>
                               <s:Envelope xmlns:a="http://www.w3.org/2005/08/addressing" xmlns:s="http://www.w3.org/2003/05/soap-envelope">
@@ -107,15 +106,15 @@ export const NewValidateVinData = async (req: any, res: any) => {
             return createResponse(res, 400, "Something went wrong!", null, false, true);
         }
 
-         console.log(response.data, "%%%%%%%%%%%%%%%%%%%");
-      
+        console.log(response.data, "%%%%%%%%%%%%%%%%%%%");
+
         // Convert the XML response to JSON
         const JsonData = await convertXmlToJson(response.data);
 
-//   console.log(JsonData, "%%%%%%%%%%%%%%%%%%%");
+        //   console.log(JsonData, "%%%%%%%%%%%%%%%%%%%");
         // Transform the vehicle data into title and data for insertion
         const titleArrayData = await transformVehicleDataToJsonTitle(JSON.parse(JsonData));
-        //JsI AND BRAND DATA 
+        // JsI AND BRAND DATA 
         const jsonDataToInsert = await transformVehicleDataToJson(JSON.parse(JsonData));
 
         // Combining both the title array data and the actual data
@@ -131,9 +130,12 @@ export const NewValidateVinData = async (req: any, res: any) => {
         const queryBuilder = SingleSoapDataToPdf.createQueryBuilder("vehicle")
             .select([
                 "vehicle.*",
-                "masterstate.name AS state",
-                "masterbrand.name AS brand"
+                "masterstate.code AS state",
+                "masterbrand.name AS brand",
+                "masterstate.name AS fullstate",
+                "masterurl.name AS weburl",   // Get the brand name from the masterbrand table
             ])
+            .leftJoin(MasterWebUrl, "masterurl", "vehicle.IdentificationID = masterurl.code")
             .leftJoin(MasterState, "masterstate", "vehicle.IdentificationID = masterstate.code") // Left join with MasterState to get state name
             .leftJoin(MasterBrand, "masterbrand", "vehicle.brand = masterbrand.code"); // Left join with MasterBrand to get brand name
 
@@ -181,9 +183,12 @@ export const TrackVinPopController = async (req: any, res: any) => {
         const queryBuilder = VehicleData.createQueryBuilder("vd")
             .select([
                 "vd.*",
-                "masterbrand.name AS brand",
-                "masterstate.name AS state"
+                "masterbrand.code AS brand",
+                "masterstate.name AS fullstate",
+                "masterstate.name AS state",
+                "masterurl.name AS weburl",   // Get the brand name from the masterbrand table
             ])
+            .leftJoin(MasterWebUrl, "masterurl", "vd.state = masterurl.code")
             .leftJoin(MasterBrand, "masterbrand", "vd.brand = masterbrand.code") // Join with MasterBrand to get the brand name
             .leftJoin(MasterState, "masterstate", "vd.state = masterstate.code"); // Join with MasterState to get the state name
 

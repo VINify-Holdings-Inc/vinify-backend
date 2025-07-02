@@ -73,7 +73,6 @@ export const findIsDeletedItems = (vehicleTemData: any[], changedDataToComapre: 
   return deletedItems;
 };
 
-
 export const brandChangedDataToCompareData = (oldArray: any[], newArray: any[]) => {
   const result: any[] = [];
   newArray.forEach(newItem => {

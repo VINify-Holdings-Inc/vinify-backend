@@ -28,24 +28,36 @@ export const categorizeDataSIngleSearch = (data: any) => {
         JSICount: 0,
         brandData: [],
         titleData: [],
-        JSI: []
+        JSI: [],
+        uniqueBrand: []
     };
 
     data.forEach((item: any) => {
         switch (item?.alertType) {
             case "Brand":
-                result?.brandData?.push(item);
+                result.brandData.push(item);
                 result.brandDataCount++;
                 break;
             case "Title":
-                result?.titleData?.push(item);
+                result.titleData.push(item);
                 result.titleDataCount++;
                 break;
             case "JSI":
-                result?.JSI?.push(item);
+                result.JSI.push(item);
                 result.JSICount++;
                 break;
         }
+    });
+
+    // Create uniqueBrand array by filtering out duplicates based on the brand text
+    const seenBrands = new Set();
+    result.uniqueBrand = result.brandData.filter((item: any) => {
+        const brandName = item?.brand?.split(' - ')[0]?.trim(); // or just item.brand if you want full string
+        if (!seenBrands.has(brandName)) {
+            seenBrands.add(brandName);
+            return true;
+        }
+        return false;
     });
 
     return result;
