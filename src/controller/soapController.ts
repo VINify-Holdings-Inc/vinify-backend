@@ -16,7 +16,8 @@ import { MasterWebUrl } from "../Entities/master_url";
 
 export const SoapToken = async (req: any, res: any) => {
     try {
-        const soapUrl = "https://authentication-rest-cert.aamva.org/Authentication/authenticate";
+        const soapUrl:any =`${process.env.SOAP_TOKEN_URL}`  
+        // authentication-rest.aamva.org
 
         const httpsAgent = new https.Agent({
             cert: fs.readFileSync("./certificates/TAAMVAcert-file.pem"),
@@ -28,7 +29,7 @@ export const SoapToken = async (req: any, res: any) => {
         const response = await axios.get(soapUrl, {
             headers: {
                 "Content-Type": "text/xml;charset=UTF-8",
-                "SOAPAction": "https://authentication-rest-cert.aamva.org/Authentication/authenticate",
+                "SOAPAction": soapUrl,
             },
             httpsAgent,
         });
@@ -70,11 +71,8 @@ const convertXmlToJson = async (data: string): Promise<any> => {
 export const NewValidateVinData = async (req: any, res: any) => {
     try {
         // Destructuring token and vin from the request body
-        const { token, vin } = req.body;
-
-        // SOAP service URL for vehicle data request
-        const soapUrl = "https://vehiclesystems-cert.aamva.org/Vehicles/ConsumerAccess/2.0/GetData.svc";
-
+        const { token, vin } = req.body; 
+        const soapUrl :any=`${process.env.SOAP_URL}`  
         // Constructing the SOAP request XML
         const soapRequestXml = `<?xml version="1.0" encoding="UTF-8"?>
                               <s:Envelope xmlns:a="http://www.w3.org/2005/08/addressing" xmlns:s="http://www.w3.org/2003/05/soap-envelope">
@@ -132,8 +130,9 @@ export const NewValidateVinData = async (req: any, res: any) => {
         const queryBuilder = SingleSoapDataToPdf.createQueryBuilder("vehicle")
             .select([
                 "vehicle.*",
-                "masterstate.name AS state",
+                "masterstate.code AS state",
                 "masterbrand.name AS brand",
+                "masterstate.name AS fullstate",
                 "masterurl.name AS weburl",   // Get the brand name from the masterbrand table
             ])
             .leftJoin(MasterWebUrl, "masterurl", "vehicle.IdentificationID = masterurl.code")
@@ -184,7 +183,8 @@ export const TrackVinPopController = async (req: any, res: any) => {
         const queryBuilder = VehicleData.createQueryBuilder("vd")
             .select([
                 "vd.*",
-                "masterbrand.name AS brand",
+                "masterbrand.code AS brand",
+                "masterstate.name AS fullstate",
                 "masterstate.name AS state",
                 "masterurl.name AS weburl",   // Get the brand name from the masterbrand table
             ])

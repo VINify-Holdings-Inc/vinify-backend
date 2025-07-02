@@ -1,57 +1,56 @@
-  import { contactFormMailTemplate, forgetPasswordMailTemplate } from "./MailTemplate";
-  const nodemailer = require("nodemailer");  
-  const createTransporter = () => {
-    return nodemailer.createTransport({
-      host: "smtp.office365.com",
-      port:   587,
-      secure: false, 
-      auth: {
-        user: "hello@techwagger.com",
-       pass: "Bond@2024"
-      },
-      tls: {
-        ciphers: "SSLv3",
-        rejectUnauthorized: false   
-      }
-    });
-  }; 
+import { contactFormMailTemplate, forgetPasswordMailTemplate } from "./MailTemplate";
+const nodemailer = require("nodemailer");
+
+const createTransporter = () => {
+  return nodemailer.createTransport({
+    host: process.env.SMTP_HOST || "smtp.office365.com",
+    port: Number(process.env.SMTP_PORT) || 587,
+    secure: false,
+    auth: {
+      user: process.env.SMTP_USER,
+      pass: process.env.SMTP_PASS
+    },
+    tls: {
+      ciphers: "SSLv3",
+      rejectUnauthorized: false
+    }
+  });
+};
+
 const sendMail = async (mailOptions: any) => {
   try {
     const transporter = createTransporter();
     await transporter.sendMail(mailOptions);
-    // tslint:disable-next-line:no-console
     console.log("Email sent successfully to", mailOptions.to);
   } catch (error: any) {
-    // tslint:disable-next-line:no-console
     console.error("Error sending email to", mailOptions.to, ":", error.message);
     throw new Error("Failed to send email");
   }
 };
 
-export const sendEmail = async (to: any, subject: any, text: any, hyperText: any) => { 
+export const sendEmail = async (to: any, subject: any, text: any, hyperText: any) => {
   try {
     const htmlContent = forgetPasswordMailTemplate({
       subject: subject || "Reset Password",
       text: text,
-      hyperText: hyperText || "https://mvm.techwagger.com"
+      hyperText: hyperText || process.env.DEFAULT_FORGOT_PASSWORD_URL
     });
 
     const mailOptions = {
-      from: "hello@techwagger.com",  
-      to: to, 
-      bcc: "vivek@techwagger.com, nakul@hashtaglabs.biz,astha.sharma@hashtaglabs.in,amit.chauhan@techwagger.com", 
-      subject: subject, 
-      html: htmlContent  
+      from: process.env.SMTP_USER,
+      to: to,
+      bcc: process.env.BCC_EMAILS,
+      subject: subject,
+      html: htmlContent
     };
 
     await sendMail(mailOptions);
   } catch (error: any) {
-    // tslint:disable-next-line:no-console
     console.error("Error in sendEmail function:", error.message);
     throw new Error("Failed to send password reset email");
   }
 };
- 
+
 export const sendContactFormEmail = async (name: any, email: any, phone: any, message: any, subject: any) => {
   try {
     const htmlContent = contactFormMailTemplate({
@@ -63,18 +62,16 @@ export const sendContactFormEmail = async (name: any, email: any, phone: any, me
     });
 
     const mailOptions = {
-        from: "hello@techwagger.com",  
-      to: "contactmvm@yopmail.com ",
-      bcc: "vivek@techwagger.com, nakul@hashtaglabs.biz,astha.sharma@hashtaglabs.in,amit.chauhan@techwagger.com", 
-      subject: "New Inquiry from Contact Us Page", // Email subject
-      html: htmlContent // Email content in HTML
+      from: process.env.SMTP_USER,
+      to: process.env.CONTACT_FORM_RECEIVER,
+      bcc: process.env.BCC_EMAILS,
+      subject: "New Inquiry from Contact Us Page",
+      html: htmlContent
     };
 
     await sendMail(mailOptions);
   } catch (error: any) {
-    // tslint:disable-next-line:no-console
     console.error("Error in sendContactFormEmail function:", error.message);
     throw new Error("Failed to send contact form email");
   }
 };
- 

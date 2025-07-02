@@ -13,7 +13,8 @@ export const UnreadNotificationsTopTenData = async (req: any, res: any) => {
       const queryBuilder = VehicleData.createQueryBuilder("vehicle")
           .select([
               "vehicle.*", // Select all vehicle fields
-              "masterstate.name AS state", // Select state name from MasterState
+              "masterstate.code AS state",
+              "masterstate.name AS fullstate", // Select state name from MasterState
               "masterbrand.name AS brand" // Select brand name from MasterBrand
           ])
           .leftJoin(MasterState, "masterstate", "vehicle.state = masterstate.code") // Join with MasterState based on state code
