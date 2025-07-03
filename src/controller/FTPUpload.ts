@@ -1,13 +1,12 @@
-import { Client } from "basic-ftp";
-import path from "path";
 import fs from "fs";
-import { parseVehicleDataJSI, parseVehicleDataBrand, ReadTheTxtFomatJson} from "../helpers/ReadTxtFile"; 
-import { insertBulkSheetData } from "./StoreDataInTable"; 
-import { deleteISDelItem } from "../helpers/CompareHelpers"; 
-import { VehicleData } from "../Entities/vehicle_data";
+import path from "path";
+import { Client } from "basic-ftp";
+
+import { parseVehicleDataBrandStream, parseVehicleDataJSIStream, ReadTheTxtFormatJsonStream } from "../helpers/ReadTxtFile";
 import { VehicleDataTemp } from "../Entities/vehicle_data_temp";
 import { correctedData } from "../helpers/DashBoardHelpers";
 import { DashboardDataList } from "../Entities/DashboardDataList";
+import { TitleDataCompare } from "../helpers/CompareAndStoreData";
 
 const ftpConfig = {
   host: "ftp-cert.aamva.org",
@@ -52,8 +51,8 @@ export const FTPController = async (req: any, res: any) => {
     await uploadedFile.mv(uploadPath);
 
     // Upload the file to the FTP server
-    await uploadToFTP(uploadPath, uploadedFile.name); 
-    
+    await uploadToFTP(uploadPath, uploadedFile.name);
+
     // Respond with a success message if the file is uploaded and transferred successfully
     return res.json({ code: 200, message: "File uploaded successfully!", success: true, error: false });
   } catch (error) {
@@ -114,7 +113,7 @@ export const CreateVinTxtFileAndUpload = async (req: any, res: any) => {
     await new Promise(resolve => setTimeout(resolve, 45000));
 
     try {
-      await FTPReadAllController();
+      await FTPReadAllControllerRead();
 
     } catch (error) {
       // tslint:disable-next-line:no-console
@@ -131,83 +130,72 @@ export const CreateVinTxtFileAndUpload = async (req: any, res: any) => {
   }
 };
 
-const downloadAndReadFile = async (client: any, targetFileName: any) => {
+const downloadFile = async (client: any, targetFileName: string) => {
   await client.access(ftpConfig);
   await client.ensureDir("/");
   const localPath = path.join(__dirname, "../AAMVAFTP", targetFileName);
-  // Retry connection in case of failure
   await retryOperation(() => client.downloadTo(localPath, `/${targetFileName}`));
-   // tslint:disable-next-line:no-console
   console.log(`✅ File ${targetFileName} downloaded successfully.`);
-  if (!fs.existsSync(localPath)) { 
-
-    return null;
-  }
-
-  return fs.readFileSync(localPath, "utf8").replace(/\r\n/g, "\n");
+  return localPath;
 };
 
-export const FTPReadAllController = async () => {
+const batchInsert = async (data: any[], batchSize: number = 1000) => {
+  for (let i = 0; i < data.length; i += batchSize) {
+    const chunk = data.slice(i, i + batchSize);
+    await VehicleDataTemp.save(chunk);
+  }
+};
+
+export const FTPReadAllControllerRead = async () => {
   const client: any = new Client();
-  client.ftp.verbose = true; // Enable verbose FTP logging for debugging
-  client.ftp.keepAlive = 10000; // Set FTP keep-alive interval to avoid timeouts
-  client.ftp.timeout = 30000; // Set FTP timeout to 30 seconds
+  client.ftp.verbose = true;
+  client.ftp.keepAlive = 10000;
+  client.ftp.timeout = 30000;
 
   try {
-    // Download and read the Title file from the FTP server
-    const fileContentTitle = await downloadAndReadFile(client, "MY.T.CINQ.TITLE.txt");
-    const titleContent = await ReadTheTxtFomatJson(fileContentTitle); // Parse the Title file content
+    const filePath = await downloadFile(client, "MY.T.CINQ.TITLE.txt");
+    const titleContent = await ReadTheTxtFormatJsonStream(filePath);
+    const fileContentBrand = await downloadFile(client, "MY.T.CINQ.BRAND.txt");
+    const brandContent = await parseVehicleDataBrandStream(fileContentBrand);
+    const fileContentJsi = await downloadFile(client, "MY.T.CINQ.JSI.txt");
+    const JsiContent = await parseVehicleDataJSIStream(fileContentJsi);
 
-    // Download and read the Brand file from the FTP server
-    const fileContentBrand = await downloadAndReadFile(client, "MY.T.CINQ.BRAND.txt");
-    const brandContent = await parseVehicleDataBrand(fileContentBrand); // Parse the Brand file content
-
-    // Download and read the JSI file from the FTP server
-    const fileContentJsi = await downloadAndReadFile(client, "MY.T.CINQ.JSI.txt");
-    const JsiContent = await parseVehicleDataJSI(fileContentJsi); // Parse the JSI file content
- 
-    // Delete any items that are marked as deleted in VehicleData
-    await deleteISDelItem(VehicleData);
-    await deleteISDelItem(VehicleDataTemp);
-
-    // Insert the parsed data into the database
-    await insertBulkSheetData(titleContent, brandContent, JsiContent);
-
-    // Remove all files from the FTP server after processing
-    await removeAllFilesFromFTP(client);
-
-    return; // Finish execution
+    await batchInsert(titleContent);
+    await batchInsert(brandContent);
+    await batchInsert(JsiContent);
+    await TitleDataCompare()
+    return { titleContent, brandContent, JsiContent }; // ✅ success path
   } catch (error) {
-    // tslint:disable-next-line:no-console
-    console.error("❌ FTP Read All Error:", error); // Log any errors that occur during the process
+    console.error("❌ FTP Read All Error:", error);
+    return []; // ✅ return an empty array or null in case of error
   } finally {
-    // Ensure the FTP client is closed after processing is complete
     await client.close();
   }
 };
 
+
 export const testR = async (req: any, res: any) => {
-  try { 
-    await FTPReadAllController(); 
+  try {
+    const result = await FTPReadAllControllerRead();
     // console.log("after cron");
-    
-    return res.json({ code: 200, message: "cron done ", success: true, error: false });
+
+    return res.json({ code: 200, message: "cron done ", success: true, error: false, result });
   } catch (error) {
-     // tslint:disable-next-line:no-console
+    // tslint:disable-next-line:no-console
     console.error("Error fetching data:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
 
 export const testResultController = async (req: any, res: any) => {
-  try { 
-   const data: any = await VehicleDataTemp.find();
-   const final: any = await correctedData(data);
-   await DashboardDataList.save(final);
+  try {
+    const data: any = await VehicleDataTemp.find();
+    const final: any = await correctedData(data);
+    await DashboardDataList.save(final);
 
-   return res.json({ code: 200, message: "cron done ", success: true, error: false });
+    return res.json({ code: 200, message: "cron done ", success: true, error: false });
   } catch (error) {
-     // tslint:disable-next-line:no-console
+    // tslint:disable-next-line:no-console
     console.error("Error fetching data:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
