@@ -1,6 +1,5 @@
 import cron from "node-cron";
-import { FTPReadAllController } from "../controller/FTPUpload";
-
+ import {FTPReadAllControllerRead} from '../controller/FTPUpload'
 let lastRunTime: number | null = null;
 
 export const BatchFileExecution = () => {
@@ -13,7 +12,7 @@ export const BatchFileExecution = () => {
             if (!lastRunTime || now - lastRunTime >= 48 * 60 * 60 * 1000) {
                 console.log("Running cron after 48 hours");
 
-                await FTPReadAllController();
+                await FTPReadAllControllerRead();
                 lastRunTime = now;
 
                 console.log("Cron job executed at:", new Date().toISOString()); // Logs in UTC
