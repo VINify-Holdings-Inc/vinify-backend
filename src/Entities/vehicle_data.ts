@@ -76,7 +76,7 @@ export class VehicleData extends BaseEntity {
   @Column({ name: "isRead", type: "boolean", default: false })
   isRead: boolean;
 
-  @Column({ name: "isOld", type: "boolean", default: true })
+  @Column({ name: "isOld", type: "boolean", default: false })
   isOld: boolean; 
 
   @Column({ name: "isDel", type: "boolean", default: false })

@@ -8,7 +8,6 @@ import {
 
 @Entity({ name: "VehicleDataTemp" })
 export class VehicleDataTemp extends BaseEntity {
-
   @PrimaryGeneratedColumn({ name: "id" })
   @Generated("uuid")
   uuid: string;
@@ -53,9 +52,9 @@ export class VehicleDataTemp extends BaseEntity {
   @Column({ name: "description", type: "varchar", default: "" })
   description: string;
 
-  @Column({ name: "odometer", type: "varchar", default: ""})
+  @Column({ name: "odometer", type: "varchar", default: "" })
   odometer: string;
-  
+
   @Column({ name: "export", type: "varchar", default: "" })
   export: string;
 
@@ -77,7 +76,7 @@ export class VehicleDataTemp extends BaseEntity {
   @Column({ name: "isRead", type: "boolean", default: false })
   isRead: boolean;
 
-  @Column({ name: "isOld", type: "boolean", default: true })
+  @Column({ name: "isOld", type: "boolean", default: false })
   isOld: boolean;
 
   @Column({ name: "isDel", type: "boolean", default: false })
