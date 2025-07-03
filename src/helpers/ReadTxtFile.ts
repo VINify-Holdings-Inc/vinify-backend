@@ -165,3 +165,71 @@ export async function parseVehicleDataJSIStream(filePath: string) {
   }
 }
 
+// function parseBrandData(input) {
+//     const lines = input
+//     .split('\n')
+//     .map(line => line.trimEnd())  // only remove trailing whitespace
+//     .filter(line => line !== "");
+
+//   return lines.map(mainstr => {
+//     // Optional: debug what slices contain
+//     // console.log("RAW LINE:", mainstr);
+//     const vin = mainstr.slice(1, 30).trim();
+//     const count = mainstr.slice(30, 40).trim();
+//     const state = mainstr.slice(40, 46).trim();
+//     const brandCode = String(Number(mainstr.slice(46, 53).trim()));
+//     const dateRaw = mainstr.slice(53).trim();  
+//     const formattedDate = dateRaw.replace(/(\d{4})(\d{2})(\d{2})/, "$1-$2-$3") ;
+
+//     return {
+//       vin,
+//       count,
+//       state,
+//       brandCode,
+//       date: formattedDate,
+//     };
+//   });
+// }
+
+
+// function parseTitleData(input) {
+//   const lines = input.split('\n').map(line => line.trim()).filter(line => line !== "");
+
+//   return lines.map(line => {
+//     const rawVinSection = line.slice(0, 30).trim();
+//     const rawTitleDateSection = line.slice(30, 61).trim();
+//     const rawDescriptionSection = line.slice(61, 118).trim();
+//     const city = line.slice(118, 143).trim();
+//     const rawEmailSection = line.slice(143, 214).trim();
+//     const rawExtraSection = line.slice(214, 221).trim();
+
+//     const vin = rawVinSection.substring(1, 30).trim();
+//     const titleBrandDateRaw = rawTitleDateSection.substring(0, 8).trim();
+//     const titleBrandDate = titleBrandDateRaw.replace(/(\d{4})(\d{2})(\d{2})/, "$1-$2-$3");
+//     const description = rawTitleDateSection.substring(8).trim();
+
+//     const exportFlag = rawDescriptionSection.substring(0, 1);
+//     const exportStatus = exportFlag === "Y" ? "yes" : "no";
+
+//     const rptgEntity = rawDescriptionSection.substring(1).trim();
+
+//     const state = rawEmailSection.substring(0, 2).trim();
+//     const mobile = rawEmailSection.substring(2, 12).trim();
+//     const email = rawEmailSection.substring(12).trim();
+
+//     return {
+//       vin,
+//       titleBrandDate,
+//       description,
+//       export: exportStatus,
+//       rptgEntity,
+//       city,
+//       state,
+//       mobile,
+//       email,
+//       alertType: "JSI",
+//     };
+//   });
+// }
+
+
