@@ -6,7 +6,11 @@ import { parseVehicleDataBrandStream, parseVehicleDataJSIStream, ReadTheTxtForma
 import { VehicleDataTemp } from "../Entities/vehicle_data_temp";
 import { correctedData } from "../helpers/DashBoardHelpers";
 import { DashboardDataList } from "../Entities/DashboardDataList";
-import { TitleDataCompare } from "../helpers/CompareAndStoreData";
+import { BrandDataCompare, copyDataFromVehicleDataTemp, JSIDataCompare, TitleDataCompare } from "../helpers/CompareAndStoreData";
+import { VehicleData } from "../Entities/vehicle_data";
+import { truncateTable } from "../helpers/CompareHelpers";
+import { updateLastFileProcess } from "../helpers/UpdateLastRecord";
+// import { TitleDataCompare } from "../helpers/CompareAndStoreData";
 
 const ftpConfig = {
   host: "ftp-cert.aamva.org",
@@ -159,12 +163,28 @@ export const FTPReadAllControllerRead = async () => {
     const brandContent = await parseVehicleDataBrandStream(fileContentBrand);
     const fileContentJsi = await downloadFile(client, "MY.T.CINQ.JSI.txt");
     const JsiContent = await parseVehicleDataJSIStream(fileContentJsi);
-
+    await removeAllFilesFromFTP(client); 
     await batchInsert(titleContent);
     await batchInsert(brandContent);
     await batchInsert(JsiContent);
-    await TitleDataCompare()
-    return { titleContent, brandContent, JsiContent }; // ✅ success path
+    await TitleDataCompare();
+    await BrandDataCompare()
+    await JSIDataCompare();
+    await truncateTable(VehicleData)
+    await truncateTable(DashboardDataList);
+    //insery
+    await copyDataFromVehicleDataTemp();
+    // Updating the last file process record
+    await updateLastFileProcess();
+    const rawData = await VehicleDataTemp
+      .createQueryBuilder("vehicle")
+      .select("DISTINCT vehicle.vin", "vin")
+      .getRawMany();
+    const dasboardFinalData: any = await correctedData(rawData)
+    // Saving the corrected dashboard data into the DashboardDataList table
+    await DashboardDataList.save(dasboardFinalData);
+    await truncateTable(VehicleDataTemp)
+    return; // ✅ success path
   } catch (error) {
     console.error("❌ FTP Read All Error:", error);
     return []; // ✅ return an empty array or null in case of error
@@ -176,10 +196,10 @@ export const FTPReadAllControllerRead = async () => {
 
 export const testR = async (req: any, res: any) => {
   try {
-    const result = await FTPReadAllControllerRead();
+    await FTPReadAllControllerRead();
     // console.log("after cron");
 
-    return res.json({ code: 200, message: "cron done ", success: true, error: false, result });
+    return res.json({ code: 200, message: "cron done ", success: true, error: false });
   } catch (error) {
     // tslint:disable-next-line:no-console
     console.error("Error fetching data:", error);
