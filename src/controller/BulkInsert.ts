@@ -6,7 +6,7 @@ import { MasterState } from "../Entities/master_state";
 import { MasterBrand } from "../Entities/master_brand";
 import { LastFileProcess } from "../Entities/LastFileProcess";
 import { DashboardDataList } from "../Entities/DashboardDataList";
-import { VehicleDataTemp } from "../Entities/vehicle_data_temp";
+// import { VehicleDataTemp } from "../Entities/vehicle_data_temp";
 import { MasterWebUrl } from "../Entities/master_url";
 
 export const getTotalKpiesData = async (req: any, res: any) => {
@@ -23,7 +23,7 @@ export const getTotalKpiesData = async (req: any, res: any) => {
         const totalUpdatedData = await queryUpdated.getRawOne();
 
         // Query to get the most recent vehicle alerts, joining with master state and master brand data
-        const currentQueryBuilder = VehicleDataTemp.createQueryBuilder("vehicle")
+        const currentQueryBuilder = VehicleData.createQueryBuilder("vehicle")
             .select([
                 "vehicle.*", // Select all columns from the 'vehicle' table
                 "masterstate.code AS state", // Get state name from 'masterstate'

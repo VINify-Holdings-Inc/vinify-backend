@@ -6,7 +6,7 @@ import { parseVehicleDataBrandStream, parseVehicleDataJSIStream, ReadTheTxtForma
 import { VehicleDataTemp } from "../Entities/vehicle_data_temp";
 import { correctedData } from "../helpers/DashBoardHelpers";
 import { DashboardDataList } from "../Entities/DashboardDataList";
-import { BrandDataCompare, copyDataFromVehicleDataTemp, JSIDataCompare, TitleDataCompare } from "../helpers/CompareAndStoreData";
+import { BrandDataCompare, copyDataFromVehicleDataTemp, insertDashboardDataList, JSIDataCompare, TitleDataCompare } from "../helpers/CompareAndStoreData";
 import { VehicleData } from "../Entities/vehicle_data";
 import { truncateTable } from "../helpers/CompareHelpers";
 import { updateLastFileProcess } from "../helpers/UpdateLastRecord";
@@ -176,13 +176,7 @@ export const FTPReadAllControllerRead = async () => {
     await copyDataFromVehicleDataTemp();
     // Updating the last file process record
     await updateLastFileProcess();
-    const rawData = await VehicleDataTemp
-      .createQueryBuilder("vehicle")
-      .select("DISTINCT vehicle.vin", "vin")
-      .getRawMany();
-    const dasboardFinalData: any = await correctedData(rawData)
-    // Saving the corrected dashboard data into the DashboardDataList table
-    await DashboardDataList.save(dasboardFinalData);
+    await insertDashboardDataList()
     await truncateTable(VehicleDataTemp)
     return; // ✅ success path
   } catch (error) {

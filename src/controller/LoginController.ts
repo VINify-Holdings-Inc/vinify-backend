@@ -78,7 +78,7 @@ export const LoginController = async (req: any, res: any) => {
         }
 
         // Create JWT token with userId and email as payload
-        const JWT_SECRET: any = process.env.JWT_SECRET;
+        const JWT_SECRET: any = `${process.env.JWT_SECRET}`;
         const token = jwt.sign({ id: user.userId, email: user.emailId }, JWT_SECRET, {
             expiresIn: "24h",
         });
