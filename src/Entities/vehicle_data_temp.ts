@@ -114,3 +114,6 @@ export class VehicleDataTemp extends BaseEntity {
   })
   updatedBy: string;
 }
+
+
+

@@ -34,8 +34,7 @@ export const correctedData = async (data: any[]) => {
                 .limit(1)
                 .getOne()
         ]); 
-        result.push({
-            // id: item?.id,
+        result.push({ 
             vin,
             Title: !!hasTitle,
             Brand: !!hasBrand,
@@ -44,9 +43,8 @@ export const correctedData = async (data: any[]) => {
             isTitleDel: !!hasTitle?.isDel,
             isBrandDel: !!hasBrand?.isDel,
             isJSIDel: !!hasJSI?.isDel
-        });
-
-    }
+        }); 
+     }
     // console.log(result, "0865");
 
     return result;
