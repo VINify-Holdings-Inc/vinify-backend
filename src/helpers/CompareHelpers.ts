@@ -148,6 +148,9 @@ export const JsiChangedDataToCompareData = (oldArray: any[], newArray: any[]) =>
       oldItem?.description === newItem?.description &&
       oldItem?.city === newItem?.city &&
       oldItem?.rptgEntity === newItem?.rptgEntity
+
+
+      
     );
     if (matchedOld) {
       result.push({
