@@ -6,7 +6,7 @@ import { MasterState } from "../Entities/master_state";
 import { MasterBrand } from "../Entities/master_brand";
 import { LastFileProcess } from "../Entities/LastFileProcess";
 import { DashboardDataList } from "../Entities/DashboardDataList";
-import { VehicleDataTemp } from "../Entities/vehicle_data_temp";
+// import { VehicleDataTemp } from "../Entities/vehicle_data_temp";
 import { MasterWebUrl } from "../Entities/master_url";
 
 export const getTotalKpiesData = async (req: any, res: any) => {
@@ -23,7 +23,7 @@ export const getTotalKpiesData = async (req: any, res: any) => {
         const totalUpdatedData = await queryUpdated.getRawOne();
 
         // Query to get the most recent vehicle alerts, joining with master state and master brand data
-        const currentQueryBuilder = VehicleDataTemp.createQueryBuilder("vehicle")
+        const currentQueryBuilder = VehicleData.createQueryBuilder("vehicle")
             .select([
                 "vehicle.*", // Select all columns from the 'vehicle' table
                 "masterstate.code AS state", // Get state name from 'masterstate'
@@ -101,26 +101,52 @@ export const TotalUnreadAlerts = async (req: any, res: any) => {
 
 export const ExportPdfVINDataList = async (req: any, res: any) => {
     try {
-        // Create a query to fetch distinct vehicle VINs and their corresponding IDs from the 'DashboardDataList' table
-        const query = DashboardDataList.createQueryBuilder("vehicle")
-            .select("DISTINCT vehicle.vin", "vin") // Select distinct VINs
-            .addSelect("vehicle.id", "id"); // Add vehicle ID to the selection
+        // Extract query parameters
+        const { page = 1, limit = 1000, vin } = req.query;
+        const numericLimit = Number(limit);   // Convert limit to number
+        const numericPage = Number(page);     // Convert page to number
+        const offset = (numericPage - 1) * numericLimit;
 
-        // Check if a 'vin' query parameter exists, and apply filtering based on that parameter
-        if (req.query.vin) {
-            query.where("vehicle.vin LIKE :vin", { vin: `%${req.query.vin}%` }); // Filter VINs using LIKE for partial matches
+        // Main query to get distinct VINs and their IDs with pagination
+        const query = DashboardDataList.createQueryBuilder("vehicle")
+            .select("DISTINCT vehicle.vin", "vin")     // Select distinct VINs
+            .addSelect("vehicle.id", "id")             // Also select the ID
+            .orderBy("vehicle.vin", "ASC")             // Optional: Order VINs
+            .limit(numericLimit)                       // Pagination: limit
+            .offset(offset);                           // Pagination: offset
+
+        // VIN filtering if query param is present
+        if (vin) {
+            query.where("vehicle.vin LIKE :vin", { vin: `%${vin}%` });
         }
 
-        // Execute the query and fetch the raw data
         const data = await query.getRawMany();
 
-        // Create a response with the fetched data
-        return createResponse(res, 200, MESSAGES?.DATA_FETCH_SUCCESS, data); // Return data with success message
+        // Count query for total distinct VINs for pagination info
+        const countQuery = DashboardDataList.createQueryBuilder("vehicle")
+            .select("COUNT(DISTINCT vehicle.vin)", "total");
+
+        if (vin) {
+            countQuery.where("vehicle.vin LIKE :vin", { vin: `%${vin}%` });
+        }
+
+        const totalResult = await countQuery.getRawOne();
+        const totalRecords = parseInt(totalResult?.total || "0", 10);
+        const totalPages = Math.ceil(totalRecords / numericLimit);
+
+        // Return paginated data
+        return createResponse(res, 200, MESSAGES?.DATA_FETCH_SUCCESS, {
+            currentPage: numericPage,
+            totalPages,
+            totalRecords,
+            items: data,
+        });
     } catch (error: any) {
         // tslint:disable-next-line:no-console 
         console.log("Error fetching vehicle data:", error);
 
-        // Return an error response if an error occurs
-        return createResponse(res, 500, MESSAGES?.INTERNAL_SERVER_ERROR || "Internal Server Error", [], false, true); // Error message
+        // Return an error response
+        return createResponse(res, 500, MESSAGES?.INTERNAL_SERVER_ERROR || "Internal Server Error", [], false, true);
     }
 };
+

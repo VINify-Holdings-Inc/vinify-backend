@@ -22,6 +22,7 @@ export const DashboardSummaryVIN = async (req: any, res: any) => {
             .orderBy("vehicle.vin", "ASC") // Order by VIN in ascending order
             .limit(numericLimit) // Limit the number of records to the numericLimit
             .offset(offset); // Apply pagination offset
+ 
 
         // Apply the alertType filter if specified
         if (["Title", "Brand", "JSI"].includes(alertType)) {

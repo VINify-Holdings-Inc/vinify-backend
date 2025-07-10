@@ -40,6 +40,19 @@ export const ReadTheTxtFormatJsonStream = async (filePath: any) => {
       odometer = rawOdometer;
     }
 
+    const rawTitleUnique = line.substring(143, 207).trim();
+    let titleUnique = "";
+    const matchtitleUnique = rawTitleUnique.match(/0*([\d]+)([MK])/i);
+
+    if (matchtitleUnique) {
+      const rawNumber = matchtitleUnique[1];
+      const withCommas = rawNumber.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+      titleUnique = matchtitleUnique[2].toUpperCase() === "M"
+        ? `${withCommas} Miles`
+        : `${withCommas} KM`;
+    } else {
+      titleUnique = rawTitleUnique.trim().split(" ")[0];
+    }
     return {
       vin,
       status,
@@ -48,18 +61,15 @@ export const ReadTheTxtFormatJsonStream = async (filePath: any) => {
       state: line.substring(68, 70).trim(),
       titleBrandDate: line.substring(71, 143).trim()?.replace(/(\d{4})(\d{2})(\d{2})/, "$1-$2-$3"),
       odometer,
-      titleUnique: odometer,
+      titleUnique,
       alertType: "Title"
     };
   });
 
   return parsedData;
 }
-
-
 export async function parseVehicleDataBrandStream(filePath: string) {
   const result: any[] = [];
-
   try {
     const fileStream = fs.createReadStream(filePath);
 
@@ -69,26 +79,25 @@ export async function parseVehicleDataBrandStream(filePath: string) {
     });
 
     for await (const line of rl) {
-      const trimmedLine = line.trim();
+      const mainstr = line.trimEnd();
+      if (mainstr === "") continue;
 
-      if (!trimmedLine) continue;
+      const vin = mainstr.slice(3, 30).trim(); // slice(1, 30) as per your logic
+      // const count = mainstr.slice(30, 40).trim();
+      const state = mainstr.slice(40, 46).trim();
+      const brandCode = String(Number(mainstr.slice(46, 53).trim()));
+      const dateRaw = mainstr.slice(53, 68).trim();
+      const formattedDate = dateRaw.replace(/(\d{4})(\d{2})(\d{2})/, "$1-$2-$3");
+      if (!mainstr.slice(0, 3).startsWith("C")) {
+        result.push({
+          vin,
+          state,
+          brand:brandCode,
+          titleBrandDate: formattedDate,
+          alertType:"Brand"
+        });
+      }
 
-      const parts = trimmedLine.split(/\s+/);
-
-      if (parts.length < 5) continue;
-
-      const vin = parts[0]?.substring(3);
-      const state = parts[2];
-      const brand = String(Number(parts[3]));
-      const titleBrandDate = parts[4]?.replace(/(\d{4})(\d{2})(\d{2})/, "$1-$2-$3");
-
-      result.push({
-        vin,
-        titleBrandDate,
-        alertType: "Brand",
-        state,
-        brand,
-      });
     }
 
     return result;
@@ -109,53 +118,45 @@ export async function parseVehicleDataJSIStream(filePath: string) {
       crlfDelay: Infinity,
     });
 
-    for await (const lineRaw of rl) {
-      const line = lineRaw.trim();
+    for await (const line of rl) {
+      const trimmedLine = line.trim();
+      if (trimmedLine === "") continue;
 
-      if (!line || line.startsWith("CJSI")) continue;
+      const rawVinSection = trimmedLine.slice(0, 30).trim();
+      const rawTitleDateSection = trimmedLine.slice(30, 61).trim();
+      const rawDescriptionSection = trimmedLine.slice(61, 118).trim();
+      const city = trimmedLine.slice(118, 143).trim();
+      const rawEmailSection = trimmedLine.slice(143, 214).trim();
+      // const rawExtraSection = trimmedLine.slice(214, 221).trim();
 
-      const parts = line.split(/\s+/);
+      const vin = rawVinSection.substring(1, 30).trim();
+      const titleBrandDateRaw = rawTitleDateSection.substring(0, 8).trim();
+      const titleBrandDate = titleBrandDateRaw.replace(/(\d{4})(\d{2})(\d{2})/, "$1-$2-$3");
+      const description = rawTitleDateSection.substring(8).trim();
 
-      if (parts.length < 5) continue;
+      const exportFlag = rawDescriptionSection.substring(0, 1);
+      const exportStatus = exportFlag === "Y" ? "yes" : "no";
 
-      const vin = parts[0]?.substring(1);
+      const rptgEntity = rawDescriptionSection.substring(1).trim();
 
-      const titleBrandDateMatch = parts[1]?.match(/^(\d{8})/);
-      const titleBrandDate = titleBrandDateMatch
-        ? titleBrandDateMatch[1]?.replace(/(\d{4})(\d{2})(\d{2})/, "$1-$2-$3")
-        : "";
+      const state = rawEmailSection.substring(0, 2).trim();
+      const mobile = rawEmailSection.substring(2, 12).trim();
+      const email = rawEmailSection.substring(12).trim();
+      if (!rawVinSection.startsWith("C")) {
 
-      const description = titleBrandDateMatch
-        ? parts[1].replace(titleBrandDateMatch[1], "").trim()
-        : "";
-
-      const exportStatus = parts[2]?.startsWith("Y") ? "yes" : "no";
-
-      const rptgEntity = parts.slice(2, parts.length - 3).join(" ");
-
-      const city = parts[parts.length - 3];
-
-      const stateMatch = parts[parts.length - 2]?.match(/^([A-Z]{2})/);
-      const state = stateMatch ? stateMatch[1] : "";
-
-      const rptgDetails = parts[parts.length - 2]?.replace(state, "")?.trim();
-
-      const match = rptgDetails.match(/^(\d+)([A-Z@.]+)$/);
-      const mobile = match ? match[1] : "";
-      const email = match ? match[2] : "";
-
-      result.push({
-        alertType: "JSI",
-        titleBrandDate,
-        state,
-        export: exportStatus,
-        vin,
-        rptgEntity,
-        email,
-        mobile,
-        description,
-        city,
-      });
+        result.push({
+          vin,
+          titleBrandDate,
+          description,
+          export: exportStatus,
+          rptgEntity,
+          city,
+          state,
+          mobile,
+          email,
+          alertType: "JSI",
+        });
+      }
     }
 
     return result;
@@ -164,4 +165,73 @@ export async function parseVehicleDataJSIStream(filePath: string) {
     return [];
   }
 }
+
+
+// function parseBrandData(input) {
+//     const lines = input
+//     .split('\n')
+//     .map(line => line.trimEnd())  // only remove trailing whitespace
+//     .filter(line => line !== "");
+
+//   return lines.map(mainstr => {
+//     // Optional: debug what slices contain
+//     // console.log("RAW LINE:", mainstr);
+//     const vin = mainstr.slice(1, 30).trim();
+//     const count = mainstr.slice(30, 40).trim();
+//     const state = mainstr.slice(40, 46).trim();
+//     const brandCode = String(Number(mainstr.slice(46, 53).trim()));
+//     const dateRaw = mainstr.slice(53).trim();
+//     const formattedDate = dateRaw.replace(/(\d{4})(\d{2})(\d{2})/, "$1-$2-$3") ;
+
+//     return {
+//       vin,
+//       count,
+//       state,
+//       brandCode,
+//       date: formattedDate,
+//     };
+//   });
+// }
+
+
+// function parseTitleData(input) {
+//   const lines = input.split('\n').map(line => line.trim()).filter(line => line !== "");
+
+//   return lines.map(line => {
+//     const rawVinSection = line.slice(0, 30).trim();
+//     const rawTitleDateSection = line.slice(30, 61).trim();
+//     const rawDescriptionSection = line.slice(61, 118).trim();
+//     const city = line.slice(118, 143).trim();
+//     const rawEmailSection = line.slice(143, 214).trim();
+//     const rawExtraSection = line.slice(214, 221).trim();
+
+//     const vin = rawVinSection.substring(1, 30).trim();
+//     const titleBrandDateRaw = rawTitleDateSection.substring(0, 8).trim();
+//     const titleBrandDate = titleBrandDateRaw.replace(/(\d{4})(\d{2})(\d{2})/, "$1-$2-$3");
+//     const description = rawTitleDateSection.substring(8).trim();
+
+//     const exportFlag = rawDescriptionSection.substring(0, 1);
+//     const exportStatus = exportFlag === "Y" ? "yes" : "no";
+
+//     const rptgEntity = rawDescriptionSection.substring(1).trim();
+
+//     const state = rawEmailSection.substring(0, 2).trim();
+//     const mobile = rawEmailSection.substring(2, 12).trim();
+//     const email = rawEmailSection.substring(12).trim();
+
+//     return {
+//       vin,
+//       titleBrandDate,
+//       description,
+//       export: exportStatus,
+//       rptgEntity,
+//       city,
+//       state,
+//       mobile,
+//       email,
+//       alertType: "JSI",
+//     };
+//   });
+// }
+
 
