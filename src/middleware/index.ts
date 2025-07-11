@@ -16,8 +16,8 @@ export const AuthSignIn = (req: any, res: any, next: any): void => {
       error: true,
     });
   }
-
-  jwt.verify(token, "yr_mvm_me_amit_ne_kaam_kiya_haisarasetupusikahai", (err: any, decoded: any) => {
+   const JWT_SECRET: any = `${process.env.JWT_SECRET}`;
+  jwt.verify(token, JWT_SECRET, (err: any, decoded: any) => {
     if (err) {
       const errorMessage = err.name === "TokenExpiredError"
         ? "Token has expired."

@@ -271,5 +271,27 @@ BEGIN
   LEFT JOIN latest_alerts la ON dv."vin" = la."vin"
   GROUP BY dv."vin"
   ORDER BY dv."vin";
+
+ WITH latest_alerts AS (
+    SELECT DISTINCT ON ("vin", "alertType") 
+        "vin",
+        "alertType"
+    FROM "VehicleData"
+    WHERE "alertType" IN ('Title', 'Brand', 'JSI')
+    ORDER BY "vin", "alertType", "titleBrandDate" DESC, "createdAt" DESC
+),
+aggregated_alerts AS (
+    SELECT 
+        "vin",
+        ARRAY_AGG("alertType" ORDER BY "alertType") AS "alertType"
+    FROM latest_alerts
+    GROUP BY "vin"
+)
+UPDATE "DashboardDataList" d
+SET "alertType" = a."alertType"
+FROM aggregated_alerts a
+WHERE d."vin" = a."vin";
+
+
 END;
 $$;
