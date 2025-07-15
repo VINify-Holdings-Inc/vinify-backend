@@ -271,5 +271,65 @@ BEGIN
   LEFT JOIN latest_alerts la ON dv."vin" = la."vin"
   GROUP BY dv."vin"
   ORDER BY dv."vin";
+
+ WITH latest_alerts AS (
+    SELECT DISTINCT ON ("vin", "alertType") 
+        "vin",
+        "alertType"
+    FROM "VehicleData"
+    WHERE "alertType" IN ('Title', 'Brand', 'JSI')
+    ORDER BY "vin", "alertType", "titleBrandDate" DESC, "createdAt" DESC
+),
+aggregated_alerts AS (
+    SELECT 
+        "vin",
+        ARRAY_AGG("alertType" ORDER BY "alertType") AS "alertType"
+    FROM latest_alerts
+    GROUP BY "vin"
+)
+UPDATE "DashboardDataList" d
+SET "alertType" = a."alertType"
+FROM aggregated_alerts a
+WHERE d."vin" = a."vin";
+
+
 END;
 $$;
+
+
+ CREATE OR REPLACE FUNCTION get_vin_data_response(
+    p_limit INT,
+    p_offset INT,
+    p_vin TEXT
+)
+RETURNS JSON AS
+$$
+DECLARE
+    result JSON;
+    total_count INT;
+    vin_filter TEXT := '%' || p_vin || '%';
+BEGIN
+    -- Count total matching records
+    SELECT COUNT(*) INTO total_count
+    FROM "DashboardDataList"
+    WHERE p_vin IS NULL OR vin ILIKE vin_filter;
+
+    -- Build JSON result
+    SELECT json_build_object(
+        'currentPage', (p_offset / p_limit) + 1,
+        'totalPages', CEIL(total_count::DECIMAL / p_limit),
+        'totalRecords', total_count,
+        'items', COALESCE(json_agg(t), '[]'::JSON)
+    )
+    INTO result
+    FROM (
+        SELECT vin, "isOld", id
+        FROM "DashboardDataList"
+        WHERE p_vin IS NULL OR vin ILIKE vin_filter
+        ORDER BY id
+        LIMIT p_limit OFFSET p_offset
+    ) t;
+
+    RETURN result;
+END;
+$$ LANGUAGE plpgsql;

@@ -11,7 +11,7 @@ import { VehicleData } from "../Entities/vehicle_data";
 import { truncateTable } from "../helpers/CompareHelpers";
 import { updateLastFileProcess } from "../helpers/UpdateLastRecord";
 // import { TitleDataCompare } from "../helpers/CompareAndStoreData";
-
+    
 const ftpConfig = {
   host: "ftp-cert.aamva.org",
   user: "nmvtis-my-test",

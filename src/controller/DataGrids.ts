@@ -22,11 +22,10 @@ export const DashboardSummaryVIN = async (req: any, res: any) => {
             .orderBy("vehicle.vin", "ASC") // Order by VIN in ascending order
             .limit(numericLimit) // Limit the number of records to the numericLimit
             .offset(offset); // Apply pagination offset
- 
 
         // Apply the alertType filter if specified
         if (["Title", "Brand", "JSI"].includes(alertType)) {
-            queryBuilder.andWhere(`vehicle."${alertType}" = true`); // Filter based on alertType
+            queryBuilder.andWhere(`:alertType = ANY (vehicle."alertType"::text[])`, { alertType });
         }
 
         // Apply dynamic filters (if any) based on the query parameters
@@ -47,7 +46,7 @@ export const DashboardSummaryVIN = async (req: any, res: any) => {
 
         // Apply the same alertType filter as in the first query
         if (["Title", "Brand", "JSI"].includes(alertType)) {
-            totalQueryBuilder.andWhere(`vehicle."${alertType}" = true`);
+            totalQueryBuilder.andWhere(`:alertType = ANY (vehicle."alertType"::text[])`, { alertType });
         }
 
         // Apply the same dynamic filters as in the first query
