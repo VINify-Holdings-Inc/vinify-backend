@@ -7,7 +7,7 @@ import { createResponse } from "../helpers/response";
 
 export const UnreadNotificationsTopTenData = async (req: any, res: any) => {
   try {
-      const limit = 8; // Set the limit for the number of records to fetch
+      const limit = 11; // Set the limit for the number of records to fetch
 
       // Create a query builder to fetch unread vehicle notifications with joined state and brand data
       const queryBuilder = VehicleData.createQueryBuilder("vehicle")
