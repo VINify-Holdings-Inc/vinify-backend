@@ -101,30 +101,29 @@ export const TotalUnreadAlerts = async (req: any, res: any) => {
 
 export const ExportPdfVINDataList = async (req: any, res: any) => {
     try {
-        // Extract query parameters
         const { page = 1, limit = 1000, vin } = req.query;
-        const numericLimit = Number(limit);   // Convert limit to number
-        const numericPage = Number(page);     // Convert page to number
+        const numericLimit = Number(limit);
+        const numericPage = Number(page);
         const offset = (numericPage - 1) * numericLimit;
 
-        // Main query to get distinct VINs and their IDs with pagination
+        // Main query to get paginated VINs with id and isOld store procedur krna hai
         const query = DashboardDataList.createQueryBuilder("vehicle")
-            .select("DISTINCT vehicle.vin", "vin")     // Select distinct VINs
-            .addSelect("vehicle.id", "id")             // Also select the ID
-            .orderBy("vehicle.vin", "ASC")             // Optional: Order VINs
-            .limit(numericLimit)                       // Pagination: limit
-            .offset(offset);                           // Pagination: offset
+            .select("vehicle.vin", "vin")
+            .addSelect("vehicle.isOld", "isOld")
+            .addSelect("vehicle.id", "id")
+            
+            .limit(numericLimit)
+            .offset(offset);
 
-        // VIN filtering if query param is present
         if (vin) {
             query.where("vehicle.vin LIKE :vin", { vin: `%${vin}%` });
         }
 
         const data = await query.getRawMany();
 
-        // Count query for total distinct VINs for pagination info
+        // Count total records (no DISTINCT here)
         const countQuery = DashboardDataList.createQueryBuilder("vehicle")
-            .select("COUNT(DISTINCT vehicle.vin)", "total");
+            .select("COUNT(*)", "total");
 
         if (vin) {
             countQuery.where("vehicle.vin LIKE :vin", { vin: `%${vin}%` });
@@ -134,7 +133,6 @@ export const ExportPdfVINDataList = async (req: any, res: any) => {
         const totalRecords = parseInt(totalResult?.total || "0", 10);
         const totalPages = Math.ceil(totalRecords / numericLimit);
 
-        // Return paginated data
         return createResponse(res, 200, MESSAGES?.DATA_FETCH_SUCCESS, {
             currentPage: numericPage,
             totalPages,
@@ -142,10 +140,7 @@ export const ExportPdfVINDataList = async (req: any, res: any) => {
             items: data,
         });
     } catch (error: any) {
-        // tslint:disable-next-line:no-console 
         console.log("Error fetching vehicle data:", error);
-
-        // Return an error response
         return createResponse(res, 500, MESSAGES?.INTERNAL_SERVER_ERROR || "Internal Server Error", [], false, true);
     }
 };
