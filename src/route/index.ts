@@ -50,5 +50,7 @@ routerAdmin.post("/file-create-automation", Handler.AuthSignIn, Handler.CreateVi
 routerAdmin.get("/test-csv-export", Handler.AuthSignIn, Handler.testR);  // 28
 // routerAdmin.get("/test-csv-exportt", Handler.testResultController) ; 
 routerAdmin.get("/navigate-sidebar-first-item", Handler.AuthSignIn, Handler.NavigateSidebarFirstItem); 
- 
+ //data source to 
+
+ routerAdmin.post("/new-validate-vin-data-2", Handler.NewValidateVinData2);
 export default routerAdmin;

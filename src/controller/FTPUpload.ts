@@ -10,12 +10,11 @@ import { BrandDataCompare, copyDataFromVehicleDataTemp, insertDashboardDataList,
 import { VehicleData } from "../Entities/vehicle_data";
 import { truncateTable } from "../helpers/CompareHelpers";
 import { updateLastFileProcess } from "../helpers/UpdateLastRecord";
-// import { TitleDataCompare } from "../helpers/CompareAndStoreData";
-    
+ 
 const ftpConfig = {
-  host: "ftp-cert.aamva.org",
-  user: "nmvtis-my-test",
-  password: "?a6uk4Zzzm--um3v",
+  host: `${process.env.FTP_HOST}`,
+  user:  `${process.env.FTP_USERNAME}`,
+  password:`${process.env.FTP_PASSWORD}`,
   secure: true,
 };
 
@@ -163,7 +162,7 @@ export const FTPReadAllControllerRead = async () => {
     const brandContent = await parseVehicleDataBrandStream(fileContentBrand);
     const fileContentJsi = await downloadFile(client, "MY.T.CINQ.JSI.txt");
     const JsiContent = await parseVehicleDataJSIStream(fileContentJsi);
-    await removeAllFilesFromFTP(client); 
+    await removeAllFilesFromFTP(client);
     await batchInsert(titleContent);
     await batchInsert(brandContent);
     await batchInsert(JsiContent);
