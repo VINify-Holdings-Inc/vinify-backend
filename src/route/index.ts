@@ -42,7 +42,7 @@ routerAdmin.post("/new-validate-vin-data", Handler.NewValidateVinData); // 23 ->
 routerAdmin.get("/track-vin-pop", Handler.TrackVinPopController); // 24  -> 2.72 s
 
 // FTP organization
-routerAdmin.post("/upload-ftp-txt", Handler.AuthSignIn, Handler.FTPController); // 25   -> 46.20 s
+routerAdmin.post("/upload-ftp-txt",  Handler.FTPController); // 25   -> 46.20 s
 routerAdmin.get("/file-create-automation", Handler.AuthSignIn, Handler.VinListAutomateFileCreatetion);  // 26   -> 2.30 s
 routerAdmin.post("/file-create-automation", Handler.AuthSignIn, Handler.CreateVinTxtFileAndUpload);  // 27    ->  46.69 s
 
