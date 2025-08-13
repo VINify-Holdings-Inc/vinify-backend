@@ -130,7 +130,7 @@ export const forgetPasswordMailTemplate = ({ subject, text, hyperText }: any) =>
                                                                             <tr>
                                                                                 <td style="padding:0; height: 20px" align="left"> &nbsp;</td>
                                                                             </tr>
-                                                                            <tr>  <td style="padding:0;" align="left"><a href="https://mvm.techwagger.com/" target="_blank" style="display: inline-block;"><img width="180" class="adapt-img" style="display:block;border:0;outline:none;text-decoration:none;-ms-interpolation-mode:bicubic;" alt="LOGO" src="https://mvm.techwagger.com/assets/images/eta-logo.png"></a></td>
+                                                                            <tr>  <td style="padding:0;" align="left"><a href="https://mvm2.techwagger.com/" target="_blank" style="display: inline-block;"><img width="180" class="adapt-img" style="display:block;border:0;outline:none;text-decoration:none;-ms-interpolation-mode:bicubic;" alt="LOGO" src="https://mvm2.techwagger.com/assets/images/eta-logo.png"></a></td>
                                                                             </tr>
                                                                             <tr>
                                                                                 <td style="padding:0; height: 35px" align="left"> &nbsp;</td>
@@ -144,7 +144,7 @@ export const forgetPasswordMailTemplate = ({ subject, text, hyperText }: any) =>
 
                                                                                     <p style="margin-bottom:10px;">
                                                                                     <a href="${hyperText}" style="display: inline-block">
-                                                                                    <img width="160" height="41" src="https://mvm.techwagger.com/assets/images/reset-password-red.png" />  </a>    </p>
+                                                                                    <img width="160" height="41" src="https://mvm2.techwagger.com/assets/images/reset-password-red.png" />  </a>    </p>
 
 
                                                                                     <p style="margin-bottom:10px;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;line-height:24px;color:000;">
@@ -355,7 +355,7 @@ export const forgetPasswordMailTemplate = ({ subject, text, hyperText }: any) =>
                                                                                 <td style="padding:0; height: 20px" align="left"> &nbsp;</td>
                                                                             </tr>
                                                                             <tr>
-                                                                                <td style="padding:0;" align="left"><a href="https://mvm.techwagger.com/" target="_blank" style="display: inline-block;"><img width="180" class="adapt-img" style="display:block;border:0;outline:none;text-decoration:none;-ms-interpolation-mode:bicubic;" alt="LOGO" src="https://mvm.techwagger.com/assets/images/eta-logo.png"></a></td>
+                                                                                <td style="padding:0;" align="left"><a href="https://mvm2.techwagger.com/" target="_blank" style="display: inline-block;"><img width="180" class="adapt-img" style="display:block;border:0;outline:none;text-decoration:none;-ms-interpolation-mode:bicubic;" alt="LOGO" src="https://mvm2.techwagger.com/assets/images/eta-logo.png"></a></td>
                                                                             </tr>
                                                                             <tr>
                                                                                 <td style="padding:0; height: 35px" align="left"> &nbsp;</td>

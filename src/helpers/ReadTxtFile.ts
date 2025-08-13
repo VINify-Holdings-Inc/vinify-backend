@@ -26,19 +26,7 @@ export const ReadTheTxtFormatJsonStream = async (filePath: any) => {
     const vin = rawVin.substring(3).trim();
 
     const status = line.startsWith("V") ? "Current" :
-      line.startsWith("H") ? "History" : "Unknown";
-
-    const rawOdometer = line.substring(143, 207).trim();
-    let odometer = "";
-    const match = rawOdometer.match(/^0*([\d]+)([MK]?)$/i);
-
-    if (match) {
-      const rawNumber = match[1];
-      const withCommas = rawNumber.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-      odometer = match[2] ? `${withCommas} ${match[2].toUpperCase() === 'M' ? 'Miles' : 'KM'}` : withCommas;
-    } else {
-      odometer = rawOdometer;
-    }
+      line.startsWith("H") ? "History" : "Unknown"; 
 
     const rawTitleUnique = line.substring(143, 207).trim();
     let titleUnique = "";
@@ -57,10 +45,10 @@ export const ReadTheTxtFormatJsonStream = async (filePath: any) => {
       vin,
       status,
       vinId: rawVin.substring(0, 3).trim(),
-      extra: line.substring(33, 68).trim(),
+      // extra: line.substring(33, 68).trim(),
       state: line.substring(68, 70).trim(),
       titleBrandDate: line.substring(71, 143).trim()?.replace(/(\d{4})(\d{2})(\d{2})/, "$1-$2-$3"),
-      odometer,
+      // odometer,
       titleUnique,
       alertType: "Title"
     };
