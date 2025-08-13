@@ -36,7 +36,7 @@ export const DashboardSummaryVIN = async (req: any, res: any) => {
                 });
             }
         });
-
+ 
         // Fetch the distinct VINs based on the query
         const distinctVINs = await queryBuilder.getRawMany();
 

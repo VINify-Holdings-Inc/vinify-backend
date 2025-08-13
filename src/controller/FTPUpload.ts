@@ -1,36 +1,60 @@
 import fs from "fs";
 import path from "path";
 import { Client } from "basic-ftp";
+import dotenv from "dotenv";
+dotenv.config();
 
-import { parseVehicleDataBrandStream, parseVehicleDataJSIStream, ReadTheTxtFormatJsonStream } from "../helpers/ReadTxtFile";
+import {
+  parseVehicleDataBrandStream,
+  parseVehicleDataJSIStream,
+  ReadTheTxtFormatJsonStream,
+} from "../helpers/ReadTxtFile";
+
 import { VehicleDataTemp } from "../Entities/vehicle_data_temp";
 import { correctedData } from "../helpers/DashBoardHelpers";
 import { DashboardDataList } from "../Entities/DashboardDataList";
-import { BrandDataCompare, copyDataFromVehicleDataTemp, insertDashboardDataList, JSIDataCompare, TitleDataCompare } from "../helpers/CompareAndStoreData";
+
+import {
+  BrandDataCompare,
+  copyDataFromVehicleDataTemp,
+  insertDashboardDataList,
+  JSIDataCompare,
+  TitleDataCompare,
+} from "../helpers/CompareAndStoreData";
+
 import { VehicleData } from "../Entities/vehicle_data";
 import { truncateTable } from "../helpers/CompareHelpers";
 import { updateLastFileProcess } from "../helpers/UpdateLastRecord";
-// import { TitleDataCompare } from "../helpers/CompareAndStoreData";
-    
+
+// FTP config
 const ftpConfig = {
-  host: "ftp-cert.aamva.org",
-  user: "nmvtis-my-test",
-  password: "?a6uk4Zzzm--um3v",
+  host: process.env.FTP_HOST!,
+  user: process.env.FTP_USERNAME!,
+  password: process.env.FTP_PASSWORD!,
   secure: true,
 };
 
+// Upload to FTP
 export const uploadToFTP = async (filePath: string, fileName: string) => {
   const client = new Client();
   client.ftp.verbose = true;
 
   try {
+    console.log("🔌 Connecting to FTP...");
     await client.access(ftpConfig);
-    await client.ensureDir("/");
-    await client.uploadFrom(filePath, `/${fileName}`);
-    // tslint:disable-next-line:no-console
-    console.log("✅ File uploaded successfully to FTP.");
+
+    // Remove trailing slashes from the FTP path (e.g. "/folder///" -> "/folder")
+    const ftpPath = (process.env.FTP_INPUT_PATH || "/").replace(/\/+$/, "");
+
+    console.log("📁 Ensuring directory:", ftpPath);
+    await client.ensureDir(ftpPath);
+
+    const remotePath = `${ftpPath}/${fileName}`; // This now safely becomes "/filename" without double slashes
+    console.log(`📤 Uploading file from ${filePath} to ${remotePath}`);
+
+    await client.uploadFrom(filePath, remotePath);
+    console.log("✅ Upload successful!");
   } catch (error) {
-    // tslint:disable-next-line:no-console
     console.error("❌ FTP Upload Error:", error);
     throw error;
   } finally {
@@ -38,118 +62,127 @@ export const uploadToFTP = async (filePath: string, fileName: string) => {
   }
 };
 
+
+// Upload File Endpoint
 export const FTPController = async (req: any, res: any) => {
   try {
-    // Check if the file is provided in the request
     if (!req.files || !req.files.file) {
+      console.warn("⚠️ No file uploaded in request.");
       return res.status(400).json({ error: "No file uploaded." });
     }
 
-    // Retrieve the uploaded file from the request
     const uploadedFile = req.files.file;
-
-    // Define the path to save the file locally
     const uploadPath = path.join(__dirname, "../uploads", uploadedFile.name);
-
-    // Move the file to the server's local 'uploads' directory
+    console.log("📥 Saving file to:", uploadPath);
     await uploadedFile.mv(uploadPath);
 
-    // Upload the file to the FTP server
+    console.log("⏫ Uploading to FTP...");
     await uploadToFTP(uploadPath, uploadedFile.name);
 
-    // Respond with a success message if the file is uploaded and transferred successfully
-    return res.json({ code: 200, message: "File uploaded successfully!", success: true, error: false });
+    return res.json({
+      code: 200,
+      message: "File uploaded successfully!",
+      success: true,
+      error: false,
+    });
   } catch (error) {
-    // tslint:disable-next-line:no-console
     console.error("❌ Upload Error:", error);
-
-    // Respond with an error if the upload process fails
     return res.status(500).json({ error: "File upload failed." });
   }
 };
+
+
+// Retry wrapper
 const retryOperation = async (operation: Function, retries: number = 3) => {
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
       return await operation();
     } catch (error) {
-      // tslint:disable-next-line:no-console
       console.error(`Attempt ${attempt} failed:`, error);
       if (attempt === retries) throw error;
     }
   }
 };
-export const removeAllFilesFromFTP = async (client: any) => {
+
+// Remove old FTP output files
+export const removeAllFilesFromFTP = async (client: Client) => {
   try {
-    const fileList = await client.list("/"); // Get all files in root directory
+    const ftpPath = process.env.FTP_OUTPUT_PATH || "/";
+    const fileList = await client.list(ftpPath);
+
     for (const file of fileList) {
-      await client.remove(`/${file.name}`); // Delete each file
-      // tslint:disable-next-line:no-console
-      // console.log(`🗑️ Deleted file: ${file.name}`);
+      const remotePath = path.posix.join(ftpPath, file.name); // use posix for FTP paths
+      await client.remove(remotePath);
     }
-  } catch (error: any) {
-    // tslint:disable-next-line:no-console
-    console.error("❌ Error while deleting files from FTP:", error);
+  } catch (error) {
+    console.error("❌ Error while deleting FTP files:", error);
   }
 };
 
-const formatNumber = (data: any) => {
-  const totalCount = data?.length || 0; // Handle null/undefined cases
-  const numDigits = totalCount.toString().length; // Count digits in totalCount
-  const numSpaces = 9 - numDigits; // Ensure correct spacing
-  const spaces = " ".repeat(numSpaces);
-
+// Format header
+const formatNumber = (data: any[]) => {
+  const totalCount = data?.length || 0;
+  const numDigits = totalCount.toString().length;
+  const spaces = " ".repeat(9 - numDigits);
   return spaces + totalCount;
 };
+
+// Create & Upload VIN TXT file
 export const CreateVinTxtFileAndUpload = async (req: any, res: any) => {
   try {
-    const { data = [1, 2, 3, 4, 5, 6, 7] } = req.body;
-    const totalCount = await formatNumber(data);
+    const { data = [] } = req.body;
+    const totalCount = formatNumber(data);
     const todayDate = new Date().toISOString().slice(0, 10).replace(/-/g, "");
     const firstLine = `CMY${totalCount}${todayDate}`;
     const fileContent = [firstLine, ...data.map((item: any) => `D${item}`)].join("\n");
-    const uploadPath = path.join(__dirname, "../uploads", "MY.T.CINQ.INPUT.TXT");
 
-    // Create the file locally
+    const uploadPath = path.join(__dirname, "../uploads", process.env.FTP_INPUT_FILE!);
     fs.writeFileSync(uploadPath, fileContent, "utf8");
 
-    // Upload the file to FTP server
-    await uploadToFTP(uploadPath, "MY.T.CINQ.INPUT.TXT");
-    await new Promise(resolve => setTimeout(resolve, 45000));
+    await uploadToFTP(uploadPath, process.env.FTP_INPUT_FILE!);
+    await new Promise((resolve) => setTimeout(resolve, 45000));
 
-    try {
-      await FTPReadAllControllerRead();
+    await FTPReadAllControllerRead();
 
-    } catch (error) {
-      // tslint:disable-next-line:no-console
-      console.error("❌ Error reading from FTP:", error);
-
-      return res.status(500).json({ error: "Failed to read from FTP", success: false });
-    }
-
-    return res.json({ code: 200, message: "File uploaded successfully!", success: true, error: false });
-  } catch (error: any) {
-    // tslint:disable-next-line:no-console
-    console.error("❌ Error creating and uploading VIN TXT file:", error);
-    res.status(500).json({ error: "Failed to create and upload the file" });
+    return res.json({
+      code: 200,
+      message: "File uploaded and processed successfully!",
+      success: true,
+      error: false,
+    });
+  } catch (error) {
+    console.error("❌ Error in CreateVinTxtFileAndUpload:", error);
+    res.status(500).json({ error: "Failed to process VIN TXT file" });
   }
 };
 
-const downloadFile = async (client: any, targetFileName: string) => {
+const downloadFile = async (client: Client, targetFileName: string) => {
   await client.access(ftpConfig);
-  await client.ensureDir("/");
+
+  // Normalize remote dir
+  const remoteDir = (process.env.FTP_OUTPUT_PATH || "/Output").replace(/\/+$/, "");
+  await client.ensureDir(remoteDir);
+
+  // Build remote file path without double slashes
+  const remoteFilePath = `${remoteDir}/${targetFileName}`.replace(/\/{2,}/g, "/");
+
+  // Local save path
   const localPath = path.join(__dirname, "../AAMVAFTP", targetFileName);
-  await retryOperation(() => client.downloadTo(localPath, `/${targetFileName}`));
-  console.log(`✅ File ${targetFileName} downloaded successfully.`);
+
+  await retryOperation(() => client.downloadTo(localPath, remoteFilePath));
+
   return localPath;
 };
 
-const batchInsert = async (data: any[], batchSize: number = 1000) => {
+// Batch insert
+const batchInsert = async (data: any[], batchSize = 1000) => {
   for (let i = 0; i < data.length; i += batchSize) {
     const chunk = data.slice(i, i + batchSize);
     await VehicleDataTemp.save(chunk);
   }
 };
 
+// Read all files & process
 export const FTPReadAllControllerRead = async () => {
   const client: any = new Client();
   client.ftp.verbose = true;
@@ -157,60 +190,61 @@ export const FTPReadAllControllerRead = async () => {
   client.ftp.timeout = 30000;
 
   try {
-    const filePath = await downloadFile(client, "MY.T.CINQ.TITLE.txt");
-    const titleContent = await ReadTheTxtFormatJsonStream(filePath);
-    const fileContentBrand = await downloadFile(client, "MY.T.CINQ.BRAND.txt");
-    const brandContent = await parseVehicleDataBrandStream(fileContentBrand);
-    const fileContentJsi = await downloadFile(client, "MY.T.CINQ.JSI.txt");
-    const JsiContent = await parseVehicleDataJSIStream(fileContentJsi);
-    await removeAllFilesFromFTP(client); 
+    const filePathTitle = await downloadFile(client, process.env.FTP_TITLE_FILE!);
+    const filePathBrand = await downloadFile(client, process.env.FTP_BRAND_FILE!);
+    const filePathJSI = await downloadFile(client, process.env.FTP_JSI_FILE!);
+
+    const titleContent = await ReadTheTxtFormatJsonStream(filePathTitle);
+    const brandContent = await parseVehicleDataBrandStream(filePathBrand);
+    const jsiContent = await parseVehicleDataJSIStream(filePathJSI);
+
+    await removeAllFilesFromFTP(client);
+
     await batchInsert(titleContent);
     await batchInsert(brandContent);
-    await batchInsert(JsiContent);
+    await batchInsert(jsiContent);
+
     await TitleDataCompare();
-    await BrandDataCompare()
+    await BrandDataCompare();
     await JSIDataCompare();
-    await truncateTable(VehicleData)
+
+    await truncateTable(VehicleData);
     await truncateTable(DashboardDataList);
-    //insery
+
     await copyDataFromVehicleDataTemp();
-    // Updating the last file process record
     await updateLastFileProcess();
-    await insertDashboardDataList()
-    await truncateTable(VehicleDataTemp)
-    return; // ✅ success path
+    await insertDashboardDataList();
+    await truncateTable(VehicleDataTemp);
+
+    return;
   } catch (error) {
     console.error("❌ FTP Read All Error:", error);
-    return []; // ✅ return an empty array or null in case of error
   } finally {
-    await client.close();
+    client.close();
   }
 };
 
-
+// Manual trigger for cron
 export const testR = async (req: any, res: any) => {
   try {
     await FTPReadAllControllerRead();
-    // console.log("after cron");
-
-    return res.json({ code: 200, message: "cron done ", success: true, error: false });
+    return res.json({ code: 200, message: "Cron executed", success: true, error: false });
   } catch (error) {
-    // tslint:disable-next-line:no-console
-    console.error("Error fetching data:", error);
+    console.error("Error:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
 
+// Apply corrections from temp data
 export const testResultController = async (req: any, res: any) => {
   try {
-    const data: any = await VehicleDataTemp.find();
-    const final: any = await correctedData(data);
+    const data = await VehicleDataTemp.find();
+    const final = await correctedData(data);
     await DashboardDataList.save(final);
 
-    return res.json({ code: 200, message: "cron done ", success: true, error: false });
+    return res.json({ code: 200, message: "Result saved", success: true, error: false });
   } catch (error) {
-    // tslint:disable-next-line:no-console
-    console.error("Error fetching data:", error);
+    console.error("Error:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 };

@@ -1,3 +1,4 @@
+-- 🔁 Drop All Procedures in 'public' schema
 DO $$
 DECLARE
   proc RECORD;
@@ -10,7 +11,7 @@ BEGIN
     FROM pg_proc p
     JOIN pg_namespace n ON p.pronamespace = n.oid
     WHERE p.prokind = 'p'  -- 'p' means procedure
-      AND n.nspname = 'public'  -- change if you use a different schema
+      AND n.nspname = 'public'  -- adjust schema as needed
   LOOP
     EXECUTE format('DROP PROCEDURE IF EXISTS %I.%I(%s);', proc.schema_name, proc.procedure_name, proc.args);
   END LOOP;
@@ -43,18 +44,18 @@ DROP PROCEDURE IF EXISTS "isDel_update_compare_title";
 
 CREATE OR REPLACE PROCEDURE "isDel_update_compare_title"()
 LANGUAGE plpgsql
-AS $$
+AS $$ 
 BEGIN
   INSERT INTO "VehicleDataTemp" (
-    "vin", "titleUnique", "status", "vinId", "extra",
-    "state", "titleBrandDate", "odometer", "alertType",
-    "createdBy", "updatedBy", "idSequence",
+    "vin", "titleUnique", "status", "vinId", 
+    "state", "titleBrandDate",  "alertType",
+    "createdBy", "updatedBy",  
     "isRead", "isOld", "isDel", "createdAt", "updatedAt"
   )
   SELECT
-    vd."vin", vd."titleUnique", vd."status", vd."vinId", vd."extra",
-    vd."state", vd."titleBrandDate", vd."odometer", vd."alertType",
-    'system', 'system', vd."idSequence",
+    vd."vin", vd."titleUnique", vd."status", vd."vinId",  
+    vd."state", vd."titleBrandDate",  vd."alertType",
+    'system', 'system',  
     vd."isRead", false, true, vd."createdAt", vd."updatedAt"
   FROM "VehicleData" vd
   WHERE vd."alertType" = 'Title'
@@ -103,16 +104,16 @@ DROP PROCEDURE IF EXISTS "isDel_update_compare_Brand";
 
 CREATE OR REPLACE PROCEDURE "isDel_update_compare_Brand"()
 LANGUAGE plpgsql
-AS $$
+AS $$ 
 BEGIN
   INSERT INTO "VehicleDataTemp" (
     "vin", "titleBrandDate", "brand", "state", "alertType",
-    "createdBy", "updatedBy", "idSequence",
+    "createdBy", "updatedBy", 
     "isRead", "isOld", "isDel", "createdAt", "updatedAt"
   )
   SELECT
     vd."vin", vd."titleBrandDate", vd."brand", vd."state", vd."alertType",
-    'system', 'system', vd."idSequence",
+    'system', 'system',  
     vd."isRead", false, true, vd."createdAt", vd."updatedAt"
   FROM "VehicleData" vd
   WHERE vd."alertType" = 'Brand'
@@ -168,18 +169,18 @@ DROP PROCEDURE IF EXISTS "isDel_update_compare_JSI";
 
 CREATE OR REPLACE PROCEDURE "isDel_update_compare_JSI"()
 LANGUAGE plpgsql
-AS $$
+AS $$ 
 BEGIN
   INSERT INTO "VehicleDataTemp" (
     "vin", "titleBrandDate", "description", "export", "rptgEntity",
     "city", "state", "mobile", "email", "alertType",
-    "createdBy", "updatedBy", "idSequence",
+    "createdBy", "updatedBy", 
     "isRead", "isOld", "isDel", "createdAt", "updatedAt"
   )
   SELECT
     vd."vin", vd."titleBrandDate", vd."description", vd."export", vd."rptgEntity",
     vd."city", vd."state", vd."mobile", vd."email", vd."alertType",
-    'system', 'system', vd."idSequence",
+    'system', 'system',  
     vd."isRead", false, true, vd."createdAt", vd."updatedAt"
   FROM "VehicleData" vd
   WHERE vd."alertType" = 'JSI'
@@ -211,28 +212,29 @@ DROP PROCEDURE IF EXISTS "copy_data_from_vehicle_data_temp";
 
 CREATE OR REPLACE PROCEDURE "copy_data_from_vehicle_data_temp"()
 LANGUAGE plpgsql
-AS $$
+AS $$ 
 BEGIN
   INSERT INTO "VehicleData" (
-    "vin", "vinId", "model", "make", "brand", "state", "alertType",
-    "titleBrandDate", "modelYear", "status", "titleUnique", "description",
-    "odometer", "export", "extra", "city", "rptgEntity", "email", "mobile",
+    "vin", "vinId", "brand", "state", "alertType",
+    "titleBrandDate", "status", "titleUnique", "description",
+    "export", "city", "rptgEntity", "email", "mobile",
     "isRead", "isOld", "isDel", "createdAt", "updatedAt", "createdBy",
-    "updatedBy", "idSequence"
+    "updatedBy"
   )
   SELECT
-    "vin", "vinId", "model", "make", "brand", "state", "alertType",
-    "titleBrandDate", "modelYear", "status", "titleUnique", "description",
-    "odometer", "export", "extra", "city", "rptgEntity", "email", "mobile",
+    "vin", "vinId", "brand", "state", "alertType",
+    "titleBrandDate", "status", "titleUnique", "description",
+    "export", "city", "rptgEntity", "email", "mobile",
     "isRead", "isOld", "isDel", "createdAt", "updatedAt", "createdBy",
-    "updatedBy", "idSequence"
+    "updatedBy"
   FROM "VehicleDataTemp";
 END;
 $$;
 
+-- Insert Dashboard Data into DashboardDataList
 CREATE OR REPLACE PROCEDURE insert_dashboard_data_list_data()
 LANGUAGE plpgsql
-AS $$
+AS $$ 
 BEGIN
   -- Optional: Clear old data if required
   -- TRUNCATE TABLE "DashboardDataList";
@@ -271,65 +273,43 @@ BEGIN
   LEFT JOIN latest_alerts la ON dv."vin" = la."vin"
   GROUP BY dv."vin"
   ORDER BY dv."vin";
-
- WITH latest_alerts AS (
-    SELECT DISTINCT ON ("vin", "alertType") 
-        "vin",
-        "alertType"
-    FROM "VehicleData"
-    WHERE "alertType" IN ('Title', 'Brand', 'JSI')
-    ORDER BY "vin", "alertType", "titleBrandDate" DESC, "createdAt" DESC
-),
-aggregated_alerts AS (
-    SELECT 
-        "vin",
-        ARRAY_AGG("alertType" ORDER BY "alertType") AS "alertType"
-    FROM latest_alerts
-    GROUP BY "vin"
-)
-UPDATE "DashboardDataList" d
-SET "alertType" = a."alertType"
-FROM aggregated_alerts a
-WHERE d."vin" = a."vin";
-
-
 END;
 $$;
 
-
- CREATE OR REPLACE FUNCTION get_vin_data_response(
-    p_limit INT,
-    p_offset INT,
-    p_vin TEXT
+-- Function to Retrieve Paginated Data
+CREATE OR REPLACE FUNCTION get_vin_data_response(
+  p_limit INT,
+  p_offset INT,
+  p_vin TEXT
 )
 RETURNS JSON AS
 $$
 DECLARE
-    result JSON;
-    total_count INT;
-    vin_filter TEXT := '%' || p_vin || '%';
+  result JSON;
+  total_count INT;
+  vin_filter TEXT := '%' || p_vin || '%';
 BEGIN
-    -- Count total matching records
-    SELECT COUNT(*) INTO total_count
+  -- Count total matching records
+  SELECT COUNT(*) INTO total_count
+  FROM "DashboardDataList"
+  WHERE p_vin IS NULL OR vin ILIKE vin_filter;
+
+  -- Build JSON result
+  SELECT json_build_object(
+    'currentPage', (p_offset / p_limit) + 1,
+    'totalPages', CEIL(total_count::DECIMAL / p_limit),
+    'totalRecords', total_count,
+    'items', COALESCE(json_agg(t), '[]'::JSON)
+  )
+  INTO result
+  FROM (
+    SELECT vin, "isOld", id
     FROM "DashboardDataList"
-    WHERE p_vin IS NULL OR vin ILIKE vin_filter;
+    WHERE p_vin IS NULL OR vin ILIKE vin_filter
+    ORDER BY id
+    LIMIT p_limit OFFSET p_offset
+  ) t;
 
-    -- Build JSON result
-    SELECT json_build_object(
-        'currentPage', (p_offset / p_limit) + 1,
-        'totalPages', CEIL(total_count::DECIMAL / p_limit),
-        'totalRecords', total_count,
-        'items', COALESCE(json_agg(t), '[]'::JSON)
-    )
-    INTO result
-    FROM (
-        SELECT vin, "isOld", id
-        FROM "DashboardDataList"
-        WHERE p_vin IS NULL OR vin ILIKE vin_filter
-        ORDER BY id
-        LIMIT p_limit OFFSET p_offset
-    ) t;
-
-    RETURN result;
+  RETURN result;
 END;
 $$ LANGUAGE plpgsql;
