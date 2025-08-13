@@ -62,7 +62,7 @@ export const isChangeInThePreviousVin = (current: any, previous: any) => {
   if (!previous) {
     for (const key in current) {
       if (current.hasOwnProperty(key)) {
-        result[`is${key.charAt(0).toUpperCase() + key.slice(1)}`] = true;
+        result[`is${key.charAt(0).toUpperCase() + key.slice(1)}`] = false;
         result[key] = current[key];
       }
     }

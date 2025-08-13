@@ -107,9 +107,12 @@ const retryOperation = async (operation: Function, retries: number = 3) => {
 // Remove old FTP output files
 export const removeAllFilesFromFTP = async (client: Client) => {
   try {
-    const fileList = await client.list(process.env.FTP_OUTPUT_PATH || "/Output");
+    const ftpPath = process.env.FTP_OUTPUT_PATH || "/";
+    const fileList = await client.list(ftpPath);
+
     for (const file of fileList) {
-      await client.remove(`${process.env.FTP_OUTPUT_PATH}/${file.name}`);
+      const remotePath = path.posix.join(ftpPath, file.name); // use posix for FTP paths
+      await client.remove(remotePath);
     }
   } catch (error) {
     console.error("❌ Error while deleting FTP files:", error);
@@ -153,15 +156,20 @@ export const CreateVinTxtFileAndUpload = async (req: any, res: any) => {
   }
 };
 
-// Download file from FTP
 const downloadFile = async (client: Client, targetFileName: string) => {
   await client.access(ftpConfig);
-  await client.ensureDir(process.env.FTP_OUTPUT_PATH || "/Output");
 
+  // Normalize remote dir
+  const remoteDir = (process.env.FTP_OUTPUT_PATH || "/Output").replace(/\/+$/, "");
+  await client.ensureDir(remoteDir);
+
+  // Build remote file path without double slashes
+  const remoteFilePath = `${remoteDir}/${targetFileName}`.replace(/\/{2,}/g, "/");
+
+  // Local save path
   const localPath = path.join(__dirname, "../AAMVAFTP", targetFileName);
-  await retryOperation(() =>
-    client.downloadTo(localPath, `${process.env.FTP_OUTPUT_PATH}/${targetFileName}`)
-  );
+
+  await retryOperation(() => client.downloadTo(localPath, remoteFilePath));
 
   return localPath;
 };
