@@ -8,84 +8,67 @@ import {
 
 @Entity({ name: "VehicleData" })
 export class VehicleData extends BaseEntity {
-  @PrimaryGeneratedColumn({ name: "id" })
+  
+  @PrimaryGeneratedColumn({ name: "id", comment: "Primary key UUID" })
   @Generated("uuid")
   uuid: string;
 
-  @Column({ name: "vin", type: "varchar", default: " "})
+  @Column({ name: "vin", type: "varchar", default: " ", comment: "Vehicle Identification Number" })
   vin: string;
 
-  @Column({ name: "idSequence", type: "int", })
-  @Generated("rowid")
-  idSequence: any;
+  @Column({ name: "vinId", type: "varchar", default: "", comment: "VIN secondary reference" })
+  vinId: string;
 
-  @Column({ name: "vinId", type: "varchar", default: ""})
-  vinId: string; 
+  @Column({ name: "brand", type: "varchar", default: "", comment: "Vehicle brand" })
+  brand: string;
 
-  @Column({ name: "model", type: "varchar", default: ""})
-  model: string;
-
-  @Column({ name: "make", type: "varchar", default: ""})
-  make: string;
-
-  @Column({ name: "brand", type: "varchar", default: ""})
-  brand: string;  
-
-  @Column({ name: "state", type: "varchar", default: ""})
+  @Column({ name: "state", type: "varchar", default: "", comment: "Vehicle registration state" })
   state: string;
- 
-  @Column({ name: "alertType", type: "varchar", default: ""})
+
+  @Column({ name: "alertType", type: "varchar", default: "", comment: "date" })
   alertType: string;
 
-  @Column({ name: "titleBrandDate", type: "varchar", default: ""})
+  @Column({ name: "titleBrandDate", type: "varchar", default: "", comment: "Date when title brand was applied" })
   titleBrandDate: string;
 
-  @Column({ name: "modelYear", type: "varchar", default: ""})
-  modelYear: string;
+  @Column({ name: "status", type: "varchar", default: "", comment: "Vehicle status" })
+  status: string;
 
-  @Column({ name: "status", type: "varchar", default: ""})
-  status: string;   
-  //        
-  @Column({ name: "titleUnique", type: "varchar", default: ""})
-  titleUnique: string;     
+  @Column({ name: "titleUnique", type: "varchar", default: "", comment: "odometer" })
+  titleUnique: string;
 
-  @Column({ name: "description", type: "varchar", default: ""})
+  @Column({ name: "description", type: "varchar", default: "", comment: "Description or notes" })
   description: string;
 
-  @Column({ name: "odometer", type: "varchar", default: ""})
-  odometer: string;
-
-  @Column({ name: "export", type: "varchar", default: ""})
+  @Column({ name: "export", type: "varchar", default: "", comment: "Export status of the vehicle" })
   export: string;
 
-  @Column({ name: "extra", type: "varchar", default: ""})
-  extra: string;
-
-  @Column({ name: "city", type: "varchar", default: ""})
+  @Column({ name: "city", type: "varchar", default: "", comment: "City where vehicle is located or registered" })
   city: string;
 
-  @Column({ name: "rptgEntity", type: "varchar", default: ""})
-  rptgEntity: string; 
+  @Column({ name: "rptgEntity", type: "varchar", default: "", comment: "Reporting entity or organization" })
+  rptgEntity: string;
 
-  @Column({ name: "email", type: "varchar", default: ""})
-  email: string; 
+  @Column({ name: "email", type: "varchar", default: "", comment: "Contact email" })
+  email: string;
 
-  @Column({ name: "mobile", type: "varchar", default: ""})
-  mobile: string; 
+  @Column({ name: "mobile", type: "varchar", default: "", comment: "Contact mobile number" })
+  mobile: string;
 
-  @Column({ name: "isRead", type: "boolean", default: false })
+  @Column({ name: "isRead", type: "boolean", default: false, comment: "Flag if the record is read" })
   isRead: boolean;
 
-  @Column({ name: "isOld", type: "boolean", default: false })
-  isOld: boolean; 
+  @Column({ name: "isOld", type: "boolean", default: false, comment: "Flag if the record is old" })
+  isOld: boolean;
 
-  @Column({ name: "isDel", type: "boolean", default: false })
+  @Column({ name: "isDel", type: "boolean", default: false, comment: "Flag if the record is deleted" })
   isDel: boolean;
-  
+
   @Column({
     name: "createdAt",
     type: "timestamptz",
     default: () => "CURRENT_TIMESTAMP",
+    comment: "Record creation timestamp",
   })
   createdAt: Date;
 
@@ -93,6 +76,7 @@ export class VehicleData extends BaseEntity {
     name: "updatedAt",
     type: "timestamptz",
     default: () => "CURRENT_TIMESTAMP",
+    comment: "Last record update timestamp",
   })
   updatedAt: Date;
 
@@ -102,6 +86,7 @@ export class VehicleData extends BaseEntity {
     length: 50,
     nullable: true,
     default: "system",
+    comment: "User who created the record",
   })
   createdBy: string;
 
@@ -111,6 +96,7 @@ export class VehicleData extends BaseEntity {
     length: 50,
     nullable: true,
     default: "system",
+    comment: "User who last updated the record",
   })
   updatedBy: string;
 }
