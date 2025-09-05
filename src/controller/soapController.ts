@@ -275,58 +275,6 @@ export const TrackVinPopController = async (req: any, res: any) => {
         return createResponse(res, 500, MESSAGES?.INTERNAL_SERVER_ERROR, [], false, true);
     }
 };
+ 
 
-
-export const NewValidateVinData2 = async (req: any, res: any) => {
-    try {
-        const { vin } = req.body;
-
-        const soapUrl = "https://www.locatortechnologies.com/eventsearchservice/EventSearchService";
-
-        // Constructing the SOAP request XML with correct login and password
-        const soapRequestXml = `
-                    <soapenv:Envelope xmlns:soapenv="http://www.w3.org/2003/05/soap-envelope" xmlns:ess="http://locatortechnologies.com/schemas/ess">
-                    <soapenv:Header/>
-                    <soapenv:Body>
-                        <ess:VinSearchRequest>
-                            <ess:BaseRequest>
-                                <ess:AuthInfo>
-                                <ess:Username>titlealarm</ess:Username>
-                                <ess:Password>AdkE8y2p</ess:Password>
-                                </ess:AuthInfo>
-                                <ess:Version>115</ess:Version>
-                                <ess:Mode>Test</ess:Mode>
-                            </ess:BaseRequest>
-                            <ess:VinSearch>
-                                <ess:Vin>${vin}</ess:Vin>
-                            </ess:VinSearch>
-                        </ess:VinSearchRequest>
-                    </soapenv:Body>
-                    </soapenv:Envelope>
-                    `;
-
-        const response = await axios.post(soapUrl, soapRequestXml, {
-            headers: {
-                "Content-Type": "application/soap+xml;charset=UTF-8"
-                // No "SOAPAction" needed for this WSDL unless otherwise stated
-            },
-            timeout: 15000 // Optional: 15-second timeout
-        });
-
-
-        if (!response.data) {
-            return createResponse(res, 400, "Something went wrong!", null, false, true);
-        }
-
-        console.log(response.data, "SOAP Raw Response");
-
-        const JsonData = await convertXmlToJson(response.data);
-
-        console.log(JsonData, "Parsed JSON Data");
-
-        return createResponse(res, 200, "Data fetched successfully.", { JsonData }, true, false);
-    } catch (error: any) {
-        console.error("Error in NewValidateVinData2:", error);
-        return createResponse(res, 400, "Data fetched unsuccessful.", error, false, true);
-    }
-};
+  
