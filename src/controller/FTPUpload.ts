@@ -228,7 +228,7 @@ export const FTPReadAllControllerRead = async () => {
 // Manual trigger for cron
 export const testR = async (req: any, res: any) => {
   try {
-    // await FTPReadAllControllerRead();
+    await FTPReadAllControllerRead();
    const resultSource2= await getDataFromSourceTwo()
    await dataCompareForDataSource2()
     return res.json({ code: 200, message: "Cron executed",resultSource2, success: true, error: false });
