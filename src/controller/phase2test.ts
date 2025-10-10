@@ -8,6 +8,8 @@ import { VinDataTemp } from "../Entities/VinDataTemp";
 import { copyDataFromVinDataTemp, CustomsInquiryDataCompare, EbayAuctionDataCompare, ExportDataCompare, ImpoundDataCompare, LienDataCompare, RecallDataCompare, StolenSummaryDataCompare } from "../helpers/CompareAndStoreData";
 import { VinData } from "../Entities/VinData";
 import { truncateTable } from "../helpers/CompareHelpers";
+import { VehicleData } from "../Entities/vehicle_data";
+import { mergeDataOfAlerts } from "../helpers/MergeData";
 
 const convertXmlToJson = async (data: string): Promise<any> => {
     try {
@@ -275,7 +277,7 @@ export const getDataFromSourceTwo = async () => {
         console.error("Error reading VIN file:", err);
         return [];
     }
-}; 
+};
 
 ///COmpare logic 
 export const dataCompareForDataSource2 = async () => {
@@ -290,3 +292,27 @@ export const dataCompareForDataSource2 = async () => {
     await copyDataFromVinDataTemp();
     await truncateTable(VinDataTemp);
 }
+
+
+export const getDataForCsvDownload = async (req: any, res: any) => {
+    try {
+
+        const vehicleData = await VehicleData.find();
+        const vinData = await VinData.find();
+        const result = await mergeDataOfAlerts(vehicleData, vinData)
+        return createResponse(res, 200, "Data fetched successfully.", result, true, false);
+
+    } catch (error: any) {
+        console.error("Error in NewValidateVinData2:", error);
+        return createResponse(
+            res,
+            400,
+            "Data fetched unsuccessful.",
+            {
+                message: error.message || "Unknown Error",
+            },
+            false,
+            true
+        );
+    }
+};
