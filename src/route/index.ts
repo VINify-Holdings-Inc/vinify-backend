@@ -47,10 +47,12 @@ routerAdmin.get("/file-create-automation", Handler.AuthSignIn, Handler.VinListAu
 routerAdmin.post("/file-create-automation", Handler.AuthSignIn, Handler.CreateVinTxtFileAndUpload);  // 27    ->  46.69 s
 
 // Test Route
-routerAdmin.get("/test-csv-export", Handler.AuthSignIn, Handler.testR);  // 28
+routerAdmin.get("/test-csv-export",  Handler.testR);  // 28
 // routerAdmin.get("/test-csv-exportt", Handler.testResultController) ; 
 routerAdmin.get("/navigate-sidebar-first-item", Handler.AuthSignIn, Handler.NavigateSidebarFirstItem); 
  //data source to 
 
  routerAdmin.post("/new-validate-vin-data-2", Handler.NewValidateVinData2);
+
+  routerAdmin.get("/test", Handler.TestControllerPhaseTwo);
 export default routerAdmin;
