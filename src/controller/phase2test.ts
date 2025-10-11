@@ -10,6 +10,8 @@ import { VinData } from "../Entities/VinData";
 import { truncateTable } from "../helpers/CompareHelpers";
 import { VehicleData } from "../Entities/vehicle_data";
 import { mergeDataOfAlerts } from "../helpers/MergeData";
+import { MasterBrand } from "../Entities/master_brand";
+import { MasterState } from "../Entities/master_state";
 
 const convertXmlToJson = async (data: string): Promise<any> => {
     try {
@@ -192,18 +194,67 @@ export const formatVinEvents = (eventsData: any) => {
 
     if (eventsData && typeof eventsData === "object") {
         for (const [eventType, eventData] of Object.entries(eventsData)) {
-            if (Array.isArray(eventData)) {
-                eventData.forEach((item: any) => {
-                    formattedEvents.push({
-                        alertType: eventType,
-                        ...item,
-                    });
-                });
-            } else if (typeof eventData === "object" && eventData !== null) {
-                formattedEvents.push({
+            const processEvent = (item: any) => {
+                const base = {
+                    vin: item.Vin || item.vin || "",
                     alertType: eventType,
-                    ...eventData,
-                });
+                    lienholder: null,
+                    state: null,
+                    status: null,
+                    itemNumber: null,
+                    reason: null,
+                    titleBrandDate: null,
+                    isRead: false,
+                    isOld: false,
+                    isDel: false,
+                    createdBy: "system",
+                    updatedBy: "system",
+                };
+
+                switch (eventType) {
+                    case "Lien":
+                        base.lienholder = item.Lienholder || null;
+                        base.titleBrandDate = item.LienDate || null;
+                        break;
+
+                    case "Impound":
+                        base.state = item.State || null;
+                        base.titleBrandDate = item.ImpoundDate || null;
+                        break;
+
+                    case "Export":
+                        base.state = item.State || null;
+                        base.titleBrandDate = item.ExportDate || null;
+                        break;
+
+                    case "StolenSummary":
+                        base.state = item.State || null;
+                        base.status = item.Status || null;
+                        base.titleBrandDate = item.LastEventDate || null;
+                        break;
+
+                    case "EbayAuction":
+                        base.itemNumber = item.ItemNumber || null;
+                        base.titleBrandDate = item.AuctionDate || null;
+                        break;
+
+                    case "Recall":
+                        base.reason = item.Reason || null;
+                        base.titleBrandDate = item.RecallDate || null;
+                        break;
+
+                    case "CustomsInquiry":
+                        base.titleBrandDate = item.SearchDate || null;
+                        break;
+                }
+
+                formattedEvents.push(base);
+            };
+
+            if (Array.isArray(eventData)) {
+                eventData.forEach(processEvent);
+            } else if (typeof eventData === "object" && eventData !== null) {
+                processEvent(eventData);
             }
         }
     }
@@ -216,20 +267,19 @@ export const saveVinEventsToDb = async (formattedEvents: any[]) => {
     try {
         const vinRecords = formattedEvents.map((event) =>
             VinDataTemp.create({
-                vin: event.Vin || "",
-                alertType: event.alertType || "",
-                Lienholder: event.Lienholder || null,
-                LienDate: event.LienDate || null,
-                ImpoundDate: event.ImpoundDate || null,
-                State: event.State || null,
-                ExportDate: event.ExportDate || null,
-                Status: event.Status || null,
-                LastEventDate: event.LastEventDate || null,
-                ItemNumber: event.ItemNumber || null,
-                AuctionDate: event.AuctionDate || null,
-                Reason: event.Reason || null,
-                createdBy: "system",
-                updatedBy: "system",
+                vin: event.vin,
+                alertType: event.alertType,
+                lienholder: event.lienholder,
+                state: event.state,
+                status: event.status,
+                itemNumber: event.itemNumber,
+                reason: event.reason,
+                titleBrandDate: event.titleBrandDate,
+                isRead: event.isRead,
+                isOld: event.isOld,
+                isDel: event.isDel,
+                createdBy: event.createdBy,
+                updatedBy: event.updatedBy,
             })
         );
 
@@ -295,24 +345,43 @@ export const dataCompareForDataSource2 = async () => {
 
 
 export const getDataForCsvDownload = async (req: any, res: any) => {
-    try {
+  try {
+    // Fetch VehicleData
+    const vehicleData = await VehicleData.createQueryBuilder("vd")
+      .select([
+        "vd.*",                     // select all columns from VehicleData
+        "masterbrand.name AS brand", // mapped brand name
+        "masterstate.name AS state"  // mapped state code
+      ])
+      .leftJoin(MasterBrand, "masterbrand", "vd.brand = masterbrand.code")
+      .leftJoin(MasterState, "masterstate", "vd.state = masterstate.code")
+      .getRawMany();
 
-        const vehicleData = await VehicleData.find();
-        const vinData = await VinData.find();
-        const result = await mergeDataOfAlerts(vehicleData, vinData)
-        return createResponse(res, 200, "Data fetched successfully.", result, true, false);
+    // Fetch VinData
+    const vinData = await VinData.createQueryBuilder("vd")
+      .select([
+        "vd.*",                      // select all columns from VinData
+        // "masterbrand.name AS brand",  // mapped brand name
+        "masterstate.name AS state"   // mapped state code
+      ])
+      // Replace vd.brand_code with the actual brand column in VinData
+    //   .leftJoin(MasterBrand, "masterbrand", "vd.brand = masterbrand.code")
+      .leftJoin(MasterState, "masterstate", "vd.state = masterstate.code")
+      .getRawMany();
 
-    } catch (error: any) {
-        console.error("Error in NewValidateVinData2:", error);
-        return createResponse(
-            res,
-            400,
-            "Data fetched unsuccessful.",
-            {
-                message: error.message || "Unknown Error",
-            },
-            false,
-            true
-        );
-    }
+    // Merge VehicleData and VinData
+    const result = await mergeDataOfAlerts(vehicleData, vinData);
+
+    return createResponse(res, 200, "Data fetched successfully.", result, true, false);
+  } catch (error: any) {
+    console.error("Error in getDataForCsvDownload:", error);
+    return createResponse(
+      res,
+      400,
+      "Data fetched unsuccessful.",
+      { message: error.message || "Unknown Error" },
+      false,
+      true
+    );
+  }
 };

@@ -258,8 +258,8 @@ BEGIN
 END;
 $$; 
  
- DROP PROCEDURE IF EXISTS "update_isOld_vehicle_data_temp_Lien";
-
+ -- 🧩 For Lien
+DROP PROCEDURE IF EXISTS "update_isOld_vehicle_data_temp_Lien";
 CREATE OR REPLACE PROCEDURE "update_isOld_vehicle_data_temp_Lien"()
 LANGUAGE plpgsql
 AS $$
@@ -273,26 +273,24 @@ BEGIN
   FROM "VinData" AS vd
   WHERE 
     vdt."vin" = vd."vin"
-    AND vdt."Lienholder" = vd."Lienholder"
-    AND vdt."LienDate" = vd."LienDate"
-    AND vdt."alertType" = vd."alertType"
+    AND vdt."lienholder" = vd."lienholder"
+    AND vdt."titleBrandDate" = vd."titleBrandDate"
     AND vdt."alertType" = 'Lien';
 END;
 $$;
 
 DROP PROCEDURE IF EXISTS "isDel_update_compare_Lien";
-
 CREATE OR REPLACE PROCEDURE "isDel_update_compare_Lien"()
 LANGUAGE plpgsql
 AS $$
 BEGIN
   INSERT INTO "VinDataTemp" (
-    "vin", "Lienholder", "LienDate", "alertType",
+    "vin", "lienholder", "titleBrandDate", "alertType",
     "createdBy", "updatedBy",
     "isRead", "isOld", "isDel", "createdAt", "updatedAt"
   )
   SELECT 
-    vd."vin", vd."Lienholder", vd."LienDate", vd."alertType",
+    vd."vin", vd."lienholder", vd."titleBrandDate", vd."alertType",
     'system', 'system',
     vd."isRead", false, true, vd."createdAt", vd."updatedAt"
   FROM "VinData" vd
@@ -302,18 +300,17 @@ BEGIN
     )
     AND NOT EXISTS (
       SELECT 1 FROM "VinDataTemp" temp
-      WHERE 
-        vd."vin" = temp."vin"
-        AND vd."Lienholder" = temp."Lienholder"
-        AND vd."LienDate" = temp."LienDate"
+      WHERE vd."vin" = temp."vin"
+        AND vd."lienholder" = temp."lienholder"
+        AND vd."titleBrandDate" = temp."titleBrandDate"
         AND vd."alertType" = temp."alertType"
     );
 END;
 $$;
 
 
+-- 🧩 For Impound
 DROP PROCEDURE IF EXISTS "update_isOld_vehicle_data_temp_Impound";
-
 CREATE OR REPLACE PROCEDURE "update_isOld_vehicle_data_temp_Impound"()
 LANGUAGE plpgsql
 AS $$
@@ -323,21 +320,21 @@ BEGIN
   FROM "VinData" AS vd
   WHERE 
     vdt."vin" = vd."vin"
-    AND vdt."ImpoundDate" = vd."ImpoundDate"
-    AND vdt."State" = vd."State"
+    AND vdt."state" = vd."state"
+    AND vdt."titleBrandDate" = vd."titleBrandDate"
     AND vdt."alertType" = 'Impound';
 END;
 $$;
 
 DROP PROCEDURE IF EXISTS "isDel_update_compare_Impound";
-
 CREATE OR REPLACE PROCEDURE "isDel_update_compare_Impound"()
 LANGUAGE plpgsql
 AS $$
 BEGIN
-  INSERT INTO "VinDataTemp" ("vin", "ImpoundDate", "State", "alertType", "createdBy", "updatedBy",
+  INSERT INTO "VinDataTemp" ("vin", "state", "titleBrandDate", "alertType",
+    "createdBy", "updatedBy",
     "isRead", "isOld", "isDel", "createdAt", "updatedAt")
-  SELECT vd."vin", vd."ImpoundDate", vd."State", vd."alertType",
+  SELECT vd."vin", vd."state", vd."titleBrandDate", vd."alertType",
     'system', 'system',
     vd."isRead", false, true, vd."createdAt", vd."updatedAt"
   FROM "VinData" vd
@@ -348,16 +345,16 @@ BEGIN
     AND NOT EXISTS (
       SELECT 1 FROM "VinDataTemp" temp
       WHERE vd."vin" = temp."vin"
-        AND vd."ImpoundDate" = temp."ImpoundDate"
-        AND vd."State" = temp."State"
+        AND vd."state" = temp."state"
+        AND vd."titleBrandDate" = temp."titleBrandDate"
         AND vd."alertType" = temp."alertType"
     );
 END;
 $$;
 
 
+-- 🧩 For Export
 DROP PROCEDURE IF EXISTS "update_isOld_vehicle_data_temp_Export";
-
 CREATE OR REPLACE PROCEDURE "update_isOld_vehicle_data_temp_Export"()
 LANGUAGE plpgsql
 AS $$
@@ -367,21 +364,21 @@ BEGIN
   FROM "VinData" AS vd
   WHERE 
     vdt."vin" = vd."vin"
-    AND vdt."ExportDate" = vd."ExportDate"
-    AND vdt."State" = vd."State"
+    AND vdt."state" = vd."state"
+    AND vdt."titleBrandDate" = vd."titleBrandDate"
     AND vdt."alertType" = 'Export';
 END;
 $$;
 
 DROP PROCEDURE IF EXISTS "isDel_update_compare_Export";
-
 CREATE OR REPLACE PROCEDURE "isDel_update_compare_Export"()
 LANGUAGE plpgsql
 AS $$
 BEGIN
-  INSERT INTO "VinDataTemp" ("vin", "ExportDate", "State", "alertType", "createdBy", "updatedBy",
+  INSERT INTO "VinDataTemp" ("vin", "state", "titleBrandDate", "alertType",
+    "createdBy", "updatedBy",
     "isRead", "isOld", "isDel", "createdAt", "updatedAt")
-  SELECT vd."vin", vd."ExportDate", vd."State", vd."alertType",
+  SELECT vd."vin", vd."state", vd."titleBrandDate", vd."alertType",
     'system', 'system',
     vd."isRead", false, true, vd."createdAt", vd."updatedAt"
   FROM "VinData" vd
@@ -392,59 +389,16 @@ BEGIN
     AND NOT EXISTS (
       SELECT 1 FROM "VinDataTemp" temp
       WHERE vd."vin" = temp."vin"
-        AND vd."ExportDate" = temp."ExportDate"
-        AND vd."State" = temp."State"
+        AND vd."state" = temp."state"
+        AND vd."titleBrandDate" = temp."titleBrandDate"
         AND vd."alertType" = temp."alertType"
     );
 END;
 $$;
 
 
-DROP PROCEDURE IF EXISTS "update_isOld_vehicle_data_temp_Export";
-
-CREATE OR REPLACE PROCEDURE "update_isOld_vehicle_data_temp_Export"()
-LANGUAGE plpgsql
-AS $$
-BEGIN
-  UPDATE "VinDataTemp" AS vdt
-  SET "isOld" = true, "isRead" = vd."isRead", "createdAt" = vd."createdAt", "updatedAt" = vd."updatedAt"
-  FROM "VinData" AS vd
-  WHERE 
-    vdt."vin" = vd."vin"
-    AND vdt."ExportDate" = vd."ExportDate"
-    AND vdt."State" = vd."State"
-    AND vdt."alertType" = 'Export';
-END;
-$$;
-
-DROP PROCEDURE IF EXISTS "isDel_update_compare_Export";
-
-CREATE OR REPLACE PROCEDURE "isDel_update_compare_Export"()
-LANGUAGE plpgsql
-AS $$
-BEGIN
-  INSERT INTO "VinDataTemp" ("vin", "ExportDate", "State", "alertType", "createdBy", "updatedBy",
-    "isRead", "isOld", "isDel", "createdAt", "updatedAt")
-  SELECT vd."vin", vd."ExportDate", vd."State", vd."alertType",
-    'system', 'system',
-    vd."isRead", false, true, vd."createdAt", vd."updatedAt"
-  FROM "VinData" vd
-  WHERE vd."alertType" = 'Export'
-    AND vd."vin" IN (
-      SELECT DISTINCT temp."vin" FROM "VinDataTemp" temp WHERE temp."alertType" = 'Export'
-    )
-    AND NOT EXISTS (
-      SELECT 1 FROM "VinDataTemp" temp
-      WHERE vd."vin" = temp."vin"
-        AND vd."ExportDate" = temp."ExportDate"
-        AND vd."State" = temp."State"
-        AND vd."alertType" = temp."alertType"
-    );
-END;
-$$;
-
+-- 🧩 For StolenSummary
 DROP PROCEDURE IF EXISTS "update_isOld_vehicle_data_temp_StolenSummary";
-
 CREATE OR REPLACE PROCEDURE "update_isOld_vehicle_data_temp_StolenSummary"()
 LANGUAGE plpgsql
 AS $$
@@ -454,22 +408,21 @@ BEGIN
   FROM "VinData" AS vd
   WHERE 
     vdt."vin" = vd."vin"
-    AND vdt."Status" = vd."Status"
-    AND vdt."LastEventDate" = vd."LastEventDate"
-    AND vdt."State" = vd."State"
+    AND vdt."status" = vd."status"
+    AND vdt."state" = vd."state"
+    AND vdt."titleBrandDate" = vd."titleBrandDate"
     AND vdt."alertType" = 'StolenSummary';
 END;
 $$;
 
 DROP PROCEDURE IF EXISTS "isDel_update_compare_StolenSummary";
-
 CREATE OR REPLACE PROCEDURE "isDel_update_compare_StolenSummary"()
 LANGUAGE plpgsql
 AS $$
 BEGIN
-  INSERT INTO "VinDataTemp" ("vin", "Status", "LastEventDate", "State", "alertType", "createdBy", "updatedBy",
+  INSERT INTO "VinDataTemp" ("vin", "status", "state", "titleBrandDate", "alertType", "createdBy", "updatedBy",
     "isRead", "isOld", "isDel", "createdAt", "updatedAt")
-  SELECT vd."vin", vd."Status", vd."LastEventDate", vd."State", vd."alertType",
+  SELECT vd."vin", vd."status", vd."state", vd."titleBrandDate", vd."alertType",
     'system', 'system',
     vd."isRead", false, true, vd."createdAt", vd."updatedAt"
   FROM "VinData" vd
@@ -480,16 +433,17 @@ BEGIN
     AND NOT EXISTS (
       SELECT 1 FROM "VinDataTemp" temp
       WHERE vd."vin" = temp."vin"
-        AND vd."Status" = temp."Status"
-        AND vd."LastEventDate" = temp."LastEventDate"
-        AND vd."State" = temp."State"
+        AND vd."status" = temp."status"
+        AND vd."state" = temp."state"
+        AND vd."titleBrandDate" = temp."titleBrandDate"
         AND vd."alertType" = temp."alertType"
     );
 END;
 $$;
 
-DROP PROCEDURE IF EXISTS "update_isOld_vehicle_data_temp_EbayAuction";
 
+-- 🧩 For EbayAuction
+DROP PROCEDURE IF EXISTS "update_isOld_vehicle_data_temp_EbayAuction";
 CREATE OR REPLACE PROCEDURE "update_isOld_vehicle_data_temp_EbayAuction"()
 LANGUAGE plpgsql
 AS $$
@@ -499,21 +453,20 @@ BEGIN
   FROM "VinData" AS vd
   WHERE 
     vdt."vin" = vd."vin"
-    AND vdt."ItemNumber" = vd."ItemNumber"
-    AND vdt."AuctionDate" = vd."AuctionDate"
+    AND vdt."itemNumber" = vd."itemNumber"
+    AND vdt."titleBrandDate" = vd."titleBrandDate"
     AND vdt."alertType" = 'EbayAuction';
 END;
 $$;
 
 DROP PROCEDURE IF EXISTS "isDel_update_compare_EbayAuction";
-
 CREATE OR REPLACE PROCEDURE "isDel_update_compare_EbayAuction"()
 LANGUAGE plpgsql
 AS $$
 BEGIN
-  INSERT INTO "VinDataTemp" ("vin", "ItemNumber", "AuctionDate", "alertType", "createdBy", "updatedBy",
+  INSERT INTO "VinDataTemp" ("vin", "itemNumber", "titleBrandDate", "alertType", "createdBy", "updatedBy",
     "isRead", "isOld", "isDel", "createdAt", "updatedAt")
-  SELECT vd."vin", vd."ItemNumber", vd."AuctionDate", vd."alertType",
+  SELECT vd."vin", vd."itemNumber", vd."titleBrandDate", vd."alertType",
     'system', 'system',
     vd."isRead", false, true, vd."createdAt", vd."updatedAt"
   FROM "VinData" vd
@@ -524,15 +477,16 @@ BEGIN
     AND NOT EXISTS (
       SELECT 1 FROM "VinDataTemp" temp
       WHERE vd."vin" = temp."vin"
-        AND vd."ItemNumber" = temp."ItemNumber"
-        AND vd."AuctionDate" = temp."AuctionDate"
+        AND vd."itemNumber" = temp."itemNumber"
+        AND vd."titleBrandDate" = temp."titleBrandDate"
         AND vd."alertType" = temp."alertType"
     );
 END;
 $$;
 
-DROP PROCEDURE IF EXISTS "update_isOld_vehicle_data_temp_Recall";
 
+-- 🧩 For Recall
+DROP PROCEDURE IF EXISTS "update_isOld_vehicle_data_temp_Recall";
 CREATE OR REPLACE PROCEDURE "update_isOld_vehicle_data_temp_Recall"()
 LANGUAGE plpgsql
 AS $$
@@ -542,20 +496,19 @@ BEGIN
   FROM "VinData" AS vd
   WHERE 
     vdt."vin" = vd."vin"
-    AND vdt."Reason" = vd."Reason"
+    AND vdt."reason" = vd."reason"
     AND vdt."alertType" = 'Recall';
 END;
 $$;
 
 DROP PROCEDURE IF EXISTS "isDel_update_compare_Recall";
-
 CREATE OR REPLACE PROCEDURE "isDel_update_compare_Recall"()
 LANGUAGE plpgsql
 AS $$
 BEGIN
-  INSERT INTO "VinDataTemp" ("vin", "Reason", "alertType", "createdBy", "updatedBy",
+  INSERT INTO "VinDataTemp" ("vin", "reason", "alertType", "createdBy", "updatedBy",
     "isRead", "isOld", "isDel", "createdAt", "updatedAt")
-  SELECT vd."vin", vd."Reason", vd."alertType",
+  SELECT vd."vin", vd."reason", vd."alertType",
     'system', 'system',
     vd."isRead", false, true, vd."createdAt", vd."updatedAt"
   FROM "VinData" vd
@@ -566,14 +519,15 @@ BEGIN
     AND NOT EXISTS (
       SELECT 1 FROM "VinDataTemp" temp
       WHERE vd."vin" = temp."vin"
-        AND vd."Reason" = temp."Reason"
+        AND vd."reason" = temp."reason"
         AND vd."alertType" = temp."alertType"
     );
 END;
 $$;
 
-DROP PROCEDURE IF EXISTS "update_isOld_vehicle_data_temp_CustomsInquiry";
 
+-- 🧩 For CustomsInquiry
+DROP PROCEDURE IF EXISTS "update_isOld_vehicle_data_temp_CustomsInquiry";
 CREATE OR REPLACE PROCEDURE "update_isOld_vehicle_data_temp_CustomsInquiry"()
 LANGUAGE plpgsql
 AS $$
@@ -583,20 +537,19 @@ BEGIN
   FROM "VinData" AS vd
   WHERE 
     vdt."vin" = vd."vin"
-    AND vdt."ExportDate" = vd."ExportDate" -- 🟡 use this for SearchDate field if added
+    AND vdt."titleBrandDate" = vd."titleBrandDate"
     AND vdt."alertType" = 'CustomsInquiry';
 END;
 $$;
 
 DROP PROCEDURE IF EXISTS "isDel_update_compare_CustomsInquiry";
-
 CREATE OR REPLACE PROCEDURE "isDel_update_compare_CustomsInquiry"()
 LANGUAGE plpgsql
 AS $$
 BEGIN
-  INSERT INTO "VinDataTemp" ("vin", "ExportDate", "alertType", "createdBy", "updatedBy",
+  INSERT INTO "VinDataTemp" ("vin", "titleBrandDate", "alertType", "createdBy", "updatedBy",
     "isRead", "isOld", "isDel", "createdAt", "updatedAt")
-  SELECT vd."vin", vd."ExportDate", vd."alertType",
+  SELECT vd."vin", vd."titleBrandDate", vd."alertType",
     'system', 'system',
     vd."isRead", false, true, vd."createdAt", vd."updatedAt"
   FROM "VinData" vd
@@ -607,30 +560,28 @@ BEGIN
     AND NOT EXISTS (
       SELECT 1 FROM "VinDataTemp" temp
       WHERE vd."vin" = temp."vin"
-        AND vd."ExportDate" = temp."ExportDate"
+        AND vd."titleBrandDate" = temp."titleBrandDate"
         AND vd."alertType" = temp."alertType"
     );
 END;
 $$;
 
 
+-- 🧩 Final Procedure - Copy Temp to Main
 DROP PROCEDURE IF EXISTS copy_data_from_vin_data_temp;
-
 CREATE OR REPLACE PROCEDURE copy_data_from_vin_data_temp()
 LANGUAGE plpgsql
 AS $$
 BEGIN
   INSERT INTO "VinData" (
-    "vin", "alertType",
-    "Lienholder", "LienDate", "ImpoundDate", "State", "ExportDate",
-    "Status", "LastEventDate", "ItemNumber", "AuctionDate", "Reason",
+    "vin", "alertType", "titleBrandDate",
+    "lienholder", "state", "status", "itemNumber", "reason",
     "isRead", "isOld", "isDel",
     "createdAt", "updatedAt", "createdBy", "updatedBy"
   )
   SELECT
-    "vin", "alertType",
-    "Lienholder", "LienDate", "ImpoundDate", "State", "ExportDate",
-    "Status", "LastEventDate", "ItemNumber", "AuctionDate", "Reason",
+    "vin", "alertType", "titleBrandDate",
+    "lienholder", "state", "status", "itemNumber", "reason",
     "isRead", "isOld", "isDel",
     "createdAt", "updatedAt", "createdBy", "updatedBy"
   FROM "VinDataTemp";
@@ -638,4 +589,3 @@ BEGIN
   RAISE NOTICE '✅ Data copied successfully from VinDataTemp to VinData';
 END;
 $$;
-  

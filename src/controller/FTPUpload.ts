@@ -25,7 +25,10 @@ import {
 import { VehicleData } from "../Entities/vehicle_data";
 import { truncateTable } from "../helpers/CompareHelpers";
 import { updateLastFileProcess } from "../helpers/UpdateLastRecord";
-import { dataCompareForDataSource2, getDataFromSourceTwo } from "./phase2test";
+import { 
+  dataCompareForDataSource2,
+  //  dataCompareForDataSource2,
+    getDataFromSourceTwo } from "./phase2test";
 
 // FTP config
 const ftpConfig = {

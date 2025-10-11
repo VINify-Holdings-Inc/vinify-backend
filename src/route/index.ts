@@ -53,7 +53,7 @@ routerAdmin.get("/navigate-sidebar-first-item", Handler.AuthSignIn, Handler.Navi
  //data source to 
 
  routerAdmin.post("/new-validate-vin-data-2", Handler.NewValidateVinData2);
- routerAdmin.post("/fetch-csv-data-source-2", Handler.getDataForCsvDownload);
+ routerAdmin.get("/fetch-csv-data-source-2", Handler.getDataForCsvDownload);
 
  routerAdmin.get("/test", Handler.TestControllerPhaseTwo);
 export default routerAdmin;
