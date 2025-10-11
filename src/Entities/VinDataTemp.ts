@@ -2,7 +2,7 @@ import {
   BaseEntity,
   Column,
   Entity,
-  PrimaryGeneratedColumn, 
+  PrimaryGeneratedColumn,
 } from "typeorm";
 
 @Entity({ name: "VinDataTemp" })
@@ -22,100 +22,67 @@ export class VinDataTemp extends BaseEntity {
     name: "alertType",
     type: "varchar",
     default: " ",
-    comment: "Alert Type",
+    comment: "Alert Type (Lien, Impound, Export, etc.)",
   })
   alertType: string;
 
+  // 🟢 Common date field replacing all others (LienDate, ExportDate, etc.)
   @Column({
-    name: "Lienholder",
+    name: "titleBrandDate",
     type: "varchar",
-    default: null,
     nullable: true,
-    comment: "Lienholder name",
+    default: null,
+    comment: "Alert-specific date (LienDate, ImpoundDate, etc.)",
   })
-  Lienholder: string | null;
+  titleBrandDate: string | null;
+
+  // 🟢 Common event fields (present only where applicable)
+  @Column({
+    name: "lienholder",
+    type: "varchar",
+    nullable: true,
+    default: null,
+    comment: "Lienholder name (Lien only)",
+  })
+  lienholder: string | null;
 
   @Column({
-    name: "LienDate",
+    name: "state",
     type: "varchar",
-    default: null,
     nullable: true,
-    comment: "Lien date",
+    default: null,
+    comment: "State of record (Impound, Export, StolenSummary)",
   })
-  LienDate: string | null;
+  state: string | null;
 
   @Column({
-    name: "ImpoundDate",
+    name: "status",
     type: "varchar",
-    default: null,
     nullable: true,
-    comment: "Impound date",
+    default: null,
+    comment: "Status (StolenSummary only)",
   })
-  ImpoundDate: string | null;
+  status: string | null;
 
   @Column({
-    name: "State",
+    name: "itemNumber",
     type: "varchar",
-    default: null,
     nullable: true,
-    comment: "State of record",
+    default: null,
+    comment: "Item number (EbayAuction only)",
   })
-  State: string | null;
+  itemNumber: string | null;
 
   @Column({
-    name: "ExportDate",
+    name: "reason",
     type: "varchar",
-    default: null,
     nullable: true,
-    comment: "Export date",
-  })
-  ExportDate: string | null;
-
-  @Column({
-    name: "Status",
-    type: "varchar",
     default: null,
-    nullable: true,
-    comment: "Vehicle status",
+    comment: "Reason or remark (Recall only)",
   })
-  Status: string | null;
+  reason: string | null;
 
-  @Column({
-    name: "LastEventDate",
-    type: "varchar",
-    default: null,
-    nullable: true,
-    comment: "Last event date",
-  })
-  LastEventDate: string | null;
-
-  @Column({
-    name: "ItemNumber",
-    type: "varchar",
-    default: null,
-    nullable: true,
-    comment: "Item number",
-  })
-  ItemNumber: string | null;
-
-  @Column({
-    name: "AuctionDate",
-    type: "varchar",
-    default: null,
-    nullable: true,
-    comment: "Auction date",
-  })
-  AuctionDate: string | null;
-
-  @Column({
-    name: "Reason",
-    type: "varchar",
-    default: null,
-    nullable: true,
-    comment: "Reason or remark",
-  })
-  Reason: string | null;
-
+  // 🟢 Common control fields
   @Column({
     name: "isRead",
     type: "boolean",
@@ -176,3 +143,4 @@ export class VinDataTemp extends BaseEntity {
   })
   updatedBy: string;
 }
+ 
