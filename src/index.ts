@@ -7,7 +7,7 @@ import routerAdmin from "./route/index";
 import { AppDataSource } from "./DbConfig/TypeOrm";
 import { throttleMiddleware } from "./middleware/ThrottleMiddleware";
 import expressFileupload from "express-fileupload";
-import { BatchFileExecution } from "./helpers/CronJob";
+// import { BatchFileExecution } from "./helpers/CronJob";
 const app = express();
 dotenv.config();
 app.set("trust proxy", 1);
@@ -34,7 +34,7 @@ AppDataSource.initialize()
 // Swagger setup
 app.use("/api-doc", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
- BatchFileExecution(); // batch file logic automate 30 min   
+//  BatchFileExecution(); // batch file logic automate 30 min   
 //  testCronJob()  test cron job
 // Routes
 app.use("/api", throttleMiddleware, routerAdmin);

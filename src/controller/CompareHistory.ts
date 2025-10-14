@@ -88,3 +88,6 @@ export const CompareHistoryTitalDetails = async (req: any, res: any) => {
         return createResponse(res, 500, MESSAGES?.INTERNAL_SERVER_ERROR, [], false, true);
     }
 };
+
+
+ 
