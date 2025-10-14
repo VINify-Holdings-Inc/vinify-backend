@@ -25,6 +25,10 @@ import {
 import { VehicleData } from "../Entities/vehicle_data";
 import { truncateTable } from "../helpers/CompareHelpers";
 import { updateLastFileProcess } from "../helpers/UpdateLastRecord";
+import { 
+  dataCompareForDataSource2,
+  //  dataCompareForDataSource2,
+    getDataFromSourceTwo } from "./phase2test";
 
 // FTP config
 const ftpConfig = {
@@ -228,7 +232,9 @@ export const FTPReadAllControllerRead = async () => {
 export const testR = async (req: any, res: any) => {
   try {
     await FTPReadAllControllerRead();
-    return res.json({ code: 200, message: "Cron executed", success: true, error: false });
+   const resultSource2= await getDataFromSourceTwo()
+   await dataCompareForDataSource2()
+    return res.json({ code: 200, message: "Cron executed",resultSource2, success: true, error: false });
   } catch (error) {
     console.error("Error:", error);
     res.status(500).json({ error: "Internal Server Error" });

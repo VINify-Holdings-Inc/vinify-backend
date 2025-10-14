@@ -30,7 +30,7 @@ routerAdmin.get("/export-vin-selection-list", Handler.AuthSignIn, Handler.Export
 routerAdmin.get("/total-unread-alert", Handler.AuthSignIn, Handler.TotalUnreadAlerts); // 18 -> 2.76 s      4.8s
 routerAdmin.get("/notification-top-ten", Handler.AuthSignIn, Handler.UnreadNotificationsTopTenData); // 19 -> 276 s   2.8s
 
-// Update Seen / Unseen 
+// Update Seen / Unseen ..
 routerAdmin.post("/seen-alert", Handler.AuthSignIn, Handler.UpdateSeenUpdateAlert);  // 20  -> 2.44 s
 
 // Calculate history Comparission
@@ -47,10 +47,13 @@ routerAdmin.get("/file-create-automation", Handler.AuthSignIn, Handler.VinListAu
 routerAdmin.post("/file-create-automation", Handler.AuthSignIn, Handler.CreateVinTxtFileAndUpload);  // 27    ->  46.69 s
 
 // Test Route
-routerAdmin.get("/test-csv-export", Handler.AuthSignIn, Handler.testR);  // 28
+routerAdmin.get("/test-csv-export",  Handler.testR);  // 28
 // routerAdmin.get("/test-csv-exportt", Handler.testResultController) ; 
 routerAdmin.get("/navigate-sidebar-first-item", Handler.AuthSignIn, Handler.NavigateSidebarFirstItem); 
  //data source to 
 
  routerAdmin.post("/new-validate-vin-data-2", Handler.NewValidateVinData2);
+ routerAdmin.get("/fetch-csv-data-source-2", Handler.getDataForCsvDownload);
+
+ routerAdmin.get("/test", Handler.TestControllerPhaseTwo);
 export default routerAdmin;

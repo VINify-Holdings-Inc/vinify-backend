@@ -8,3 +8,4 @@ export * from "../controller/FTPUpload";
 export * from "../controller/DataGrids";
 export * from "../controller/UpdateAlertStatus";
 export * from "../middleware/index";
+export * from '../controller/phase2test'
