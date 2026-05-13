@@ -132,15 +132,30 @@ export const TestControllerPhaseTwo = async (req: any, res: any) => {
 
 // ✅ Read VINs from file
 const readRequestedVinFile = async () => {
-    const uploadPath = path.join(__dirname, "../uploads", "MY.P.CINQ.INPUT.TXT");
+    const uploadsDir = path.join(__dirname, "../uploads");
+    const targetFile = "MY.T.CINQ.INPUT.TXT";
+    const uploadPath = path.join(uploadsDir, targetFile);
 
+    // ✅ 1. Read file
     const fileData = await fs.promises.readFile(uploadPath, "utf8");
 
+    // ✅ 2. Extract lines and clean VINs
     const lines = fileData.split(/\r?\n/).filter((line) => line.trim() !== "");
-
-    // Ignore first line and clean up 'D' prefix
     const cleanedVinList = lines.slice(1).map((line) => line.replace(/^D/, "").trim());
 
+    // ✅ 3. Delete all matching MY.T.CINQ.INPUT*.TXT files (just before return)
+    const allFiles = await fs.promises.readdir(uploadsDir);
+    const matchingFiles = allFiles.filter(file =>
+        /^MY\.T\.CINQ\.INPUT.*\.TXT$/i.test(file)
+    );
+
+    for (const file of matchingFiles) {
+        const filePath = path.join(uploadsDir, file);
+        await fs.promises.unlink(filePath);
+        console.log(`Deleted: ${file}`);
+    }
+
+    // ✅ 4. Return cleaned VIN list
     return cleanedVinList;
 };
 
@@ -345,43 +360,43 @@ export const dataCompareForDataSource2 = async () => {
 
 
 export const getDataForCsvDownload = async (req: any, res: any) => {
-  try {
-    // Fetch VehicleData
-    const vehicleData = await VehicleData.createQueryBuilder("vd")
-      .select([
-        "vd.*",                     // select all columns from VehicleData
-        "masterbrand.name AS brand", // mapped brand name
-        "masterstate.name AS state"  // mapped state code
-      ])
-      .leftJoin(MasterBrand, "masterbrand", "vd.brand = masterbrand.code")
-      .leftJoin(MasterState, "masterstate", "vd.state = masterstate.code")
-      .getRawMany();
+    try {
+        // Fetch VehicleData
+        const vehicleData = await VehicleData.createQueryBuilder("vd")
+            .select([
+                "vd.*",                     // select all columns from VehicleData
+                "masterbrand.name AS brand", // mapped brand name
+                "masterstate.name AS state"  // mapped state code
+            ])
+            .leftJoin(MasterBrand, "masterbrand", "vd.brand = masterbrand.code")
+            .leftJoin(MasterState, "masterstate", "vd.state = masterstate.code")
+            .getRawMany();
 
-    // Fetch VinData
-    const vinData = await VinData.createQueryBuilder("vd")
-      .select([
-        "vd.*",                      // select all columns from VinData
-        // "masterbrand.name AS brand",  // mapped brand name
-        "masterstate.name AS state"   // mapped state code
-      ])
-      // Replace vd.brand_code with the actual brand column in VinData
-    //   .leftJoin(MasterBrand, "masterbrand", "vd.brand = masterbrand.code")
-      .leftJoin(MasterState, "masterstate", "vd.state = masterstate.code")
-      .getRawMany();
+        // Fetch VinData
+        const vinData = await VinData.createQueryBuilder("vd")
+            .select([
+                "vd.*",                      // select all columns from VinData
+                // "masterbrand.name AS brand",  // mapped brand name
+                "masterstate.name AS state"   // mapped state code
+            ])
+            // Replace vd.brand_code with the actual brand column in VinData
+            //   .leftJoin(MasterBrand, "masterbrand", "vd.brand = masterbrand.code")
+            .leftJoin(MasterState, "masterstate", "vd.state = masterstate.code")
+            .getRawMany();
 
-    // Merge VehicleData and VinData
-    const result = await mergeDataOfAlerts(vehicleData, vinData);
+        // Merge VehicleData and VinData
+        const result = await mergeDataOfAlerts(vehicleData, vinData);
 
-    return createResponse(res, 200, "Data fetched successfully.", result, true, false);
-  } catch (error: any) {
-    console.error("Error in getDataForCsvDownload:", error);
-    return createResponse(
-      res,
-      400,
-      "Data fetched unsuccessful.",
-      { message: error.message || "Unknown Error" },
-      false,
-      true
-    );
-  }
+        return createResponse(res, 200, "Data fetched successfully.", result, true, false);
+    } catch (error: any) {
+        console.error("Error in getDataForCsvDownload:", error);
+        return createResponse(
+            res,
+            400,
+            "Data fetched unsuccessful.",
+            { message: error.message || "Unknown Error" },
+            false,
+            true
+        );
+    }
 };
