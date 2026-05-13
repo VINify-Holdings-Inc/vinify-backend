@@ -43,21 +43,15 @@ export const uploadToFTP = async (filePath: string, fileName: string) => {
   const client = new Client();
   client.ftp.verbose = true;
 
-  try {
-    console.log("🔌 Connecting to FTP...");
-    await client.access(ftpConfig);
-
+  try { 
+    await client.access(ftpConfig); 
     // Remove trailing slashes from the FTP path (e.g. "/folder///" -> "/folder")
-    const ftpPath = (process.env.FTP_INPUT_PATH || "/").replace(/\/+$/, "");
+    const ftpPath = (process.env.FTP_INPUT_PATH || "/").replace(/\/+$/, ""); 
 
-    console.log("📁 Ensuring directory:", ftpPath);
     await client.ensureDir(ftpPath);
 
-    const remotePath = `${ftpPath}/${fileName}`; // This now safely becomes "/filename" without double slashes
-    console.log(`📤 Uploading file from ${filePath} to ${remotePath}`);
-
-    await client.uploadFrom(filePath, remotePath);
-    console.log("✅ Upload successful!");
+    const remotePath = `${ftpPath}/${fileName}`; // This now safely becomes "/filename" without double slashes  
+    await client.uploadFrom(filePath, remotePath); 
   } catch (error) {
     console.error("❌ FTP Upload Error:", error);
     throw error;
@@ -73,27 +67,37 @@ export const FTPController = async (req: any, res: any) => {
     if (!req.files || !req.files.file) {
       console.warn("⚠️ No file uploaded in request.");
       return res.status(400).json({ error: "No file uploaded." });
-    }
+    } 
 
     const uploadedFile = req.files.file;
     const uploadPath = path.join(__dirname, "../uploads", uploadedFile.name);
-    console.log("📥 Saving file to:", uploadPath);
-    await uploadedFile.mv(uploadPath);
 
-    console.log("⏫ Uploading to FTP...");
+    await uploadedFile.mv(uploadPath);
     await uploadToFTP(uploadPath, uploadedFile.name);
 
+    // 💤 Wait 60 seconds before continuing
+    await new Promise(resolve => setTimeout(resolve, 60000));
+
+    // 🚀 Now call the delayed functions
+    await FTPReadAllControllerRead();
+    await getDataFromSourceTwo();
+    await dataCompareForDataSource2();
+
+    // ✅ Now finally send response after 60 seconds
     return res.json({
       code: 200,
-      message: "File uploaded successfully!",
+      message: "File uploaded and processed after 60 seconds.",
       success: true,
       error: false,
     });
+
   } catch (error) {
     console.error("❌ Upload Error:", error);
     return res.status(500).json({ error: "File upload failed." });
   }
 };
+
+
 
 
 // Retry wrapper
