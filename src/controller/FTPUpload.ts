@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import { Client } from "basic-ftp";
+import SftpClient from "ssh2-sftp-client";
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -25,38 +25,40 @@ import {
 import { VehicleData } from "../Entities/vehicle_data";
 import { truncateTable } from "../helpers/CompareHelpers";
 import { updateLastFileProcess } from "../helpers/UpdateLastRecord";
-import { 
-  dataCompareForDataSource2,
-  //  dataCompareForDataSource2,
-    getDataFromSourceTwo } from "./phase2test";
+// import {
+//   dataCompareForDataSource2,
+//   //  dataCompareForDataSource2,
+//   getDataFromSourceTwo
+// } from "./phase2test";
 
-// FTP config
-const ftpConfig = {
+// SFTP config
+const sftpConfig = {
   host: process.env.FTP_HOST!,
-  user: process.env.FTP_USERNAME!,
+  port: parseInt(process.env.FTP_PORT || "22"),
+  username: process.env.FTP_USERNAME!,
   password: process.env.FTP_PASSWORD!,
-  secure: true,
 };
 
-// Upload to FTP
+// Create a new SFTP client instance
+const createSftpClient = () => new SftpClient();
+
+// Upload to SFTP
 export const uploadToFTP = async (filePath: string, fileName: string) => {
-  const client = new Client();
-  client.ftp.verbose = true;
+  const sftp = createSftpClient();
 
-  try { 
-    await client.access(ftpConfig); 
-    // Remove trailing slashes from the FTP path (e.g. "/folder///" -> "/folder")
-    const ftpPath = (process.env.FTP_INPUT_PATH || "/").replace(/\/+$/, ""); 
+  try {
+    await sftp.connect(sftpConfig);
+    // Remove trailing slashes from the path (e.g. "/folder///" -> "/folder")
+    const remotePath = (process.env.FTP_INPUT_PATH || "/").replace(/\/+$/, "");
 
-    await client.ensureDir(ftpPath);
-
-    const remotePath = `${ftpPath}/${fileName}`; // This now safely becomes "/filename" without double slashes  
-    await client.uploadFrom(filePath, remotePath); 
+    const remoteFilePath = `${remotePath}/${fileName}`.replace(/\/{2,}/g, "/");
+    await sftp.put(filePath, remoteFilePath);
+    console.log(`✅ SFTP Upload Success: ${remoteFilePath}`);
   } catch (error) {
-    console.error("❌ FTP Upload Error:", error);
+    console.error("❌ SFTP Upload Error:", error);
     throw error;
   } finally {
-    client.close();
+    await sftp.end();
   }
 };
 
@@ -67,7 +69,7 @@ export const FTPController = async (req: any, res: any) => {
     if (!req.files || !req.files.file) {
       console.warn("⚠️ No file uploaded in request.");
       return res.status(400).json({ error: "No file uploaded." });
-    } 
+    }
 
     const uploadedFile = req.files.file;
     const uploadPath = path.join(__dirname, "../uploads", uploadedFile.name);
@@ -80,8 +82,8 @@ export const FTPController = async (req: any, res: any) => {
 
     // 🚀 Now call the delayed functions
     await FTPReadAllControllerRead();
-    await getDataFromSourceTwo();
-    await dataCompareForDataSource2();
+    // await getDataFromSourceTwo();
+    // await dataCompareForDataSource2();
 
     // ✅ Now finally send response after 60 seconds
     return res.json({
@@ -112,18 +114,20 @@ const retryOperation = async (operation: Function, retries: number = 3) => {
   }
 };
 
-// Remove old FTP output files
-export const removeAllFilesFromFTP = async (client: Client) => {
+// Remove old SFTP output files
+export const removeAllFilesFromSFTP = async (sftp: SftpClient) => {
   try {
-    const ftpPath = process.env.FTP_OUTPUT_PATH || "/";
-    const fileList = await client.list(ftpPath);
+    const remotePath = process.env.FTP_OUTPUT_PATH || "/";
+    const fileList = await sftp.list(remotePath);
 
     for (const file of fileList) {
-      const remotePath = path.posix.join(ftpPath, file.name); // use posix for FTP paths
-      await client.remove(remotePath);
+      if (file.type !== "d") { // skip directories
+        const filePath = path.posix.join(remotePath, file.name);
+        await sftp.delete(filePath);
+      }
     }
   } catch (error) {
-    console.error("❌ Error while deleting FTP files:", error);
+    console.error("❌ Error while deleting SFTP files:", error);
   }
 };
 
@@ -164,20 +168,30 @@ export const CreateVinTxtFileAndUpload = async (req: any, res: any) => {
   }
 };
 
-const downloadFile = async (client: Client, targetFileName: string) => {
-  await client.access(ftpConfig);
-
+const downloadFile = async (sftp: SftpClient, targetFileName: string): Promise<string | null> => {
   // Normalize remote dir
   const remoteDir = (process.env.FTP_OUTPUT_PATH || "/Output").replace(/\/+$/, "");
-  await client.ensureDir(remoteDir);
 
   // Build remote file path without double slashes
   const remoteFilePath = `${remoteDir}/${targetFileName}`.replace(/\/{2,}/g, "/");
 
+  // Check if file exists on SFTP server
+  const fileExists = await sftp.exists(remoteFilePath);
+  if (!fileExists) {
+    console.warn(`⚠️ File not found on SFTP: ${remoteFilePath}`);
+    return null;
+  }
+
   // Local save path
   const localPath = path.join(__dirname, "../AAMVAFTP", targetFileName);
 
-  await retryOperation(() => client.downloadTo(localPath, remoteFilePath));
+  // Ensure local directory exists
+  const localDir = path.dirname(localPath);
+  if (!fs.existsSync(localDir)) {
+    fs.mkdirSync(localDir, { recursive: true });
+  }
+
+  await retryOperation(() => sftp.fastGet(remoteFilePath, localPath));
 
   return localPath;
 };
@@ -192,21 +206,27 @@ const batchInsert = async (data: any[], batchSize = 1000) => {
 
 // Read all files & process
 export const FTPReadAllControllerRead = async () => {
-  const client: any = new Client();
-  client.ftp.verbose = true;
-  client.ftp.keepAlive = 10000;
-  client.ftp.timeout = 30000;
+  const sftp = createSftpClient();
 
   try {
-    const filePathTitle = await downloadFile(client, process.env.FTP_TITLE_FILE!);
-    const filePathBrand = await downloadFile(client, process.env.FTP_BRAND_FILE!);
-    const filePathJSI = await downloadFile(client, process.env.FTP_JSI_FILE!);
+    await sftp.connect(sftpConfig); 
+
+    const filePathTitle = await downloadFile(sftp, process.env.FTP_TITLE_FILE!);
+    const filePathBrand = await downloadFile(sftp, process.env.FTP_BRAND_FILE!);
+    const filePathJSI = await downloadFile(sftp, process.env.FTP_JSI_FILE!);
+
+    // If any file is missing, return early
+    if (!filePathTitle || !filePathBrand || !filePathJSI) {
+      console.warn("⚠️ One or more files not found on SFTP. Skipping processing.");
+      
+      return;
+    }
 
     const titleContent = await ReadTheTxtFormatJsonStream(filePathTitle);
     const brandContent = await parseVehicleDataBrandStream(filePathBrand);
-    const jsiContent = await parseVehicleDataJSIStream(filePathJSI);
+    const jsiContent = await parseVehicleDataJSIStream(filePathJSI); 
 
-    await removeAllFilesFromFTP(client);
+    await removeAllFilesFromSFTP(sftp);
 
     await batchInsert(titleContent);
     await batchInsert(brandContent);
@@ -226,19 +246,22 @@ export const FTPReadAllControllerRead = async () => {
 
     return;
   } catch (error) {
-    console.error("❌ FTP Read All Error:", error);
+    console.error("❌ SFTP Read All Error:", error);
   } finally {
-    client.close();
+    await sftp.end();
   }
 };
 
 // Manual trigger for cron
 export const testR = async (req: any, res: any) => {
   try {
+    console.log("in#########");
+
     await FTPReadAllControllerRead();
-   const resultSource2= await getDataFromSourceTwo()
-   await dataCompareForDataSource2()
-    return res.json({ code: 200, message: "Cron executed",resultSource2, success: true, error: false });
+    console.log("out#########");
+    //const resultSource2= await getDataFromSourceTwo()
+    /// await dataCompareForDataSource2()
+    return res.json({ code: 200, message: "Cron executed", data: [], success: true, error: false });
   } catch (error) {
     console.error("Error:", error);
     res.status(500).json({ error: "Internal Server Error" });
