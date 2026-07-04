@@ -3,10 +3,10 @@ require('dotenv').config();
 module.exports = {
   apps: [
     {
-      name: 'mvm_api2',
+      name: 'mvm_api',
       script: 'npx',
       args: 'ts-node src/index.ts',
-      watch: true,
+      watch: false,
       env: {
         NODE_ENV: 'development',
         PORT: process.env.PORT,
