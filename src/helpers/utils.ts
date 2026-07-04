@@ -1,5 +1,9 @@
-import crypto from "crypto";  
-const ENCRYPTION_KEY = crypto.randomBytes(32);  
+import crypto from "crypto";
+
+if (!process.env.ENCRYPTION_KEY) {
+  throw new Error("ENCRYPTION_KEY environment variable is not set.");
+}
+const ENCRYPTION_KEY = Buffer.from(process.env.ENCRYPTION_KEY, "hex");
 const IV_LENGTH = 16;
 
 export const encryptPayload = (text: any) => {
@@ -21,17 +25,8 @@ export const decryptPayload = (encryptedData: any) => {
 
     return decrypted;
 };  
-export const generateToken = () => {
-    const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-    const tokenLength = 20;
-    let token = "";
-
-    for (let i = 0; i < tokenLength; i++) {
-        const randomIndex = Math.floor(Math.random() * characters.length);
-        token += characters[randomIndex];
-    }
-
-    return token;
+export const generateToken = (): string => {
+    return crypto.randomBytes(20).toString("hex");
 };  
 // Fields to consider for profile completion
 const fieldsToCheck = ["firstName", "lastName", "emailId", "secondaryEmailId", "companyId", "title", "profile"];
@@ -92,3 +87,9 @@ export const deletedExtraVinData = (newDataSet: any, oldDataSet: any) => {
 
   return filteredData;
 };
+
+// node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+// Copy that output into the .env file as:
+
+
+// ENCRYPTION_KEY=<the value>
