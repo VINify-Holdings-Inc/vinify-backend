@@ -37,7 +37,7 @@ export class Login extends BaseEntity {
   @Column({
     name: "password",
     type: "varchar",
-    length: 50,
+    length: 255,
     nullable: true,
     default: null,
   })

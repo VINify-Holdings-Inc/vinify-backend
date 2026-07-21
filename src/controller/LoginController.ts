@@ -1,4 +1,5 @@
 import jwt from "jsonwebtoken";
+import bcrypt from "bcrypt";
 import { Login } from "../Entities/login";
 import { User } from "../Entities/user";
 import { sendEmail } from "../helpers/email";
@@ -72,9 +73,25 @@ export const LoginController = async (req: any, res: any) => {
             return createResponse(res, 404, MESSAGES?.USER_NOT_FOUND, [], false, true);
         }
 
-        // Compare provided password with stored password (plaintext comparison assumed)
-        if (login.password !== password) {
-            return createResponse(res, 401, MESSAGES?.INVALID_CREDENTIALS, [], false, true);
+        // Legacy accounts still have their password stored as plaintext. Accounts
+        // created/reset after the bcrypt migration have a $2-prefixed hash instead.
+        // On a successful legacy-plaintext login, silently rehash and persist so the
+        // account is upgraded to bcrypt in place -- no forced reset, no downtime.
+        const isBcryptHash = /^\$2[aby]\$\d{2}\$/.test(login.password || "");
+
+        if (isBcryptHash) {
+            const passwordMatches = await bcrypt.compare(password, login.password);
+
+            if (!passwordMatches) {
+                return createResponse(res, 401, MESSAGES?.INVALID_CREDENTIALS, [], false, true);
+            }
+        } else {
+            if (login.password !== password) {
+                return createResponse(res, 401, MESSAGES?.INVALID_CREDENTIALS, [], false, true);
+            }
+
+            const upgradedHash = await bcrypt.hash(password, 10);
+            await Login.update({ userId: login.userId }, { password: upgradedHash });
         }
 
         // Create JWT token with userId and email as payload
@@ -163,7 +180,8 @@ export const ResetPassword = async (req: any, res: any, next: any) => {
             // Check if token is still valid based on the expiry time
             if ((currentTime - tokenIssuedAt) <= tokenExpiryTime) {
                 // Update the user's password and clear the login token
-                await Login.update({ loginToken: token }, { loginToken: "", password: password });
+                const hashedPassword = await bcrypt.hash(password, 10);
+                await Login.update({ loginToken: token }, { loginToken: "", password: hashedPassword });
 
                 // Send a success response for password update
                 return createResponse(res, 200, MESSAGES?.PASSWORD_UPDATED);
@@ -243,13 +261,6 @@ export const ProfileUpdate = async (req: any, res: any) => {
         // Calculate profile completion percentage based on the user data
         const profileComplete = await profileCompletion(userData);
 
-        // Fetch login data from the `Login` table using the provided email
-        // Only fetches the `password` field
-        const loginData = await Login.findOne({
-            where: { emailId: email },
-            select: ["password"],
-        });
-
         // Check if user data was found; if not, send a 404 response
         if (!userData) {
             return createResponse(res, 404, MESSAGES?.USER_NOT_FOUND, [], true, false);
@@ -268,8 +279,6 @@ export const ProfileUpdate = async (req: any, res: any) => {
             profile: userData?.profile,
             companyId: userData?.companyId,
             title: userData?.title,
-            // Include the password from the login data, or null if not available
-            password: loginData?.password || null,
             updatedAt: userData?.updatedAt,
             last_record_updated: userData?.createdAt,
             profileComplete
@@ -360,9 +369,10 @@ export const userProfileUpdate = async (req: any, res: any) => {
 
         // Update password in Login table, if provided
         if (password) {
+            const hashedPassword = await bcrypt.hash(password, 10);
             await Login.createQueryBuilder()
                 .update(Login)
-                .set({ password, updatedAt: new Date(), updatedBy: userId })
+                .set({ password: hashedPassword, updatedAt: new Date(), updatedBy: userId })
                 .where("userId = :userId", { userId })
                 .execute();
         }
