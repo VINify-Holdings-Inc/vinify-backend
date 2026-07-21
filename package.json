@@ -5,7 +5,7 @@
   "main": "src/index.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "lint": "tslint -c tslint.json -p tsconfig.json",
+    "lint": "eslint src",
     "format": "npm run lint -- --fix",
     "start": " npx nodemon",
     "dev": " npx nodemon"
@@ -35,7 +35,6 @@
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
     "ts-node": "^10.9.2",
-    "tslint": "^5.20.1",
     "typeorm": "^0.3.20",
     "typescript": "^5.7.2",
     "xml2js": "^0.6.2"
@@ -47,6 +46,8 @@
     "@types/multer": "^1.4.12",
     "@types/node-cron": "^3.0.11",
     "@types/swagger-jsdoc": "^6.0.4",
-    "@types/xml2js": "^0.4.14"
+    "@types/xml2js": "^0.4.14",
+    "eslint": "^10.7.0",
+    "typescript-eslint": "^8.65.0"
   }
 }
