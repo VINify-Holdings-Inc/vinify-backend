@@ -18,23 +18,10 @@ app.use(expressFileupload());
 // Static serve path
 app.use("/api/uploads", express.static("./src/uploads"));
 
-// Initialize PostgreSQL Database
-AppDataSource.initialize()
-  .then(() => {
-
-     // tslint:disable-next-line:no-console
-    console.log("🚀Data Source has been initialized! ✅");
-  })
-  .catch((err: any) => {
-
-     // tslint:disable-next-line:no-console
-    console.error("Error during Data Source initialization", err);
-  });
-
 // Swagger setup
 app.use("/api-doc", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
-//  BatchFileExecution(); // batch file logic automate 30 min   
+//  BatchFileExecution(); // batch file logic automate 30 min
 //  testCronJob()  test cron job
 // Routes
 app.use("/api", throttleMiddleware, routerAdmin);
@@ -45,7 +32,7 @@ app.get("/", throttleMiddleware, (req: Request, res: Response) => {
 });
 
 app.get("/test", throttleMiddleware, (req: Request, res: Response) => {
-  
+
   res.send("Welcome to the 2020");
 });
 
@@ -56,9 +43,25 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
   res.status(500).send("Something went wrong!");
 });
 
-// Start server
+// Initialize PostgreSQL Database, then start accepting requests.
+// Cron endpoints (e.g. /api/cron-execution-trigger) query entities via the
+// TypeORM Active Record pattern, which requires AppDataSource.initialize()
+// to have resolved first -- starting the listener before that resolved was
+// causing "DataSource is not set for this entity" on requests that arrived
+// in the gap right after a restart.
 const PORT = process.env.PORT || 8000;
-app.listen(PORT, () => {
- // tslint:disable-next-line:no-console
-  console.log(`Hi Server is Running 🚀 at Port ${PORT}`);
-});
+AppDataSource.initialize()
+  .then(() => {
+     // tslint:disable-next-line:no-console
+    console.log("🚀Data Source has been initialized! ✅");
+
+    app.listen(PORT, () => {
+     // tslint:disable-next-line:no-console
+      console.log(`Hi Server is Running 🚀 at Port ${PORT}`);
+    });
+  })
+  .catch((err: any) => {
+     // tslint:disable-next-line:no-console
+    console.error("Error during Data Source initialization", err);
+    process.exit(1);
+  });
