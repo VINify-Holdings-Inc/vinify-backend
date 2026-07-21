@@ -32,6 +32,7 @@ jobs:
               "cd /var/www/api",
               "sudo -u ubuntu git fetch origin",
               "sudo -u ubuntu git reset --hard origin/main",
+              "sudo -u ubuntu env PATH=/home/ubuntu/.nvm/versions/node/v22.16.0/bin:$PATH npm ci",
               "sudo -u ubuntu env PATH=/home/ubuntu/.nvm/versions/node/v22.16.0/bin:$PATH bash -c \"cd /var/www/api && pm2 reload ecosystem.config.js --env production\""
             ]' \
             --output text --query "Command.CommandId")
