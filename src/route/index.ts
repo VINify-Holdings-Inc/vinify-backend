@@ -45,6 +45,8 @@ routerAdmin.get("/track-vin-pop", Handler.TrackVinPopController); // 24  -> 2.72
 routerAdmin.post("/upload-ftp-txt",  Handler.FTPController); // 25   -> 46.20 s
 routerAdmin.get("/file-create-automation", Handler.AuthSignIn, Handler.VinListAutomateFileCreatetion);  // 26   -> 2.30 s
 routerAdmin.post("/file-create-automation", Handler.AuthSignIn, Handler.CreateVinTxtFileAndUpload);  // 27    ->  46.69 s
+routerAdmin.post("/cron-execution-trigger", Handler.CronCreateVinRequestController); // Cron 1 (Create VIN request file)
+routerAdmin.post("/cron-read-ftp-data", Handler.CronReadFTPDataController); // Cron 2 (Read FTP and update DB)
 
 // Test Route
 routerAdmin.get("/test-csv-export",  Handler.testR);  // 28

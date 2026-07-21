@@ -10,8 +10,15 @@ import {
 export class LastFileProcess extends BaseEntity {
   @PrimaryGeneratedColumn({ name: "id" })
   @Generated("uuid")
-  uuid: string; 
-  
+  uuid: string;
+
+  @Column({
+    name: "lastRan",
+    type: "timestamptz",
+    nullable: true,
+  })
+  lastRan: Date;
+
   @Column({
     name: "createdAt",
     type: "timestamptz",
