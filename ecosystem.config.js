@@ -7,6 +7,10 @@ module.exports = {
       script: 'npx',
       args: 'ts-node src/index.ts',
       watch: false,
+      autorestart: true,
+      max_restarts: 10,
+      min_uptime: '30s',
+      exp_backoff_restart_delay: 100,
       env: {
         NODE_ENV: 'development',
         PORT: process.env.PORT,
