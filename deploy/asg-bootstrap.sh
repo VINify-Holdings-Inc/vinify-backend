@@ -25,6 +25,16 @@ if ! command -v aws >/dev/null; then
   ./aws/install
 fi
 
+# t2.micro has thin RAM headroom; npm ci during deploys can otherwise cause
+# the same OOM-style stalls seen on the standalone instance.
+if [ ! -f /swapfile ]; then
+  fallocate -l 2G /swapfile
+  chmod 600 /swapfile
+  mkswap /swapfile
+  swapon /swapfile
+  echo "/swapfile none swap sw 0 0" >> /etc/fstab
+fi
+
 id ubuntu || useradd -m -s /bin/bash ubuntu
 
 sudo -u ubuntu bash -c '
