@@ -74,9 +74,18 @@ chown ubuntu:ubuntu "$RELEASES_DIR"
 sudo -u ubuntu git clone --depth 1 --branch "$BRANCH" "$REPO_URL" "$RELEASE_DIR"
 sudo -u ubuntu ln -sfn "$SHARED_DIR/.env" "$RELEASE_DIR/.env"
 sudo -u ubuntu ln -sfn "$SHARED_DIR/uploads" "$RELEASE_DIR/src/uploads"
-ln -sfn "$RELEASE_DIR" "$APP_DIR"
 
-sudo -u ubuntu env PATH="$NODE_BIN:$PATH" bash -c "cd '$APP_DIR' && npm ci"
+# Install deps against the release dir directly, before the symlink cutover --
+# not via $APP_DIR, since that may still be a stale pre-existing directory
+# from the AMI at this point (rm -rf below only happens right after).
+sudo -u ubuntu env PATH="$NODE_BIN:$PATH" bash -c "cd '$RELEASE_DIR' && npm ci"
+
+# rm -rf is required here: if $APP_DIR already exists as a real directory
+# (e.g. baked into the AMI), `ln -sfn` does NOT replace it -- it silently
+# creates the symlink *inside* that directory instead, leaving the stale
+# directory (and whatever old app config it contains) as what actually runs.
+rm -rf "$APP_DIR"
+ln -sfn "$RELEASE_DIR" "$APP_DIR"
 
 PORT=$(grep -m1 '^PORT=' "$SHARED_DIR/.env" | cut -d= -f2 | tr -d '\r\n ')
 
