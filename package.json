@@ -35,7 +35,7 @@
     "swagger-jsdoc": "^6.3.0",
     "swagger-ui-express": "^5.0.1",
     "ts-node": "^10.9.2",
-    "typeorm": "^0.3.31",
+    "typeorm": "^1.1.0",
     "typescript": "^5.7.2",
     "xml2js": "^0.6.2"
   },
