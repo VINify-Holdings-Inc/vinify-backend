@@ -64,6 +64,8 @@ aws secretsmanager get-secret-value --secret-id vinify-backend/production/env-fi
 chown -R ubuntu:ubuntu "$SHARED_DIR"
 
 rm -rf "$APP_DIR"
+mkdir -p "$APP_DIR"
+chown ubuntu:ubuntu "$APP_DIR"
 sudo -u ubuntu git clone --depth 1 --branch "$BRANCH" "$REPO_URL" "$APP_DIR"
 sudo -u ubuntu ln -sfn "$SHARED_DIR/.env" "$APP_DIR/.env"
 sudo -u ubuntu ln -sfn "$SHARED_DIR/uploads" "$APP_DIR/src/uploads"
