@@ -98,5 +98,13 @@ rm -f /etc/nginx/sites-enabled/default
 ln -sf /etc/nginx/sites-available/api /etc/nginx/sites-enabled/api
 systemctl restart nginx
 
+# The AMI this launch template uses was snapshotted from a real instance and
+# may carry a stale ~/.pm2 state (e.g. an old app registered under a
+# different name than what's in the committed ecosystem.config.js today).
+# Wipe it so pm2 starts clean and the app comes up under the name the deploy
+# pipeline actually expects.
+rm -rf /home/ubuntu/.pm2
+chown -R ubuntu:ubuntu /home/ubuntu
+
 env PATH="$NODE_BIN:$PATH" pm2 startup systemd -u ubuntu --hp /home/ubuntu
 sudo -u ubuntu env PATH="$NODE_BIN:$PATH" bash -c "cd '$APP_DIR' && pm2 start ecosystem.config.js --env production && pm2 save"
