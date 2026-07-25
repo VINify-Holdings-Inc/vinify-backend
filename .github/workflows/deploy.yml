@@ -3,6 +3,14 @@ name: Deploy to production
 on:
   push:
     branches: [main]
+    paths:
+      - "src/**"
+      - "package.json"
+      - "package-lock.json"
+      - "tsconfig.json"
+      - "ecosystem.config.js"
+      - "deploy/**"
+      - ".github/workflows/deploy.yml"
 
 concurrency:
   group: deploy-production
