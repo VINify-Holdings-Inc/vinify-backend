@@ -15,6 +15,7 @@ NODE_VERSION="22.16.0"
 REPO_URL="git@github.com-vinify-backend:VINify-Holdings-Inc/vinify-backend.git"
 BRANCH="main"
 APP_DIR="/var/www/api"
+RELEASES_DIR="/var/www/api-releases"
 SHARED_DIR="/var/www/api-shared"
 
 if ! command -v aws >/dev/null; then
@@ -63,12 +64,17 @@ mkdir -p "$SHARED_DIR/uploads"
 aws secretsmanager get-secret-value --secret-id vinify-backend/production/env-file --region "$REGION" --query SecretString --output text > "$SHARED_DIR/.env"
 chown -R ubuntu:ubuntu "$SHARED_DIR"
 
-rm -rf "$APP_DIR"
-mkdir -p "$APP_DIR"
-chown ubuntu:ubuntu "$APP_DIR"
-sudo -u ubuntu git clone --depth 1 --branch "$BRANCH" "$REPO_URL" "$APP_DIR"
-sudo -u ubuntu ln -sfn "$SHARED_DIR/.env" "$APP_DIR/.env"
-sudo -u ubuntu ln -sfn "$SHARED_DIR/uploads" "$APP_DIR/src/uploads"
+# Clone into a timestamped release dir and symlink /var/www/api to it, matching
+# the atomic-release convention used by deploy/remote-deploy.sh -- so that
+# script's `ln -sfn` cutover works unmodified against this instance too,
+# instead of failing trying to overwrite a plain directory.
+RELEASE_DIR="$RELEASES_DIR/baseline-$(date +%Y%m%d%H%M%S)"
+mkdir -p "$RELEASES_DIR"
+chown ubuntu:ubuntu "$RELEASES_DIR"
+sudo -u ubuntu git clone --depth 1 --branch "$BRANCH" "$REPO_URL" "$RELEASE_DIR"
+sudo -u ubuntu ln -sfn "$SHARED_DIR/.env" "$RELEASE_DIR/.env"
+sudo -u ubuntu ln -sfn "$SHARED_DIR/uploads" "$RELEASE_DIR/src/uploads"
+ln -sfn "$RELEASE_DIR" "$APP_DIR"
 
 sudo -u ubuntu env PATH="$NODE_BIN:$PATH" bash -c "cd '$APP_DIR' && npm ci"
 
