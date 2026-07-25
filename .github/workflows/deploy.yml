@@ -4,6 +4,10 @@ on:
   push:
     branches: [main]
 
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
 permissions:
   id-token: write
   contents: read
@@ -15,6 +19,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22.16.0"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type check
+        run: npx tsc --noEmit
+
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -23,18 +37,13 @@ jobs:
 
       - name: Deploy via SSM
         run: |
+          PARAMS=$(jq -n --rawfile script deploy/remote-deploy.sh '{commands: [$script]}')
+
           COMMAND_ID=$(aws ssm send-command \
             --instance-ids "i-065704b19bce21f09" \
             --document-name "AWS-RunShellScript" \
             --comment "vinify-backend deploy from ${{ github.sha }}" \
-            --parameters 'commands=[
-              "set -e",
-              "cd /var/www/api",
-              "sudo -u ubuntu git fetch origin",
-              "sudo -u ubuntu git reset --hard origin/main",
-              "sudo -u ubuntu env PATH=/home/ubuntu/.nvm/versions/node/v22.16.0/bin:$PATH npm ci",
-              "sudo -u ubuntu env PATH=/home/ubuntu/.nvm/versions/node/v22.16.0/bin:$PATH bash -c \"cd /var/www/api && pm2 reload ecosystem.config.js --env production\""
-            ]' \
+            --parameters "$PARAMS" \
             --output text --query "Command.CommandId")
 
           echo "SSM Command ID: $COMMAND_ID"
