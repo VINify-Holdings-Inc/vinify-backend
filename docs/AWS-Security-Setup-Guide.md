@@ -4,7 +4,7 @@
 
 | Version | Date | Author | Summary |
 |---|---|---|---|
-| 1.0 | 2026-07-27 | Betty Waiyego (Engineering Lead) | Initial version. Documents the AWS security configuration as implemented and verified in the production account as of this date. |
+| 1.0 | 2026-07-20 | Betty Waiyego (Engineering Lead) | Initial version. Documents the AWS security configuration as implemented and verified in the production account as of this date. |
 
 > This document is version-controlled via its git commit history in this repository. Each substantive review or change should be committed as a new entry above and in the commit log, so the revision history is objectively verifiable rather than manually asserted.
 
