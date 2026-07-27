@@ -14,6 +14,7 @@
 2. [Production VPC & Network Architecture Setup](#2-production-vpc--network-architecture-setup)
 3. [Data Encryption Configuration (KMS at Rest & TLS in Transit)](#3-data-encryption-configuration-kms-at-rest--tls-in-transit)
 4. [Log Router & CloudTrail Activation Rules](#4-log-router--cloudtrail-activation-rules)
+5. [Baseline Configuration Procedures for New Resources](#5-baseline-configuration-procedures-for-new-resources)
 
 ---
 
@@ -65,7 +66,7 @@
 ## 3. Data Encryption Configuration (KMS at Rest & TLS in Transit)
 
 ### Encryption at rest
-- **RDS**: the production database has storage encryption enabled (`StorageEncrypted: true`), backed by a customer KMS key (`arn:aws:kms:us-east-1:010526276308:key/1e3d9000-936d-4cdc-be66-7b0cdb70dd2f`).
+- **RDS**: the production database has storage encryption enabled (`StorageEncrypted: true`), backed by the AWS-managed default RDS key (`arn:aws:kms:us-east-1:010526276308:key/1e3d9000-936d-4cdc-be66-7b0cdb70dd2f`).
 - **S3**: all buckets in the account (CloudTrail log buckets, frontend deployment artifacts, and any bucket holding sensitive data) have default server-side encryption enabled (AES256).
 - **Secrets**: database credentials and the git deploy key used to provision compute are stored in **AWS Secrets Manager**, retrieved at instance boot time — never committed to source control or stored in plaintext on disk outside of the running instance's shared configuration directory.
 
@@ -93,6 +94,51 @@
 
 ### GuardDuty
 - Enabled (one active detector), providing continuous threat-detection monitoring across the account.
+
+---
+
+## 5. Baseline Configuration Procedures for New Resources
+
+These are the concrete steps engineers must follow when provisioning the resource types below, so that new infrastructure meets the same baseline documented in Sections 1-4 rather than depending on someone remembering to configure it after the fact.
+
+### RDS encryption
+1. Set `StorageEncrypted = true` in the instance creation request. **This cannot be changed after creation** — an unencrypted instance can only reach encryption via a snapshot-copy-with-encryption-enabled and restore, so it must be correct at creation time.
+2. By default this uses the AWS-managed key `aws/rds`. If a customer-managed KMS key is required (e.g. for centralized rotation policy or cross-account access control), pass `--kms-key-id` explicitly at creation.
+3. Verify immediately after creation:
+   ```
+   aws rds describe-db-instances --db-instance-identifier <name> \
+     --query "DBInstances[0].StorageEncrypted"
+   ```
+   must return `true`.
+4. For Multi-AZ instances already running on the AWS-default VPC subnet group: do not attempt to change the DB subnet group via `modify-db-instance` — this trips a known AWS platform restriction. Use a snapshot-restore-and-cutover into the target subnet group instead.
+
+### S3 bucket provisioning
+1. Enable default server-side encryption (SSE-S3/AES256, or SSE-KMS) at bucket creation — never leave a new bucket with encryption unset.
+2. Enable all four Public Access Block settings (`BlockPublicAcls`, `IgnorePublicAcls`, `BlockPublicPolicy`, `RestrictPublicBuckets`) at creation, unless the bucket is deliberately serving public content.
+3. Verify:
+   ```
+   aws s3api get-bucket-encryption --bucket <name>
+   aws s3api get-public-access-block --bucket <name>
+   ```
+
+### Security groups for new resources
+1. Never attach the VPC's `default` security group to a new resource that needs real network rules — it is intentionally kept at zero rules and must stay that way.
+2. Create a purpose-named security group per resource type (e.g. `<service>-sg`) with an explicit description of what it's for.
+3. Grant database/internal-service access by **security-group reference** (`--source-group`), never by CIDR block, and never `0.0.0.0/0`.
+4. Tag every security group with a `Name` tag matching its purpose — the EC2 `GroupName` field is immutable after creation, so the tag is the only editable label.
+
+### Branch protection (GitHub)
+The following is the actual ruleset configuration enforced on production repositories today:
+1. Create a repository ruleset targeting the default branch.
+2. Block direct pushes and force-pushes to the branch (`non_fast_forward` and `deletion` rules active) — all changes must go through a pull request.
+3. Require at least 1 approving review (`required_approving_review_count: 1`).
+4. Require review from a code owner (`require_code_owner_review: true`).
+5. Require all review conversation threads to be resolved before merge (`required_review_thread_resolution: true`).
+6. Leave the ruleset's bypass-actor list empty by default. Bypass access should only ever be added deliberately, for a specific named person, and that addition is itself a change worth reviewing.
+7. Verify:
+   ```
+   gh api repos/<org>/<repo>/rulesets/<id> --jq '.rules'
+   ```
 
 ---
 
