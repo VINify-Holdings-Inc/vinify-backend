@@ -17,6 +17,8 @@ BRANCH="main"
 APP_DIR="/var/www/api"
 RELEASES_DIR="/var/www/api-releases"
 SHARED_DIR="/var/www/api-shared"
+WEB_DIR="/var/www/web"
+FRONTEND_BUCKET="vinify-frontend-deploy-artifacts"
 
 if ! command -v aws >/dev/null; then
   cd /tmp
@@ -96,6 +98,10 @@ sed -i '/^DB_USERNAME=/d; /^DB_PASSWORD=/d' "$SHARED_DIR/.env"
 
 chown -R ubuntu:ubuntu "$SHARED_DIR"
 
+mkdir -p "$WEB_DIR"
+aws s3 sync "s3://${FRONTEND_BUCKET}/" "$WEB_DIR" --delete
+chown -R ubuntu:ubuntu "$WEB_DIR"
+
 # Clone into a timestamped release dir and symlink /var/www/api to it, matching
 # the atomic-release convention used by deploy/remote-deploy.sh -- so that
 # script's `ln -sfn` cutover works unmodified against this instance too,
@@ -121,22 +127,77 @@ ln -sfn "$RELEASE_DIR" "$APP_DIR"
 
 PORT=$(grep -m1 '^PORT=' "$SHARED_DIR/.env" | cut -d= -f2 | tr -d '\r\n ')
 
-cat > /etc/nginx/sites-available/api <<EOC
+# default_server so ALB health checks (which hit the instance by IP, not a
+# hostname) and api.getvinify.com both land here; app.getvinify.com below
+# matches nginx's exact server_name first regardless of block order.
+cat > /etc/nginx/sites-available/api.getvinify.com <<EOC
 server {
     listen 80 default_server;
     server_name _;
+
+    gzip on;
+    gzip_types application/json application/javascript text/plain;
+    gzip_min_length 512;
+
     location / {
         proxy_pass http://127.0.0.1:${PORT};
         proxy_http_version 1.1;
         proxy_set_header Upgrade \$http_upgrade;
         proxy_set_header Connection 'upgrade';
         proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
         proxy_cache_bypass \$http_upgrade;
     }
 }
 EOC
+
+cat > /etc/nginx/sites-available/app.getvinify.com <<'EOC'
+server {
+    listen 80;
+    server_name app.getvinify.com;
+
+    root /var/www/web;
+    index index.html;
+
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+
+    gzip on;
+    gzip_types text/plain text/css application/javascript application/json image/svg+xml;
+    gzip_min_length 512;
+
+    location / {
+        try_files $uri /index.html;
+    }
+
+    # Build assets are content-hashed (e.g. main-<hash>.js) -- safe to cache
+    # aggressively/immutably, since a new deploy ships new filenames.
+    location ~* \.(?:js|css|woff2?|ttf|eot|svg|png|jpg|jpeg|gif|ico)$ {
+        try_files $uri =404;
+        add_header Cache-Control "public, immutable, max-age=31536000";
+    }
+
+    # index.html must always be revalidated -- otherwise a browser that
+    # cached the previous deploy's shell keeps requesting asset filenames
+    # that no longer exist after the next deploy overwrites them.
+    location = /index.html {
+        add_header Cache-Control "no-cache";
+    }
+}
+EOC
+
+# The AMI carries a stale "api.getvinify.com.disabled" symlink in
+# sites-enabled from whatever instance it was snapshotted from -- the
+# ".disabled" suffix has no meaning to nginx (its sites-enabled/* include
+# picks up any filename), so it silently double-loads our own config
+# under its real target path and collides on "default server".
+find /etc/nginx/sites-enabled/ -name '*.disabled' -delete
 rm -f /etc/nginx/sites-enabled/default
-ln -sf /etc/nginx/sites-available/api /etc/nginx/sites-enabled/api
+ln -sf /etc/nginx/sites-available/api.getvinify.com /etc/nginx/sites-enabled/api.getvinify.com
+ln -sf /etc/nginx/sites-available/app.getvinify.com /etc/nginx/sites-enabled/app.getvinify.com
+nginx -t
 systemctl restart nginx
 
 # The AMI this launch template uses was snapshotted from a real instance and
