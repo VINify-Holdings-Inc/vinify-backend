@@ -72,6 +72,23 @@ chown ubuntu:ubuntu /home/ubuntu/.ssh/known_hosts
 
 mkdir -p "$SHARED_DIR/uploads"
 aws secretsmanager get-secret-value --secret-id vinify-backend/production/env-file --region "$REGION" --query SecretString --output text > "$SHARED_DIR/.env"
+
+# RDS manages and rotates the master password on its own schedule, into its
+# own Secrets Manager secret -- fetching it fresh at boot (rather than relying
+# on the static copy above, which can go stale between rotations) means
+# rotation is a non-event instead of a recurring outage.
+DB_INSTANCE_ID="mvmprod"
+DB_SECRET_ARN=$(aws rds describe-db-instances --db-instance-identifier "$DB_INSTANCE_ID" --region "$REGION" \
+  --query "DBInstances[0].MasterUserSecret.SecretArn" --output text)
+DB_CREDS=$(aws secretsmanager get-secret-value --secret-id "$DB_SECRET_ARN" --region "$REGION" --query SecretString --output text)
+DB_USERNAME=$(echo "$DB_CREDS" | python3 -c "import json,sys; print(json.load(sys.stdin)['username'])")
+DB_PASSWORD=$(echo "$DB_CREDS" | python3 -c "import json,sys; print(json.load(sys.stdin)['password'])")
+sed -i '/^DB_USERNAME=/d; /^DB_PASSWORD=/d' "$SHARED_DIR/.env"
+{
+  echo "DB_USERNAME=\"$DB_USERNAME\""
+  echo "DB_PASSWORD=\"$DB_PASSWORD\""
+} >> "$SHARED_DIR/.env"
+
 chown -R ubuntu:ubuntu "$SHARED_DIR"
 
 # Clone into a timestamped release dir and symlink /var/www/api to it, matching
