@@ -55,9 +55,14 @@ chmod 600 /home/ubuntu/.ssh/vinify_backend_deploy
 chown ubuntu:ubuntu /home/ubuntu/.ssh/vinify_backend_deploy
 
 if ! grep -q "github.com-vinify-backend" /home/ubuntu/.ssh/config 2>/dev/null; then
+  # Outbound port 22 is silently dropped somewhere upstream of this VPC's NAT
+  # Gateway (confirmed via packet capture: SYNs leave, no reply ever returns,
+  # for any destination on 22 -- not github-specific). Port 443 works fine,
+  # so use GitHub's documented SSH-over-443 endpoint instead of github.com:22.
   cat >> /home/ubuntu/.ssh/config <<'EOC'
 Host github.com-vinify-backend
-  HostName github.com
+  HostName ssh.github.com
+  Port 443
   User git
   IdentityFile /home/ubuntu/.ssh/vinify_backend_deploy
   IdentitiesOnly yes
@@ -67,7 +72,7 @@ chown ubuntu:ubuntu /home/ubuntu/.ssh/config
 chmod 600 /home/ubuntu/.ssh/config
 
 touch /home/ubuntu/.ssh/known_hosts
-ssh-keyscan github.com >> /home/ubuntu/.ssh/known_hosts 2>/dev/null
+ssh-keyscan -p 443 ssh.github.com >> /home/ubuntu/.ssh/known_hosts 2>/dev/null
 chown ubuntu:ubuntu /home/ubuntu/.ssh/known_hosts
 
 mkdir -p "$SHARED_DIR/uploads"
