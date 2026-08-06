@@ -7,6 +7,7 @@ import routerAdmin from "./route/index";
 import { AppDataSource } from "./DbConfig/TypeOrm";
 import { throttleMiddleware } from "./middleware/ThrottleMiddleware";
 import expressFileupload from "express-fileupload";
+import { startDataRetentionCronJob } from "./helpers/DataRetentionCronJob";
 // import { BatchFileExecution } from "./helpers/CronJob";
 const app = express();
 dotenv.config();
@@ -54,6 +55,8 @@ AppDataSource.initialize()
   .then(() => {
      // tslint:disable-next-line:no-console
     console.log("🚀Data Source has been initialized! ✅");
+
+    startDataRetentionCronJob();
 
     app.listen(PORT, () => {
      // tslint:disable-next-line:no-console

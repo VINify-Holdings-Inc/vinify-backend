@@ -8,7 +8,11 @@
     "lint": "eslint src",
     "format": "npm run lint -- --fix",
     "start": " npx nodemon",
-    "dev": " npx nodemon"
+    "dev": " npx nodemon",
+    "typeorm": "typeorm-ts-node-commonjs",
+    "migration:generate": "npm run typeorm -- migration:generate -d src/DbConfig/TypeOrm.ts",
+    "migration:run": "npm run typeorm -- migration:run -d src/DbConfig/TypeOrm.ts",
+    "migration:revert": "npm run typeorm -- migration:revert -d src/DbConfig/TypeOrm.ts"
   },
   "author": "",
   "license": "ISC",
