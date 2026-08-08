@@ -5,6 +5,7 @@
 | Version | Date | Author | Summary |
 |---|---|---|---|
 | 1.0 | 2026-08-06 | Betty Waiyego (Engineering Lead) | Initial version. Documents the centralized key management approach (AWS KMS) as directly verified in the production account. |
+| 1.1 | 2026-08-08 | Betty Waiyego (Engineering Lead) | Closes the untested-procedure gap in Section 9: dry-ran the full key-compromise/personnel-departure procedure end-to-end against a disposable test key. |
 
 > This document is version-controlled via its git commit history in this repository. Each substantive review or change should be committed as a new entry above.
 
@@ -61,7 +62,13 @@ Every key access — administrative (policy changes, rotation, enable/disable) a
 
 AWS KMS provides both `disable-key` (immediate, reversible deactivation — a key can be taken offline the moment a compromise is suspected, with zero waiting period) and `schedule-key-deletion` (permanent destruction, with a mandatory 7-30 day waiting period as a safety margin against accidental deletion). This is the defined procedure for a compromised key or an offboarded individual with prior key-management access.
 
-**Being direct**: this procedure has not been exercised in practice — there has been no key compromise or personnel departure to date. It is a defined, available capability, not a tested one.
+**Tested 2026-08-08.** No real key compromise or personnel departure has occurred, but the procedure itself was dry-run end-to-end against a disposable, purpose-created test key (never attached to any production resource, to avoid any risk to `alias/vin` or `alias/WAF`'s live consumers):
+1. `disable-key` (compromise response) — verified immediate effect (`KeyState: Disabled`).
+2. `enable-key` (recovery) — verified restoration (`KeyState: Enabled`).
+3. `schedule-key-deletion` (personnel-departure permanent decommission) — verified the mandatory 7-day safety window is actually enforced (`KeyState: PendingDeletion`, concrete deletion date returned).
+4. `cancel-key-deletion` (safety-margin cancel path) — verified it actually restores the key rather than being a theoretical option.
+
+All four steps behaved exactly as documented above. The test key was then disposed of via the same `schedule-key-deletion` path, since it was never needed beyond this test.
 
 ## 10. Review Cadence
 

@@ -6,9 +6,11 @@
 |---|---|---|---|
 | 1.0 | 2026-08-06 | Betty Waiyego (Engineering Lead) | Initial version. Documents the actual change management mechanism enforced today (git, pull requests, CI/CD, CloudTrail) and identifies what is not yet formally captured. |
 | 1.1 | 2026-08-06 | Betty Waiyego (Engineering Lead) | Closed two of the three gaps identified in v1.0's Open Gaps section: added a PR template (both repos) requiring security impact, affected components, testing performed, and rollback plan on every future change; removed the redundant, weaker branch protection ruleset on `vinify-backend`. The automated-test-suite gap remains open. |
-| 1.2 | 2026-08-08 | Betty Waiyego (Engineering Lead) | Documents a deployment-reliability bug found and fixed during DAST remediation (Section 7): `pm2 reload` was not actually loading new releases, so the post-deploy health check had been passing against stale code across multiple prior deploys. Also closes the DAST/security-headers gap with real before/after evidence (Section 10). |
+| 1.2 | 2026-08-08 | Betty Waiyego (Engineering Lead) | Documents a deployment-reliability bug found and fixed during DAST remediation (Section 7): `pm2 reload` was not actually loading new releases, so the post-deploy health check had been passing against stale code across multiple prior deploys. Also closes the DAST/security-headers gap with real before/after evidence (Section 11). |
 | 1.2 | 2026-08-06 | Betty Waiyego (Engineering Lead) | Added a definition of significant change, segregation-of-duties requirements, and notification requirements, per compliance review. Disclosed a real segregation-of-duties limitation rather than claiming it's fully solved (Section 4). |
-| 1.3 | 2026-08-08 | Betty Waiyego (Engineering Lead) | Partially closes the automated-test-suite gap from v1.1: Jest configured and wired into CI as a required, enforced gate, with real (not placeholder) initial coverage — see Section 7 and Section 10 for the honestly-scoped remaining work. |
+| 1.3 | 2026-08-08 | Betty Waiyego (Engineering Lead) | Partially closes the automated-test-suite gap from v1.1: Jest configured and wired into CI as a required, enforced gate, with real (not placeholder) initial coverage — see Section 7 and Section 11 for the honestly-scoped remaining work. |
+| 1.4 | 2026-08-08 | Betty Waiyego (Engineering Lead) | Closes the patch-management-to-incident-handling gap identified during KY3P review (new Section 10): defines a real, GitHub-issue-based escalation path for patches driven by active/attempted exploitation, distinct from the routine weekly patch cadence. |
+| 1.5 | 2026-08-08 | Betty Waiyego (Engineering Lead) | Extends the test suite from v1.3's pure-helper-logic increment to cover `LoginController` and `DataRetentionCronJob` — 16 new tests, 31 total. Remaining controllers still open, stated plainly in Section 7/11. |
 
 > This document is version-controlled via its git commit history in this repository. Each substantive review or change should be committed as a new entry above.
 
@@ -68,7 +70,7 @@ Being direct about what this actually covers today:
 - ✅ **Post-deploy health check with automatic rollback** — `deploy/remote-deploy.sh` polls the newly-deployed release for a healthy HTTP response after cutover; if it fails, the previous release is automatically restored and the failed deploy is marked failed. This is real and has been exercised in production, not theoretical.
 
   **Known limitation found and fixed (2026-08-08):** this health check cannot distinguish "new code is healthy" from "old code is still healthy" — which is exactly what happened. The deploy script used `pm2 reload`, which restarts the worker in place without re-resolving its working directory against the new release symlink. Direct process inspection on both production hosts found them still running releases from 2026-07-25 and 2026-08-06 respectively, despite several deploys reporting success in between. Fixed by switching to `pm2 delete` + `pm2 start` on every deploy, which forces a fresh resolution of the current release; verified by direct process inspection after the next deploy, not by trusting the health check alone.
-- ✅ **Automated test suite (added 2026-08-08)** — Jest, configured and CI-enforced (a failing test blocks deployment, same as a failing type-check). Initial coverage is real, not placeholder: 15 passing tests over the security-relevant pure helper logic (encryption round-trips, token generation, data-diffing helpers). Scope is a genuine first increment, not comprehensive — controller-level logic isn't covered yet, which remains real, ongoing work rather than a documentation update.
+- ✅ **Automated test suite (added 2026-08-08, extended 2026-08-08)** — Jest, configured and CI-enforced (a failing test blocks deployment, same as a failing type-check). 31 passing tests: the original 15 over pure helper logic (encryption round-trips, token generation, data-diffing helpers), plus 16 new covering `LoginController` (bcrypt auth, legacy-password upgrade, the closed-account login block, `CloseAccount`) and `DataRetentionCronJob` (deletion order and retention-window correctness). Remaining controllers not yet covered — real, ongoing scope, not claimed as complete.
 - ✅ **DAST scanning (added 2026-08-08)** — weekly OWASP ZAP baseline scan against production (`.github/workflows/dast-scan.yml`). First scan found 12 findings (missing security headers, framework/version disclosure, wildcard CORS); a follow-up scan against production confirmed 11 of 12 resolved, with the last one being informational rather than a real gap (see SDLC-Policy.md Section 6 for the full breakdown).
 
 ## 8. Rollback Procedure
@@ -79,18 +81,30 @@ Defined and already proven in production: `deploy/remote-deploy.sh` keeps the pr
 
 Closed 2026-08-06: both repositories (`vinify-backend`, `vinify-frontend`) now have a `.github/PULL_REQUEST_TEMPLATE.md` that requires every PR to explicitly state its security impact, list affected components, describe testing performed, and confirm a rollback plan before it can be opened with a filled-in description. This applies to every change from this point forward; it does not retroactively apply to past PRs, which is why Section 6's audit trail for older changes won't show this level of structure.
 
-## 10. Open Gaps
+## 10. Incident-Driven Patch Escalation
+
+Connects patch management (Section 7) to incident handling for the case that actually matters most: a patch exists because a finding indicates active or attempted exploitation, not routine hygiene. This bypasses the normal weekly Dependabot/`unattended-upgrades` cadence:
+
+1. **Trigger.** Any of: a GuardDuty finding indicating likely compromise (routed automatically via the existing GuardDuty → EventBridge → SNS → email pipeline — see `AWS-Security-Setup-Guide.md` Section 4), a Dependabot or Amazon Inspector finding flagged with a known public exploit, or direct observation of anomalous behavior.
+2. **Record first, fix second.** A GitHub issue is opened immediately, tagged `security-incident`, using the same pattern already established for significant changes (Section 2) and the BCP/DR test (issue #57) — capturing what was detected, how (which tool/alert fired), and the suspected impact, before remediation work begins. This is a real mechanism the team already uses for other tracking, not a new system introduced only on paper.
+3. **Escalated patch path.** The fix is opened and merged as its own PR immediately — still subject to the same required review and CI gates as any other change (Section 7) — rather than waiting for the next scheduled Dependabot batch.
+4. **Close-out.** Once deployed and verified, the same issue is updated with the remediation (linked PR/commit), verification evidence, and a brief root-cause note, then closed. This closed issue is the audit record referenced in Section 6.
+
+Deliberately lightweight and GitHub-native, matching the team's actual size — not a separate ticketing system or formal postmortem template nobody would keep up with.
+
+## 11. Open Gaps
 
 | Gap | Status |
 |---|---|
-| Automated test suite | **Partially closed (2026-08-08).** See Section 7 — real, CI-enforced coverage now exists for pure helper logic. Extending coverage to controller-level business logic remains open. |
+| Automated test suite | **Substantially closed (2026-08-08).** See Section 7 — 31 tests now cover pure helper logic plus the two highest-risk controllers (login/auth, account closure) and the retention cron job. Remaining controllers still open. |
 | DAST / security headers | **Closed (2026-08-08).** See Section 7 — 11 of 12 findings resolved and verified against production. |
+| Patch management not linked to incident handling | **Closed (2026-08-08).** See Section 10 — a defined, GitHub-issue-based escalation path now connects security-driven patches to incident recording and close-out. |
 | Segregation of duties enforced at account level only, not individual level | **Open.** See Section 4 — the sole code owner account is also accessible by the same individual who authors most changes. Needs a distinct second reviewer as the team grows. |
 | No established customer notification channel for significant changes | **Open.** See Section 5 — not yet needed since there's no live customer traffic, but not yet built either. |
 
-## 11. Review Cadence
+## 12. Review Cadence
 
-Reviewed whenever the deploy/CI process changes materially, and at minimum annually. Each review is recorded as a new version-history entry above, and Section 10 is updated to reflect what has actually been closed versus what remains open.
+Reviewed whenever the deploy/CI process changes materially, and at minimum annually. Each review is recorded as a new version-history entry above, and Section 11 is updated to reflect what has actually been closed versus what remains open.
 
 ---
 
