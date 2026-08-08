@@ -6,6 +6,7 @@
 |---|---|---|---|
 | 1.0 | 2026-08-08 | Betty Waiyego (Engineering Lead) | Initial version. Documents VINify's actual development lifecycle as practiced, citing real artifacts and tooling rather than an idealized process. |
 | 1.1 | 2026-08-08 | Betty Waiyego (Engineering Lead) | Closes the automated-test-suite gap identified in v1.0's Section 6/8 with a real, first increment: Jest configured, wired into CI as a required gate, 15 passing tests covering the security-relevant pure helper logic. Scope of what's still uncovered stated plainly, not left implied as resolved. |
+| 1.2 | 2026-08-08 | Betty Waiyego (Engineering Lead) | Adds DAST (dynamic application security testing) to Section 6, with real before/after scan results. Documents a deployment-reliability bug found and fixed during this work (Section 7): `pm2 reload` was not picking up new releases, so multiple prior "successful" deploys had silently not taken effect in production. |
 
 > This document is version-controlled via its git commit history in this repository. Each substantive review or change should be committed as a new entry above.
 
@@ -43,15 +44,20 @@ Type-checking runs in CI on every push, and a post-deploy health check with auto
 
 **Being direct about scope**: this is a genuine first increment, not comprehensive coverage. It covers the pure, security-relevant helper logic that didn't require database mocking. Controller-level logic (login, account closure, the data retention cron job) is not yet covered — extending coverage there is real, ongoing work, not a documentation update.
 
+**DAST (dynamic application security testing, added 2026-08-08):** a weekly OWASP ZAP baseline scan (`.github/workflows/dast-scan.yml`) runs against `https://api.getvinify.com`, plus on-demand via `workflow_dispatch`. The first scan surfaced 12 findings: missing security headers (`X-Content-Type-Options`, anti-clickjacking, HSTS, CSP, `Permissions-Policy`), a leaked `Server` version and `X-Powered-By` framework disclosure, a wildcard CORS policy, and a cross-domain misconfiguration. Remediated via application changes (`app.disable("x-powered-by")`, CORS restricted to `https://app.getvinify.com`) and nginx-level security headers on both production hosts. Verified with a follow-up scan against production: **11 of 12 findings resolved**; the one remaining (`Non-Storable Content`, ZAP rule 10049) is informational, not a security gap — it's ZAP noting the root response *could* be cached for a performance benefit since it holds no sensitive data, which we're intentionally declining in favor of a blanket `no-store` policy across the API.
+
 ## 7. Implementation
 
 Every change merges through a pull request enforced by branch protection (minimum 1 approving review, code owner review, all threads resolved — see Security Setup Guide, Section 1) before reaching `main`. Merging triggers GitHub Actions, which deploys via SSM to production compute using an atomic-release pattern: a fresh release directory per deploy, symlink cutover, and automatic rollback to the previous release if the post-deploy health check fails. This rollback mechanism is real and has been exercised in production, not theoretical. Infrastructure changes follow the same pattern where code-managed (Terraform/CDK is not in use; infrastructure changes are made directly via the AWS CLI/console and documented in the Security Setup Guide as part of the change).
+
+**Deployment-reliability bug found and fixed (2026-08-08):** while verifying the DAST fix above, discovered that `deploy/remote-deploy.sh` used `pm2 reload`, which restarts the worker process in place but does not re-resolve its working directory or script path against the new release. Both production hosts were confirmed (via direct process inspection) to still be running releases from 2026-07-25 and 2026-08-06 respectively, despite multiple deploys reporting success in between — the post-deploy health check passed because the *old* code was still healthy, not because the new code was live. Fixed by changing the deploy script to `pm2 delete` + `pm2 start` on every deploy, which forces PM2 to re-resolve the current release. Verified fixed by direct process inspection after the next deploy.
 
 ## 8. Open Gaps
 
 | Gap | Status |
 |---|---|
 | Automated test suite | **Partially closed (2026-08-08).** See Section 6 — real coverage exists and is CI-enforced, but scope is limited to pure helper logic so far. Extending to controller-level logic remains open, ongoing work. |
+| DAST / security headers | **Closed (2026-08-08).** See Section 6 — 11 of 12 ZAP findings resolved and verified against production; the remaining one is informational, not a gap. |
 | No formal intake/prioritization process | **Open, low priority** given current team size — informal initiation works at this scale but should be revisited if the team grows. |
 
 ## 9. Review Cadence
