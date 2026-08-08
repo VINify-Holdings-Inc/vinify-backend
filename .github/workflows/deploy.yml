@@ -37,6 +37,9 @@ jobs:
       - name: Type check
         run: npx tsc --noEmit
 
+      - name: Run tests
+        run: npm test
+
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:

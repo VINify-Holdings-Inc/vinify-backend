@@ -134,10 +134,23 @@ cat > /etc/nginx/sites-available/api.getvinify.com <<EOC
 server {
     listen 80 default_server;
     server_name _;
+    server_tokens off;
 
     gzip on;
     gzip_types application/json application/javascript text/plain;
     gzip_min_length 512;
+
+    # Security headers -- closes findings from the OWASP ZAP baseline scan
+    # (.github/workflows/dast-scan.yml); this is a pure JSON API, not an
+    # HTML-rendering surface, so a restrictive CSP/COEP is safe here (it
+    # would be wrong for app.getvinify.com, which actually loads scripts).
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-Frame-Options "DENY" always;
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+    add_header Content-Security-Policy "default-src 'none'; frame-ancestors 'none'" always;
+    add_header Permissions-Policy "geolocation=(), camera=(), microphone=()" always;
+    add_header Cross-Origin-Embedder-Policy "require-corp" always;
+    add_header Cache-Control "no-store" always;
 
     location / {
         proxy_pass http://127.0.0.1:${PORT};
@@ -147,6 +160,7 @@ server {
         proxy_set_header Host \$host;
         proxy_set_header X-Real-IP \$remote_addr;
         proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_hide_header X-Powered-By;
         proxy_cache_bypass \$http_upgrade;
     }
 }
@@ -210,3 +224,61 @@ chown -R ubuntu:ubuntu /home/ubuntu
 
 env PATH="$NODE_BIN:$PATH" pm2 startup systemd -u ubuntu --hp /home/ubuntu
 sudo -u ubuntu env PATH="$NODE_BIN:$PATH" bash -c "cd '$APP_DIR' && pm2 start ecosystem.config.js --env production && pm2 save"
+
+# Centralize nginx + PM2 logs to CloudWatch Logs -- without this, both live
+# only on this instance's local disk and are lost the moment the ASG
+# replaces it (instance refresh, scaling event, self-healing). The log
+# stream name is the instance ID, so history survives replacement even
+# though each instance's own local copy doesn't. EC2_SSM_VINRole already
+# has CloudWatchAgentServerPolicy attached.
+if ! command -v /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl >/dev/null 2>&1; then
+  # cloud-init's own package management (or unattended-upgrades) can hold the
+  # dpkg frontend lock during early boot -- wait for it to clear rather than
+  # racing it, otherwise dpkg fails outright and, under set -e, silently
+  # aborts everything after this point in the script.
+  while fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1; do
+    sleep 2
+  done
+  curl -s -o /tmp/amazon-cloudwatch-agent.deb https://s3.amazonaws.com/amazoncloudwatch-agent/ubuntu/amd64/latest/amazon-cloudwatch-agent.deb
+  dpkg -i -E /tmp/amazon-cloudwatch-agent.deb
+fi
+
+cat > /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json <<'EOC'
+{
+  "logs": {
+    "logs_collected": {
+      "files": {
+        "collect_list": [
+          {
+            "file_path": "/var/log/nginx/access.log",
+            "log_group_name": "/vinify/ec2/nginx-access",
+            "log_stream_name": "{instance_id}",
+            "retention_in_days": 90
+          },
+          {
+            "file_path": "/var/log/nginx/error.log",
+            "log_group_name": "/vinify/ec2/nginx-error",
+            "log_stream_name": "{instance_id}",
+            "retention_in_days": 90
+          },
+          {
+            "file_path": "/home/ubuntu/.pm2/logs/mvm-api-out.log",
+            "log_group_name": "/vinify/ec2/pm2-out",
+            "log_stream_name": "{instance_id}",
+            "retention_in_days": 90
+          },
+          {
+            "file_path": "/home/ubuntu/.pm2/logs/mvm-api-error.log",
+            "log_group_name": "/vinify/ec2/pm2-error",
+            "log_stream_name": "{instance_id}",
+            "retention_in_days": 90
+          }
+        ]
+      }
+    }
+  }
+}
+EOC
+
+/opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -s \
+  -c file:/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json

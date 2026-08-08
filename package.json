@@ -4,11 +4,15 @@
   "description": "api",
   "main": "src/index.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest",
     "lint": "eslint src",
     "format": "npm run lint -- --fix",
     "start": " npx nodemon",
-    "dev": " npx nodemon"
+    "dev": " npx nodemon",
+    "typeorm": "typeorm-ts-node-commonjs",
+    "migration:generate": "npm run typeorm -- migration:generate -d src/DbConfig/TypeOrm.ts",
+    "migration:run": "npm run typeorm -- migration:run -d src/DbConfig/TypeOrm.ts",
+    "migration:revert": "npm run typeorm -- migration:revert -d src/DbConfig/TypeOrm.ts"
   },
   "author": "",
   "license": "ISC",
@@ -43,12 +47,15 @@
     "@types/bcrypt": "^6.0.0",
     "@types/cors": "^2.8.19",
     "@types/express-fileupload": "^1.5.1",
+    "@types/jest": "^30.0.0",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/multer": "^1.4.12",
     "@types/node-cron": "^3.0.11",
     "@types/swagger-jsdoc": "^6.0.4",
     "@types/xml2js": "^0.4.14",
     "eslint": "^10.8.0",
+    "jest": "^30.4.2",
+    "ts-jest": "^29.4.12",
     "typescript-eslint": "^8.65.0"
   }
 }
