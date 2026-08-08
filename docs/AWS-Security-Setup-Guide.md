@@ -6,6 +6,8 @@
 |---|---|---|---|
 | 1.0 | 2026-07-27 | Betty Waiyego (Engineering Lead) | Initial version. Documents the AWS security configuration as implemented and verified in the production account as of this date. |
 | 1.1 | 2026-08-01 | Betty Waiyego (Engineering Lead) | Network segmentation migration complete: RDS and Auto Scaling Group compute now actually run in the private subnet tiers (Section 2), not just provisioned-but-unused. Documents the RDS Proxy credential-rotation pattern, the SSH-over-443 NAT workaround, and a known certificate-renewal risk (Section 3). See [architecture-diagram.md](architecture-diagram.md) for the current topology. |
+| 1.2 | 2026-08-06 | Betty Waiyego (Engineering Lead) | Documents the GuardDuty finding-to-email alerting pipeline (Section 4) and closes the database half of a logging gap: enabled and verified RDS connection/disconnection/DDL logging with CloudWatch Logs export (Section 4). Discloses the remaining gap — EC2 server/application logs are not yet centrally collected. |
+| 1.3 | 2026-08-07 | Betty Waiyego (Engineering Lead) | Closes the remaining gap from v1.2: EC2 server/application (nginx, PM2) logs are now centrally collected via the CloudWatch agent, baked into `asg-bootstrap.sh`, verified on a fresh unattended instance refresh (Section 4). |
 
 > This document is version-controlled via its git commit history in this repository. Each substantive review or change should be committed as a new entry above and in the commit log, so the revision history is objectively verifiable rather than manually asserted.
 
@@ -103,6 +105,17 @@ See [architecture-diagram.md](architecture-diagram.md) for a visual topology of 
 
 ### GuardDuty
 - Enabled (one active detector), providing continuous threat-detection monitoring across the account.
+- Findings are routed automatically: an EventBridge rule (`guardduty-security-alerts`) forwards every finding to the `vinify-security-alerts` SNS topic, which delivers to a confirmed email subscription — findings reach a human reviewer immediately, not on a manual check cycle.
+
+### Database activity logging
+- `mvmprod` uses a custom parameter group (`mvmprod-postgres17-logging`, since AWS's own `default.postgres17` group cannot be modified) with `log_connections`, `log_disconnections`, and `log_statement=ddl` enabled — every connection, disconnection, and schema change is logged with the connecting identity, source IP, timestamp, and TLS details.
+- These logs are exported to CloudWatch Logs (`/aws/rds/instance/mvmprod/postgresql`) via `EnabledCloudwatchLogsExports`, so they're centrally retained rather than sitting only on the instance's local storage. Verified with real log entries after enabling.
+
+### Server/application activity logging
+- Closed 2026-08-07 (previously an open gap): nginx and PM2 logs on every EC2 instance — both `production-asg` members and the standalone instance — are now centrally collected via the CloudWatch agent (`EC2_SSM_VINRole` already had `CloudWatchAgentServerPolicy` attached, so no IAM change was needed). Four log groups (`/vinify/ec2/nginx-access`, `/vinify/ec2/nginx-error`, `/vinify/ec2/pm2-out`, `/vinify/ec2/pm2-error`), 90-day retention, one stream per instance ID.
+- Baked into `deploy/asg-bootstrap.sh` so every future instance gets this automatically — not just the currently-running ones. Verified on a genuinely fresh, unattended instance refresh: `cloud-init status: done`, real log entries present in all four log groups immediately after boot.
+- One real bug found and fixed along the way: the initial version raced cloud-init's own package management for the `dpkg` frontend lock, which failed outright and (under `set -e`) silently aborted the rest of the boot script on a real instance. Fixed by waiting for the lock to clear before installing, rather than assuming it's free.
+- This closes the previous gap where server-level logs lived only on local, ephemeral instance disk and were lost the moment an ASG instance was replaced — log history now survives replacement, since each instance writes to a persistent, centrally-retained stream rather than only its own local disk.
 
 ---
 

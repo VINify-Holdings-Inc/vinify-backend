@@ -1,0 +1,29 @@
+name: DAST scan (OWASP ZAP baseline)
+
+# Dynamic scanning against the live API, complementing CodeQL (static) and
+# Dependabot (dependency) scanning -- see docs/SDLC-Policy.md Section 6.
+#
+# Deliberately uses ZAP's *baseline* scan, not a full active scan: a full
+# scan crawls and submits every discovered form, including destructive
+# endpoints like /api/close-account (real, eventual data deletion). Baseline
+# scanning is passive/non-intrusive -- it still catches missing security
+# headers, information disclosure, and common misconfigurations -- without
+# that risk. Revisit for a full active scan only against a non-production
+# environment, once one exists (see docs/Key-Management-Policy.md Section 7
+# on the current lack of a separate non-prod environment).
+
+on:
+  schedule:
+    - cron: "0 6 * * 1" # Weekly, Monday -- matches CodeQL/Dependabot cadence
+  workflow_dispatch: {}
+
+jobs:
+  zap-baseline:
+    runs-on: ubuntu-latest
+    steps:
+      - name: ZAP Baseline Scan
+        uses: zaproxy/action-baseline@v0.14.0
+        with:
+          target: "https://api.getvinify.com"
+          fail_action: false
+          artifact_name: "zap-baseline-report"
