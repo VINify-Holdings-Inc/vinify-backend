@@ -66,7 +66,13 @@ echo "==> Previous release: $PREVIOUS_RELEASE"
 
 echo "==> Cutting over symlink to new release"
 ln -sfn "$RELEASE_DIR" "$CURRENT_LINK"
-sudo -u ubuntu env PATH="$NODE_BIN:$PATH" bash -c "cd '$CURRENT_LINK' && pm2 reload ecosystem.config.js --env production"
+# `pm2 reload` restarts the worker in place but keeps the cwd/script path the
+# process was originally started with -- it does NOT re-resolve them against
+# the new symlink target. Verified this was silently serving a release from
+# 2026-07-25 through every "successful" deploy since, on both instances.
+# `delete` + `start` forces PM2 to re-resolve everything from the current
+# $CURRENT_LINK on every deploy.
+sudo -u ubuntu env PATH="$NODE_BIN:$PATH" bash -c "cd '$CURRENT_LINK' && (pm2 delete ecosystem.config.js --env production || true) && pm2 start ecosystem.config.js --env production && pm2 save"
 
 echo "==> Waiting for health check"
 PORT=$(grep -m1 '^PORT=' "$SHARED_DIR/.env" | cut -d= -f2 | tr -d '\r\n ')
@@ -82,7 +88,7 @@ done
 if [ "$HEALTHY" != "true" ]; then
   echo "==> Health check failed. Rolling back to $PREVIOUS_RELEASE"
   ln -sfn "$PREVIOUS_RELEASE" "$CURRENT_LINK"
-  sudo -u ubuntu env PATH="$NODE_BIN:$PATH" bash -c "cd '$CURRENT_LINK' && pm2 reload ecosystem.config.js --env production"
+  sudo -u ubuntu env PATH="$NODE_BIN:$PATH" bash -c "cd '$CURRENT_LINK' && (pm2 delete ecosystem.config.js --env production || true) && pm2 start ecosystem.config.js --env production && pm2 save"
   rm -rf "$RELEASE_DIR"
   echo "Rolled back. Deploy failed."
   exit 1

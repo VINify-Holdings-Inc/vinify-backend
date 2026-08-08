@@ -147,10 +147,13 @@ server {
     add_header X-Content-Type-Options "nosniff" always;
     add_header X-Frame-Options "DENY" always;
     add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
-    add_header Content-Security-Policy "default-src 'none'; frame-ancestors 'none'" always;
+    add_header Content-Security-Policy "default-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'" always;
     add_header Permissions-Policy "geolocation=(), camera=(), microphone=()" always;
     add_header Cross-Origin-Embedder-Policy "require-corp" always;
-    add_header Cache-Control "no-store" always;
+    add_header Cross-Origin-Opener-Policy "same-origin" always;
+    add_header Cache-Control "no-store, no-cache, must-revalidate, private" always;
+    add_header Pragma "no-cache" always;
+    add_header Expires "0" always;
 
     location / {
         proxy_pass http://127.0.0.1:${PORT};
@@ -160,7 +163,13 @@ server {
         proxy_set_header Host \$host;
         proxy_set_header X-Real-IP \$remote_addr;
         proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        # finalhandler (Express's default 404/error page) sets its own bare
+        # CSP and X-Content-Type-Options -- hide those so ours (above, with
+        # the fuller directive set ZAP's CSP-fallback check wants) isn't
+        # duplicated alongside an incomplete second copy.
         proxy_hide_header X-Powered-By;
+        proxy_hide_header Content-Security-Policy;
+        proxy_hide_header X-Content-Type-Options;
         proxy_cache_bypass \$http_upgrade;
     }
 }
