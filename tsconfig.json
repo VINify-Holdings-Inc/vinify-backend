@@ -21,7 +21,7 @@
       "alwaysStrict": true,                           
       "noUnusedLocals": true,                          
       "noImplicitReturns": true,                        
-      "skipLibCheck": true                                
-    }
+      "skipLibCheck": true
+    },
+    "exclude": ["src/**/__tests__/**", "src/**/*.test.ts"]
   }
-  

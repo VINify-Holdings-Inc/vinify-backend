@@ -49,7 +49,14 @@ import {
   
     @Column({ name: "status", type: "int", default: 1 })
     status: number;
-  
+
+    // Set when the account holder closes their account (see CloseAccount
+    // controller). Null means the account is active. The retention cron job
+    // hard-deletes the User/Login rows 90 days after this is set -- see
+    // docs/Data-Retention-Policy.md Section 3.
+    @Column({ name: "deactivatedAt", type: "timestamptz", nullable: true, default: null })
+    deactivatedAt: Date | null;
+
     @Column({
       name: "createdAt",
       type: "timestamptz",

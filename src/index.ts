@@ -7,13 +7,19 @@ import routerAdmin from "./route/index";
 import { AppDataSource } from "./DbConfig/TypeOrm";
 import { throttleMiddleware } from "./middleware/ThrottleMiddleware";
 import expressFileupload from "express-fileupload";
+import { startDataRetentionCronJob } from "./helpers/DataRetentionCronJob";
 // import { BatchFileExecution } from "./helpers/CronJob";
 const app = express();
 dotenv.config();
 app.set("trust proxy", 1);
+// Avoid advertising the framework in responses (flagged by DAST scanning,
+// see docs/SDLC-Policy.md Section 6).
+app.disable("x-powered-by");
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cors());
+// The frontend is the only legitimate browser-based caller of this API --
+// unrestricted CORS (the previous `cors()` default) allows any origin.
+app.use(cors({ origin: "https://app.getvinify.com" }));
 app.use(expressFileupload());
 // Static serve path
 app.use("/api/uploads", express.static("./src/uploads"));
@@ -54,6 +60,8 @@ AppDataSource.initialize()
   .then(() => {
      // tslint:disable-next-line:no-console
     console.log("🚀Data Source has been initialized! ✅");
+
+    startDataRetentionCronJob();
 
     app.listen(PORT, () => {
      // tslint:disable-next-line:no-console
