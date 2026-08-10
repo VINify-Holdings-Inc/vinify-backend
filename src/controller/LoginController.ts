@@ -6,6 +6,7 @@ import { sendEmail } from "../helpers/email";
 import { MESSAGES } from "../helpers/constants";
 import { createResponse } from "../helpers/response";
 import { generateToken, profileCompletion } from "../helpers/utils";
+import { auditLog } from "../helpers/auditLog";
 import path from "path";
 import fs from "fs";
 export const TestRoute = async (req: any, res: any) => {
@@ -56,6 +57,7 @@ export const LoginController = async (req: any, res: any) => {
 
         // Check if login entry exists
         if (!login) {
+            auditLog({ userId: null, eventType: "login", outcome: "failure", resource: "Login", detail: `no account for email ${email}` });
             return createResponse(res, 404, MESSAGES?.USER_NOT_FOUND, [], false, true);
         }
 
@@ -77,6 +79,7 @@ export const LoginController = async (req: any, res: any) => {
         // retention cron job) but may still exist during its 90-day grace
         // window -- it must not be usable in the meantime.
         if (user.deactivatedAt) {
+            auditLog({ userId: user.userId, eventType: "login", outcome: "failure", resource: "Login", detail: "account closed" });
             return createResponse(res, 403, MESSAGES?.ACCOUNT_CLOSED, [], false, true);
         }
 
@@ -90,10 +93,12 @@ export const LoginController = async (req: any, res: any) => {
             const passwordMatches = await bcrypt.compare(password, login.password);
 
             if (!passwordMatches) {
+                auditLog({ userId: user.userId, eventType: "login", outcome: "failure", resource: "Login", detail: "wrong password" });
                 return createResponse(res, 401, MESSAGES?.INVALID_CREDENTIALS, [], false, true);
             }
         } else {
             if (login.password !== password) {
+                auditLog({ userId: user.userId, eventType: "login", outcome: "failure", resource: "Login", detail: "wrong password (legacy)" });
                 return createResponse(res, 401, MESSAGES?.INVALID_CREDENTIALS, [], false, true);
             }
 
@@ -109,6 +114,8 @@ export const LoginController = async (req: any, res: any) => {
 
         // Calculate profile completion percentage
         const profileComplete = await profileCompletion(user);
+
+        auditLog({ userId: user.userId, eventType: "login", outcome: "success", resource: "Login" });
 
         // Send response with necessary data and token
         return createResponse(res, 200, MESSAGES?.LOGIN_SUCCESS, {
@@ -417,10 +424,12 @@ export const CloseAccount = async (req: any, res: any) => {
         }
 
         if (user.deactivatedAt) {
+            auditLog({ userId, eventType: "account-closure", outcome: "failure", resource: "User", detail: "already closed" });
             return createResponse(res, 409, MESSAGES?.ACCOUNT_ALREADY_CLOSED, [], false, true);
         }
 
         await User.update({ userId }, { deactivatedAt: new Date() });
+        auditLog({ userId, eventType: "account-closure", outcome: "success", resource: "User" });
 
         return createResponse(res, 200, MESSAGES?.ACCOUNT_CLOSE_SUCCESS, [], true, false);
     } catch (err) {
