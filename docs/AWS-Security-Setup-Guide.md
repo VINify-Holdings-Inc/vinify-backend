@@ -9,6 +9,7 @@
 | 1.2 | 2026-08-06 | Betty Waiyego (Engineering Lead) | Documents the GuardDuty finding-to-email alerting pipeline (Section 4) and closes the database half of a logging gap: enabled and verified RDS connection/disconnection/DDL logging with CloudWatch Logs export (Section 4). Discloses the remaining gap — EC2 server/application logs are not yet centrally collected. |
 | 1.3 | 2026-08-07 | Betty Waiyego (Engineering Lead) | Closes the remaining gap from v1.2: EC2 server/application (nginx, PM2) logs are now centrally collected via the CloudWatch agent, baked into `asg-bootstrap.sh`, verified on a fresh unattended instance refresh (Section 4). |
 | 1.4 | 2026-08-10 | Betty Waiyego (Engineering Lead) | Expands Section 3 to fully answer KY3P ENC06/ENC07: adds EBS and Backup-vault encryption detail, explicitly states laptop/desktop encryption is pending MDM rollout and removable media is N/A, and adds the exact TLS protocol/cipher suite in use, confirming exclusion of every deprecated algorithm on the ENC07 checklist. |
+| 1.5 | 2026-08-11 | Betty Waiyego (Engineering Lead) | Closes the KY3P LM02 gap in Section 4: adds application-level, user-identity-tied audit logging (`src/helpers/auditLog.ts`) for login and account-closure events, covering the user/event-type/timestamp/outcome/resource fields nginx access logs alone couldn't provide. |
 
 > This document is version-controlled via its git commit history in this repository. Each substantive review or change should be committed as a new entry above and in the commit log, so the revision history is objectively verifiable rather than manually asserted.
 
@@ -125,6 +126,12 @@ All of the below use AES-256 or its direct equivalent (AWS KMS's standard, FIPS 
 - Baked into `deploy/asg-bootstrap.sh` so every future instance gets this automatically — not just the currently-running ones. Verified on a genuinely fresh, unattended instance refresh: `cloud-init status: done`, real log entries present in all four log groups immediately after boot.
 - One real bug found and fixed along the way: the initial version raced cloud-init's own package management for the `dpkg` frontend lock, which failed outright and (under `set -e`) silently aborted the rest of the boot script on a real instance. Fixed by waiting for the lock to clear before installing, rather than assuming it's free.
 - This closes the previous gap where server-level logs lived only on local, ephemeral instance disk and were lost the moment an ASG instance was replaced — log history now survives replacement, since each instance writes to a persistent, centrally-retained stream rather than only its own local disk.
+
+### Application-level user activity logging (KY3P LM02)
+- Closed 2026-08-11 (previously an open gap): nginx access logs show *that* a request hit an endpoint with a given status code, but not *which user* — that's in the request body, not the URL. `src/helpers/auditLog.ts` fills this gap with a structured, user-identity-tied event log covering all five elements LM02 asks for: user identification, event type, timestamp, success/fail outcome, and the affected resource.
+- Emitted via `console.log` with an `AUDIT ` prefix, so it flows through the existing PM2 stdout → CloudWatch agent pipeline (`/vinify/ec2/pm2-out`) above with no infrastructure changes — filterable by that prefix in CloudWatch Logs Insights.
+- Wired into the highest-value security events today: login success, login failure (wrong password, both the bcrypt and legacy-plaintext paths), login blocked on a closed account, and account closure (success and already-closed). Covered by 3 new unit tests for the helper itself plus assertions added to the existing `LoginController`/`CloseAccount` tests (34 tests total, all passing).
+- Not yet covered: password reset, profile updates. Real, scoped follow-up work — not claimed as done.
 
 ---
 

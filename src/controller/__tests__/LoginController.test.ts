@@ -21,8 +21,10 @@ jest.mock("../../helpers/utils", () => ({
   ...jest.requireActual("../../helpers/utils"),
   profileCompletion: jest.fn(() => 100),
 }));
+jest.mock("../../helpers/auditLog", () => ({ auditLog: jest.fn() }));
 
 import { LoginController, CloseAccount } from "../LoginController";
+import { auditLog } from "../../helpers/auditLog";
 
 function mockRes() {
   return { json: jest.fn(), status: jest.fn().mockReturnThis() } as any;
@@ -63,7 +65,7 @@ describe("LoginController", () => {
     );
   });
 
-  it("blocks login on a closed account even with correct credentials", async () => {
+  it("blocks login on a closed account even with correct credentials, and audit-logs it", async () => {
     (Login.findOne as jest.Mock).mockResolvedValue({ userId: "u-1", password: "$2b$10$hash" });
     (User.findOne as jest.Mock).mockResolvedValue({ ...baseUser, deactivatedAt: new Date() });
     (bcrypt.compare as jest.Mock).mockResolvedValue(true);
@@ -74,9 +76,12 @@ describe("LoginController", () => {
     expect(res.json).toHaveBeenCalledWith(
       expect.objectContaining({ code: 403, message: MESSAGES.ACCOUNT_CLOSED, success: false })
     );
+    expect(auditLog).toHaveBeenCalledWith(
+      expect.objectContaining({ userId: "u-1", eventType: "login", outcome: "failure" })
+    );
   });
 
-  it("rejects a wrong password against a bcrypt hash", async () => {
+  it("rejects a wrong password against a bcrypt hash, and audit-logs it with the real userId", async () => {
     (Login.findOne as jest.Mock).mockResolvedValue({ userId: "u-1", password: "$2b$10$hash" });
     (User.findOne as jest.Mock).mockResolvedValue(baseUser);
     (bcrypt.compare as jest.Mock).mockResolvedValue(false);
@@ -86,6 +91,9 @@ describe("LoginController", () => {
 
     expect(res.json).toHaveBeenCalledWith(
       expect.objectContaining({ code: 401, message: MESSAGES.INVALID_CREDENTIALS })
+    );
+    expect(auditLog).toHaveBeenCalledWith(
+      expect.objectContaining({ userId: "u-1", eventType: "login", outcome: "failure" })
     );
   });
 
@@ -101,6 +109,9 @@ describe("LoginController", () => {
     expect(call.code).toBe(200);
     expect(call.message).toBe(MESSAGES.LOGIN_SUCCESS);
     expect(call.data.token).toBe("fake-jwt-token");
+    expect(auditLog).toHaveBeenCalledWith(
+      expect.objectContaining({ userId: "u-1", eventType: "login", outcome: "success" })
+    );
   });
 
   it("upgrades a legacy plaintext password to bcrypt on successful login", async () => {
@@ -147,7 +158,7 @@ describe("CloseAccount", () => {
     );
   });
 
-  it("rejects closing an already-closed account", async () => {
+  it("rejects closing an already-closed account, and audit-logs it", async () => {
     (User.findOne as jest.Mock).mockResolvedValue({ userId: "u-1", deactivatedAt: new Date() });
     const res = mockRes();
     await CloseAccount({ user: { id: "u-1" } } as any, res);
@@ -155,9 +166,12 @@ describe("CloseAccount", () => {
       expect.objectContaining({ code: 409, message: MESSAGES.ACCOUNT_ALREADY_CLOSED })
     );
     expect(User.update).not.toHaveBeenCalled();
+    expect(auditLog).toHaveBeenCalledWith(
+      expect.objectContaining({ userId: "u-1", eventType: "account-closure", outcome: "failure" })
+    );
   });
 
-  it("closes an active account by setting deactivatedAt", async () => {
+  it("closes an active account by setting deactivatedAt, and audit-logs success", async () => {
     (User.findOne as jest.Mock).mockResolvedValue({ userId: "u-1", deactivatedAt: null });
     const res = mockRes();
     await CloseAccount({ user: { id: "u-1" } } as any, res);
@@ -165,6 +179,9 @@ describe("CloseAccount", () => {
     expect(User.update).toHaveBeenCalledWith({ userId: "u-1" }, { deactivatedAt: expect.any(Date) });
     expect(res.json).toHaveBeenCalledWith(
       expect.objectContaining({ code: 200, message: MESSAGES.ACCOUNT_CLOSE_SUCCESS })
+    );
+    expect(auditLog).toHaveBeenCalledWith(
+      expect.objectContaining({ userId: "u-1", eventType: "account-closure", outcome: "success" })
     );
   });
 });
