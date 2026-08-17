@@ -1,0 +1,85 @@
+name: Sync ASG launch template
+
+# deploy/asg-bootstrap.sh is embedded as a static copy inside the EC2 launch
+# template's UserData -- it is NOT read from git at boot time. Editing this
+# file and merging it previously did nothing to the actual launch template,
+# so every new/replaced ASG instance kept booting from a stale copy of the
+# script until someone remembered to push a new launch template version by
+# hand. This workflow makes that step automatic instead of a manual one
+# that's easy to forget (as it was, for weeks, before this existed).
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "deploy/asg-bootstrap.sh"
+      - ".github/workflows/sync-launch-template.yml"
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: us-east-1
+
+      - name: Push updated UserData to a new launch template version
+        run: |
+          LT_ID=$(aws autoscaling describe-auto-scaling-groups \
+            --auto-scaling-group-names production-asg \
+            --query "AutoScalingGroups[0].LaunchTemplate.LaunchTemplateId" \
+            --output text)
+          echo "Launch template: $LT_ID"
+
+          USER_DATA_B64=$(base64 -w0 deploy/asg-bootstrap.sh)
+
+          NEW_VERSION=$(aws ec2 create-launch-template-version \
+            --launch-template-id "$LT_ID" \
+            --source-version '$Latest' \
+            --launch-template-data "{\"UserData\":\"$USER_DATA_B64\"}" \
+            --query "LaunchTemplateVersion.VersionNumber" --output text)
+          echo "New version: $NEW_VERSION"
+
+          aws ec2 modify-launch-template \
+            --launch-template-id "$LT_ID" \
+            --default-version "$NEW_VERSION"
+
+          echo "LT_ID=$LT_ID" >> "$GITHUB_ENV"
+
+      - name: Roll the fix out to running instances
+        run: |
+          REFRESH_ID=$(aws autoscaling start-instance-refresh \
+            --auto-scaling-group-name production-asg \
+            --preferences '{"MinHealthyPercentage":100,"InstanceWarmup":120}' \
+            --query "InstanceRefreshId" --output text)
+          echo "Instance refresh: $REFRESH_ID"
+
+          for i in $(seq 1 60); do
+            STATUS=$(aws autoscaling describe-instance-refreshes \
+              --auto-scaling-group-name production-asg \
+              --instance-refresh-ids "$REFRESH_ID" \
+              --query "InstanceRefreshes[0].Status" --output text)
+            echo "Status: $STATUS"
+            if [ "$STATUS" != "Pending" ] && [ "$STATUS" != "InProgress" ]; then
+              break
+            fi
+            sleep 20
+          done
+
+          if [ "$STATUS" != "Successful" ]; then
+            echo "Instance refresh did not succeed (status: $STATUS)"
+            exit 1
+          fi

@@ -6,6 +6,7 @@ import { sendEmail } from "../helpers/email";
 import { MESSAGES } from "../helpers/constants";
 import { createResponse } from "../helpers/response";
 import { generateToken, profileCompletion } from "../helpers/utils";
+import { auditLog } from "../helpers/auditLog";
 import path from "path";
 import fs from "fs";
 export const TestRoute = async (req: any, res: any) => {
@@ -56,6 +57,7 @@ export const LoginController = async (req: any, res: any) => {
 
         // Check if login entry exists
         if (!login) {
+            auditLog({ userId: null, eventType: "login", outcome: "failure", resource: "Login", detail: `no account for email ${email}` });
             return createResponse(res, 404, MESSAGES?.USER_NOT_FOUND, [], false, true);
         }
 
@@ -73,6 +75,14 @@ export const LoginController = async (req: any, res: any) => {
             return createResponse(res, 404, MESSAGES?.USER_NOT_FOUND, [], false, true);
         }
 
+        // A closed account is queued for permanent deletion (see the data
+        // retention cron job) but may still exist during its 90-day grace
+        // window -- it must not be usable in the meantime.
+        if (user.deactivatedAt) {
+            auditLog({ userId: user.userId, eventType: "login", outcome: "failure", resource: "Login", detail: "account closed" });
+            return createResponse(res, 403, MESSAGES?.ACCOUNT_CLOSED, [], false, true);
+        }
+
         // Legacy accounts still have their password stored as plaintext. Accounts
         // created/reset after the bcrypt migration have a $2-prefixed hash instead.
         // On a successful legacy-plaintext login, silently rehash and persist so the
@@ -83,10 +93,12 @@ export const LoginController = async (req: any, res: any) => {
             const passwordMatches = await bcrypt.compare(password, login.password);
 
             if (!passwordMatches) {
+                auditLog({ userId: user.userId, eventType: "login", outcome: "failure", resource: "Login", detail: "wrong password" });
                 return createResponse(res, 401, MESSAGES?.INVALID_CREDENTIALS, [], false, true);
             }
         } else {
             if (login.password !== password) {
+                auditLog({ userId: user.userId, eventType: "login", outcome: "failure", resource: "Login", detail: "wrong password (legacy)" });
                 return createResponse(res, 401, MESSAGES?.INVALID_CREDENTIALS, [], false, true);
             }
 
@@ -102,6 +114,8 @@ export const LoginController = async (req: any, res: any) => {
 
         // Calculate profile completion percentage
         const profileComplete = await profileCompletion(user);
+
+        auditLog({ userId: user.userId, eventType: "login", outcome: "success", resource: "Login" });
 
         // Send response with necessary data and token
         return createResponse(res, 200, MESSAGES?.LOGIN_SUCCESS, {
@@ -388,5 +402,39 @@ export const userProfileUpdate = async (req: any, res: any) => {
 
         // Respond with error message
         return createResponse(res, 200, MESSAGES?.INTERNAL_SERVER_ERROR, true, false);
+    }
+};
+
+// Closes the authenticated user's own account. Does not delete data
+// immediately -- marks it for deletion. The data retention cron job
+// (src/helpers/DataRetentionCronJob.ts) hard-deletes the User/Login rows
+// 90 days after this timestamp, per docs/Data-Retention-Policy.md.
+export const CloseAccount = async (req: any, res: any) => {
+    try {
+        const userId = req.user?.id;
+
+        if (!userId) {
+            return createResponse(res, 400, "User ID is required", [], false, true);
+        }
+
+        const user = await User.findOne({ where: { userId } });
+
+        if (!user) {
+            return createResponse(res, 404, MESSAGES?.USER_NOT_FOUND, [], false, true);
+        }
+
+        if (user.deactivatedAt) {
+            auditLog({ userId, eventType: "account-closure", outcome: "failure", resource: "User", detail: "already closed" });
+            return createResponse(res, 409, MESSAGES?.ACCOUNT_ALREADY_CLOSED, [], false, true);
+        }
+
+        await User.update({ userId }, { deactivatedAt: new Date() });
+        auditLog({ userId, eventType: "account-closure", outcome: "success", resource: "User" });
+
+        return createResponse(res, 200, MESSAGES?.ACCOUNT_CLOSE_SUCCESS, [], true, false);
+    } catch (err) {
+        // tslint:disable-next-line:no-console
+        console.log(MESSAGES?.INTERNAL_SERVER_ERROR, err);
+        return createResponse(res, 500, MESSAGES?.INTERNAL_SERVER_ERROR, [], false, true);
     }
 };

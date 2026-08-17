@@ -8,7 +8,8 @@ routerAdmin.put("/user-profile-update", Handler.userProfileUpdate); // 2  -> .28
 routerAdmin.get("/user-profile/:email", Handler.ProfileUpdate); // 3   -> 2.69 s
 routerAdmin.post("/forget-password", Handler.ForgetPassword); // 4    -> 6.34 s
 routerAdmin.post("/reset-password", Handler.ResetPassword); // 5     ->.790 s
-routerAdmin.post("/reset-token-check", Handler.ResetTockenCheck); // 6  ->.629 s     
+routerAdmin.post("/reset-token-check", Handler.ResetTockenCheck); // 6  ->.629 s
+routerAdmin.post("/close-account", Handler.AuthSignIn, Handler.CloseAccount); // Closes the authenticated user's own account (retention policy: hard-deleted after 90 days)
 
 // Contact Details
 routerAdmin.post("/contact-us", Handler.insertContactUs); // 7 -> 5.7 s ->2.7s
