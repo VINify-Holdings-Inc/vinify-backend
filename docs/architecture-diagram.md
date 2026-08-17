@@ -1,6 +1,6 @@
 # VINify Network Architecture
 
-Reflects the account as directly verified via the AWS CLI, most recently on 2026-08-07. See [AWS-Security-Setup-Guide.md](AWS-Security-Setup-Guide.md) for the full narrative and baseline procedures behind each piece of this.
+Reflects the account as directly verified via the AWS CLI, most recently on 2026-08-11. See [AWS-Security-Setup-Guide.md](AWS-Security-Setup-Guide.md) for the full narrative and baseline procedures behind each piece of this.
 
 ## 1. Overview
 
@@ -88,3 +88,12 @@ Each of these is enforced separately — the failure of any one does not remove 
 - **NAT egress quirk**: outbound TCP port 22 from the private-app subnets is silently dropped somewhere upstream of the NAT Gateway (confirmed via packet capture — the NAT Gateway itself shows zero drops/errors). Git operations use GitHub's documented SSH-over-443 endpoint instead. Port 443 is unaffected.
 - **Certificate**: the load balancer's certificate is an imported (not natively ACM-issued) Let's Encrypt certificate — the domain's DNS is hosted at the registrar rather than Route 53, so ACM's auto-renewal path isn't available yet. See the Security Setup Guide for the expiry date and renewal procedure.
 - **Standalone instance**: remains in the public subnet permanently for now, by deliberate decision, serving identical content to the Auto Scaling Group behind the same load balancer.
+
+## 7. Firewall Rule Recertification
+
+**Last performed: 2026-08-11**, triggered by a significant finding (see below) rather than sitting on a purely calendar-driven schedule — reviewed every security group and the account's network ACL directly against the live AWS account, not against what was assumed to be configured.
+
+- **All 6 security groups** in the account were individually enumerated and their inbound rules read in full: only `vin-instance-loadbalancer` and `launch-wizard-1` permit anything from the internet (80/443 only), `rds-ec2-1` permits Postgres (5432) only by security-group reference — never by CIDR — from the application tier, and the rest (`default`, `ec2-rds-1`, `rds-restore-test-sg`) have zero rules.
+- **The NACL** was read in full, not just its deny rules: it explicitly denies SSH (22) and RDP (3389) inbound, and — until this review — also allowed inbound TCP 10000 from `0.0.0.0/0`.
+- **Finding and remediation**: port 10000 was open at the NACL layer for Webmin (a full system-administration panel), which had been removed from one instance previously but reappeared on Auto Scaling Group instances because it was baked into the account's custom AMI, not something `asg-bootstrap.sh` installed. Not actually internet-reachable at the time — the security groups never allowed it, so it was blocked at that layer regardless of the NACL — but a real, disclosed gap: had any security group change ever added a broad rule, this would have exposed a known-vulnerable admin panel directly to the internet. Closed by removing Webmin, rebuilding the AMI without it, and removing the now-unnecessary NACL rule.
+- **Going forward**: recertification occurs at minimum annually, and immediately whenever a significant infrastructure change or security finding warrants it — consistent with `Change-Management-Policy.md` Section 2's definition of a significant change. Next scheduled recertification: **2027-08**, tracked the same way the BCP/DR test cadence is tracked (see `Business-Continuity-and-Recovery-Policy.md` Section 4).
