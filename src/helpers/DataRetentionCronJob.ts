@@ -12,7 +12,7 @@ import { ContactUs } from "../Entities/ContactUs";
 const USER_POST_CLOSURE_RETENTION_DAYS = 90;
 const CONTACT_US_RETENTION_DAYS = 365 * 2;
 
-async function deleteClosedAccountsPastRetention(): Promise<void> {
+export async function deleteClosedAccountsPastRetention(): Promise<void> {
   const cutoff = new Date();
   cutoff.setDate(cutoff.getDate() - USER_POST_CLOSURE_RETENTION_DAYS);
 
@@ -33,7 +33,7 @@ async function deleteClosedAccountsPastRetention(): Promise<void> {
   }
 }
 
-async function deleteExpiredContactUsSubmissions(): Promise<void> {
+export async function deleteExpiredContactUsSubmissions(): Promise<void> {
   const cutoff = new Date();
   cutoff.setDate(cutoff.getDate() - CONTACT_US_RETENTION_DAYS);
 
