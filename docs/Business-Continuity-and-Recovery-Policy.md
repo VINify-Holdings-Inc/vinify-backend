@@ -8,6 +8,7 @@
 | 1.1 | 2026-08-08 | Betty Waiyego (Engineering Lead) | Adds Section 7, addressing cloud portability, interoperability, and exit strategy per KY3P BCOR32 — states real AWS lock-in plainly rather than overclaiming portability. |
 | 1.2 | 2026-08-08 | Betty Waiyego (Engineering Lead) | Closes the untested-exit-runbook gap from v1.1: executed and verified a full production database export (`pg_dump`, all 15 tables), confirming data-export capability is real, not theoretical. |
 | 1.3 | 2026-08-08 | Betty Waiyego (Engineering Lead) | Closes the untested-RPO gap from Section 3/6: executed a real write-loss test across a forced Multi-AZ failover (300 writes, 1 unacknowledged during the ~24s disruption, 0 acknowledged writes lost). RPO is now demonstrated, not just inferred. |
+| 1.4 | 2026-08-12 | Betty Waiyego (Engineering Lead) | Closes the full-restore-test gap (distinct from failover, per KY3P BCOR30/BCOR12): restored the latest backup to a separate temporary instance via point-in-time restore, verified exact data integrity, measured real restore time (17m10s). Previous restore-test evidence (2026-07-25) no longer existed as an artifact; this is a fresh, current test. |
 
 > This document is version-controlled via its git commit history in this repository. Each substantive review or change should be committed as a new entry above.
 
@@ -33,6 +34,7 @@ Rather than state untested target numbers, this section reports what has actuall
 - **RDS Multi-AZ failover time (RTO):** 24 seconds, measured directly against the current network architecture (GitHub issue #57, 2026-07-31 re-test). An earlier test against the pre-migration architecture measured 243 seconds — the improvement reflects the completed network segmentation work, not a change in AWS's underlying mechanism.
 - **RDS Multi-AZ data loss (RPO):** Tested 2026-08-08. A continuous write loop (300 inserts, one every 0.5s, against a disposable test table) ran through a forced Multi-AZ failover triggered mid-loop. Result: 299 of 300 writes were acknowledged as committed; the 1 failure was a client-side connection error during the ~21-second disruption window (consistent with the measured 24-second failover time), never acknowledged as committed in the first place. All 299 acknowledged writes were confirmed present in the table after the failover — zero data loss among confirmed commits. RPO is effectively 0, now demonstrated rather than only inferred from Multi-AZ's synchronous-replication design.
 - **ASG self-healing time:** 123 seconds from instance termination to verified real application readiness (2026-07-31 re-test), with ASG's own health signal now accurate (health check type `EBS,ELB`) rather than lagging true readiness as it did in the first test.
+- **Full backup restore time (RTO, backup-file scenario):** 17 minutes 10 seconds, measured 2026-08-12 — this is the distinct, slower recovery path used when the primary data itself is bad (corruption, ransomware, accidental deletion), where Multi-AZ failover doesn't help since the standby would carry the same corruption. Data integrity verified directly (exact row counts and field-level match against production), not assumed from a successful instance launch. See Section 4 for full detail.
 
 ## 4. Testing
 
@@ -40,7 +42,8 @@ A live failure-simulation test is conducted at least annually, covering RDS Mult
 
 - **2026-07-27** — first test (GitHub issue #57). Both mechanisms passed. One finding: ASG health checks were EC2-level only, creating a ~131-second gap between AWS's "healthy" signal and true application readiness.
 - **2026-07-31** — re-test against the completed network architecture. The prior finding was fully resolved (health check type upgraded to `EBS,ELB`); RDS failover time improved from 243s to 24s.
-- **Next scheduled test: 2027-07.**
+- **2026-08-12** — full backup restore test, distinct from failover: proves recovery from a backup *file* works, which is the scenario that matters when the primary data itself is bad (corruption, ransomware, accidental deletion) rather than just an AZ outage. Restored the latest automated backup of `mvmprod` to a separate, temporary RDS instance via point-in-time restore — never touched production. Total time from restore start to `available`: **17 minutes 10 seconds** (14:47:25 UTC → 15:04:35 UTC). Verified data integrity directly, not just that the instance turned on: row counts for `User`, `Login`, and `VinData` matched production exactly, and a full field-level comparison of the `User` record (userId, emailId, createdAt) matched byte-for-byte. Temporary instance deleted immediately after verification, no final snapshot retained (nothing to preserve beyond this record). **Outcome: Pass.**
+- **Next scheduled test: 2027-07** (failover/self-healing), with a full restore test now included in that same annual cycle going forward rather than tested once and left undocumented.
 
 Sign-off: Betty Waiyego (Engineering Lead) confirmed both tests' results as accurate. CEO sign-off (Bethanie Nonami) is requested on each test but has not yet been recorded as of this writing.
 
