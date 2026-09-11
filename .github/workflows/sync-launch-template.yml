@@ -62,9 +62,37 @@ jobs:
 
       - name: Roll the fix out to running instances
         run: |
+          # A refresh from a previous run of this workflow (e.g. a rapid
+          # follow-up push) can still be in progress -- AWS rejects a second
+          # StartInstanceRefresh outright in that case, and this run's newer
+          # launch template version (set above) would never actually roll
+          # out. Cancel it and wait for the cancellation to finish first, so
+          # this run's version is always the one that ends up deployed.
+          EXISTING_ID=$(aws autoscaling describe-instance-refreshes \
+            --auto-scaling-group-name production-asg \
+            --query "InstanceRefreshes[?Status=='Pending' || Status=='InProgress'] | [0].InstanceRefreshId" \
+            --output text)
+
+          if [ -n "$EXISTING_ID" ] && [ "$EXISTING_ID" != "None" ]; then
+            echo "Cancelling in-progress refresh $EXISTING_ID so this run's newer version rolls out"
+            aws autoscaling cancel-instance-refresh --auto-scaling-group-name production-asg
+
+            for i in $(seq 1 30); do
+              CANCEL_STATUS=$(aws autoscaling describe-instance-refreshes \
+                --auto-scaling-group-name production-asg \
+                --instance-refresh-ids "$EXISTING_ID" \
+                --query "InstanceRefreshes[0].Status" --output text)
+              echo "Cancellation status: $CANCEL_STATUS"
+              if [ "$CANCEL_STATUS" != "Cancelling" ]; then
+                break
+              fi
+              sleep 10
+            done
+          fi
+
           REFRESH_ID=$(aws autoscaling start-instance-refresh \
             --auto-scaling-group-name production-asg \
-            --preferences '{"MinHealthyPercentage":100,"InstanceWarmup":120}' \
+            --preferences '{"MinHealthyPercentage":100,"InstanceWarmup":600}' \
             --query "InstanceRefreshId" --output text)
           echo "Instance refresh: $REFRESH_ID"
 

@@ -9,6 +9,10 @@ import { generateToken, profileCompletion } from "../helpers/utils";
 import { auditLog } from "../helpers/auditLog";
 import path from "path";
 import fs from "fs";
+
+// Work factor for password hashing. Every write path below uses this constant so
+// the cost in force is auditable in one place (DCF-60).
+const BCRYPT_COST = 12;
 export const TestRoute = async (req: any, res: any) => {
     try {
         const { email } = req.params;
@@ -83,27 +87,15 @@ export const LoginController = async (req: any, res: any) => {
             return createResponse(res, 403, MESSAGES?.ACCOUNT_CLOSED, [], false, true);
         }
 
-        // Legacy accounts still have their password stored as plaintext. Accounts
-        // created/reset after the bcrypt migration have a $2-prefixed hash instead.
-        // On a successful legacy-plaintext login, silently rehash and persist so the
-        // account is upgraded to bcrypt in place -- no forced reset, no downtime.
-        const isBcryptHash = /^\$2[aby]\$\d{2}\$/.test(login.password || "");
+        // Stored passwords are always bcrypt hashes -- the pre-migration plaintext
+        // scheme was retired once the last legacy account was upgraded. A stored
+        // value that is not a bcrypt hash therefore cannot authenticate: compare()
+        // returns false rather than falling back to any plaintext comparison.
+        const passwordMatches = await bcrypt.compare(password, login.password || "");
 
-        if (isBcryptHash) {
-            const passwordMatches = await bcrypt.compare(password, login.password);
-
-            if (!passwordMatches) {
-                auditLog({ userId: user.userId, eventType: "login", outcome: "failure", resource: "Login", detail: "wrong password" });
-                return createResponse(res, 401, MESSAGES?.INVALID_CREDENTIALS, [], false, true);
-            }
-        } else {
-            if (login.password !== password) {
-                auditLog({ userId: user.userId, eventType: "login", outcome: "failure", resource: "Login", detail: "wrong password (legacy)" });
-                return createResponse(res, 401, MESSAGES?.INVALID_CREDENTIALS, [], false, true);
-            }
-
-            const upgradedHash = await bcrypt.hash(password, 10);
-            await Login.update({ userId: login.userId }, { password: upgradedHash });
+        if (!passwordMatches) {
+            auditLog({ userId: user.userId, eventType: "login", outcome: "failure", resource: "Login", detail: "wrong password" });
+            return createResponse(res, 401, MESSAGES?.INVALID_CREDENTIALS, [], false, true);
         }
 
         // Create JWT token with userId and email as payload
@@ -194,7 +186,7 @@ export const ResetPassword = async (req: any, res: any, next: any) => {
             // Check if token is still valid based on the expiry time
             if ((currentTime - tokenIssuedAt) <= tokenExpiryTime) {
                 // Update the user's password and clear the login token
-                const hashedPassword = await bcrypt.hash(password, 10);
+                const hashedPassword = await bcrypt.hash(password, BCRYPT_COST);
                 await Login.update({ loginToken: token }, { loginToken: "", password: hashedPassword });
 
                 // Send a success response for password update
@@ -383,7 +375,7 @@ export const userProfileUpdate = async (req: any, res: any) => {
 
         // Update password in Login table, if provided
         if (password) {
-            const hashedPassword = await bcrypt.hash(password, 10);
+            const hashedPassword = await bcrypt.hash(password, BCRYPT_COST);
             await Login.createQueryBuilder()
                 .update(Login)
                 .set({ password: hashedPassword, updatedAt: new Date(), updatedBy: userId })
