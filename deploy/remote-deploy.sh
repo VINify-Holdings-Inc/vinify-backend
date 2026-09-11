@@ -77,10 +77,15 @@ sudo -u ubuntu env PATH="$NODE_BIN:$PATH" bash -c "cd '$CURRENT_LINK' && (pm2 de
 echo "==> Waiting for health check"
 PORT=$(grep -m1 '^PORT=' "$SHARED_DIR/.env" | cut -d= -f2 | tr -d '\r\n ')
 HEALTHY=false
-for i in $(seq 1 10); do
+# The app boots via ts-node, so TypeScript is compiled on every start. Straight
+# after an npm install the box is CPU-saturated and that cold start can take well
+# over a minute -- the previous 10x2s window (~50s worst case) was tripping the
+# rollback on a perfectly good release. 30 attempts gives roughly 150s.
+for i in $(seq 1 30); do
   sleep 2
   if curl -sf --max-time 3 "http://localhost:${PORT}/" > /dev/null; then
     HEALTHY=true
+    echo "==> Healthy after ${i} attempt(s)"
     break
   fi
 done
