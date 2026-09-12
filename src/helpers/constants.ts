@@ -11,6 +11,7 @@ export const MESSAGES = {
     LOGIN_INVALID: "Invalid user ID or password.",
     REQUIRED_FIELDS: "Please fill all required fields.",
     RESET_LINK_SENT: "A password reset link has been sent to your registered email successfully.",
+    RESET_LINK_GENERIC: "If an account exists for that address, a reset link has been sent.",
     RESET_LINK_ERROR: "An error occurred while sending the password reset link.",
     PASSWORD_UPDATED: "Password updated successfully.",
     TOKEN_EXPIRED: "The link has been expired, please request a new one",
