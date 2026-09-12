@@ -62,7 +62,7 @@ export const LoginController = async (req: any, res: any) => {
         // Check if login entry exists
         if (!login) {
             auditLog({ userId: null, eventType: "login", outcome: "failure", resource: "Login", detail: `no account for email ${email}` });
-            return createResponse(res, 404, MESSAGES?.USER_NOT_FOUND, [], false, true);
+            return createResponse(res, 401, MESSAGES?.INVALID_CREDENTIALS, [], false, true);
         }
 
         // Fetch user data using the userId and select only necessary fields
@@ -70,21 +70,14 @@ export const LoginController = async (req: any, res: any) => {
             where: { userId: login.userId },
             select: [
                 "id", "userId", "firstName", "lastName", "emailId", "phoneNumber", "profile",
-                "address", "companyId", "title", "createdAt", "secondaryEmailId"
+                "address", "companyId", "title", "createdAt", "secondaryEmailId", "deactivatedAt"
             ],
         });
 
         // Check if user exists
         if (!user) {
-            return createResponse(res, 404, MESSAGES?.USER_NOT_FOUND, [], false, true);
-        }
-
-        // A closed account is queued for permanent deletion (see the data
-        // retention cron job) but may still exist during its 90-day grace
-        // window -- it must not be usable in the meantime.
-        if (user.deactivatedAt) {
-            auditLog({ userId: user.userId, eventType: "login", outcome: "failure", resource: "Login", detail: "account closed" });
-            return createResponse(res, 403, MESSAGES?.ACCOUNT_CLOSED, [], false, true);
+            auditLog({ userId: login.userId, eventType: "login", outcome: "failure", resource: "Login", detail: "login entry with no matching user" });
+            return createResponse(res, 401, MESSAGES?.INVALID_CREDENTIALS, [], false, true);
         }
 
         // Stored passwords are always bcrypt hashes -- the pre-migration plaintext
@@ -96,6 +89,17 @@ export const LoginController = async (req: any, res: any) => {
         if (!passwordMatches) {
             auditLog({ userId: user.userId, eventType: "login", outcome: "failure", resource: "Login", detail: "wrong password" });
             return createResponse(res, 401, MESSAGES?.INVALID_CREDENTIALS, [], false, true);
+        }
+
+        // Account state is only disclosed once the caller has proven ownership
+        // via a correct password -- checked after bcrypt.compare so an unknown
+        // email and a closed account are indistinguishable to an attacker.
+        // A closed account is queued for permanent deletion (see the data
+        // retention cron job) but may still exist during its 90-day grace
+        // window -- it must not be usable in the meantime.
+        if (user.deactivatedAt) {
+            auditLog({ userId: user.userId, eventType: "login", outcome: "failure", resource: "Login", detail: "account closed" });
+            return createResponse(res, 403, MESSAGES?.ACCOUNT_CLOSED, [], false, true);
         }
 
         // Create JWT token with userId and email as payload
@@ -153,12 +157,14 @@ export const ForgetPassword = async (req: any, res: any, next: any) => {
             // Send a reset password email with the token as a URL parameter
             await sendEmail(email, "Reset Password", "", `${process.env.UI_BASE_URL}/resetpassword/${token}`);
 
-            // Send a success response for the reset link
-            return createResponse(res, 200, MESSAGES?.RESET_LINK_SENT);
+            auditLog({ userId: user.userId, eventType: "forget-password", outcome: "success", resource: "Login", detail: "reset link sent" });
         } else {
-            // If user not found, send a user not found response
-            return createResponse(res, 404, MESSAGES?.USER_NOT_FOUND, [], false, true);
+            auditLog({ userId: null, eventType: "forget-password", outcome: "failure", resource: "Login", detail: `no account for email ${email}` });
         }
+
+        // Same response whether or not the account exists -- only the audit
+        // log above records the true outcome.
+        return createResponse(res, 200, MESSAGES?.RESET_LINK_GENERIC);
 
     } catch (err) {
         // Log the error to the console for debugging purposes
