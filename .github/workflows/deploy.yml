@@ -54,7 +54,7 @@ jobs:
             --query "AutoScalingGroups[0].Instances[?LifecycleState=='InService'].InstanceId" \
             --output text)
 
-          INSTANCE_IDS="i-065704b19bce21f09 $ASG_INSTANCE_IDS"
+          INSTANCE_IDS="$ASG_INSTANCE_IDS"
           echo "Deploying to: $INSTANCE_IDS"
 
           PARAMS=$(jq -n --rawfile script deploy/remote-deploy.sh '{commands: [$script]}')
