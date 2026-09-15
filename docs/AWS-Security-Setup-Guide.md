@@ -28,6 +28,50 @@
 ### Human access
 - All human access to the AWS account is via **AWS IAM Identity Center (SSO)**, using the `AWSReservedSSO_SystemAdministrator` permission set. There are no long-lived IAM users with console passwords or access keys for day-to-day operations.
 
+### AWS root account emergency (break-glass) access
+
+The AWS root account is reserved exclusively for emergency or account-management
+activities that cannot be performed through normal IAM Identity Center administrative
+access. It must not be used for routine AWS administration.
+
+Root access may only be used when:
+- AWS explicitly requires the root user for the required account-level operation; or
+- normal IAM Identity Center administrative access is unavailable and root access is
+  necessary to restore or secure the production environment.
+
+Before root access is used, the named individual requiring access must obtain approval
+from the designated VINify system owner or authorized approver. If prior approval is
+not practical during an active security or availability incident, the use must be
+documented and reviewed immediately after the incident.
+
+Every root-access event must be attributable to a named individual. The following
+information must be recorded for each use:
+- Name of the individual using root access.
+- Date and start/end time.
+- Business justification or reason for root access.
+- Related incident, change, or support ticket.
+- Name of the individual who approved the access.
+- AWS actions performed.
+- Outcome of the activity.
+
+The root account is protected by MFA and does not maintain active root access keys.
+Root credentials must not be used to create permanent programmatic credentials.
+
+Root-account activity is recorded through AWS CloudTrail. Following each break-glass
+event, the associated CloudTrail activity must be reviewed against the approved
+request. Unexplained or unauthorized root activity must be treated as a security
+incident.
+
+After completing the emergency activity, the individual must sign out of the root
+account, verify that no unnecessary persistent credentials were created, update or
+close the associated ticket, and return to normal IAM Identity Center access.
+
+#### Root access register
+
+| Date/time | Named individual | Reason | Ticket/incident | Approved by | Actions performed | Outcome |
+|---|---|---|---|---|---|---|
+| No events recorded | — | — | — | — | — | — |
+
 ### CI/CD access
 - GitHub Actions authenticates to AWS via **OIDC federation** (`github-actions-ec2-deploy-role`), not static access keys stored in GitHub. The role's permissions are scoped to what the deploy pipeline actually needs:
   - `ssm-send-command-deploy` — `ssm:SendCommand` restricted to the `AWS-RunShellScript` document; `ssm:GetCommandInvocation` / `ssm:ListCommandInvocations` for reading results.
