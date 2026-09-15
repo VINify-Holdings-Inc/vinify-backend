@@ -10,6 +10,7 @@
 | 1.3 | 2026-08-07 | Betty Waiyego (Independent Contractor) | Closes the remaining gap from v1.2: EC2 server/application (nginx, PM2) logs are now centrally collected via the CloudWatch agent, baked into `asg-bootstrap.sh`, verified on a fresh unattended instance refresh (Section 4). |
 | 1.4 | 2026-08-10 | Betty Waiyego (Independent Contractor) | Expands Section 3 to fully answer KY3P ENC06/ENC07: adds EBS and Backup-vault encryption detail, explicitly states laptop/desktop encryption is pending MDM rollout and removable media is N/A, and adds the exact TLS protocol/cipher suite in use, confirming exclusion of every deprecated algorithm on the ENC07 checklist. |
 | 1.5 | 2026-08-11 | Betty Waiyego (Independent Contractor) | Closes the KY3P LM02 gap in Section 4: adds application-level, user-identity-tied audit logging (`src/helpers/auditLog.ts`) for login and account-closure events, covering the user/event-type/timestamp/outcome/resource fields nginx access logs alone couldn't provide. |
+| 1.6 | 2026-09-15 | Betty Waiyego (Independent Contractor) | Standalone instance (`i-065704b19bce21f09`) deregistered from the ALB target group and removed from the deploy pipeline (Section 2) — it sat in a public subnet with a security group open to `0.0.0.0/0` on 80/443, bypassing the WAF, unacceptable now that client data is live. Adds Section 6 (API Security / SaaS-CD-04), documenting real coverage (TLS, JWT auth, secrets) and disclosing two open gaps as not-yet-closed rather than claiming completion: WAF default-allow posture and absent input/output validation. WAF gap now has an observation-only `UnexpectedHostHeader` rule (Count mode) in place, pending review before any enforcement change. |
 
 > This document is version-controlled via its git commit history in this repository. Each substantive review or change should be committed as a new entry above and in the commit log, so the revision history is objectively verifiable rather than manually asserted.
 
@@ -20,6 +21,7 @@
 3. [Data Encryption Configuration (KMS at Rest & TLS in Transit)](#3-data-encryption-configuration-kms-at-rest--tls-in-transit)
 4. [Log Router & CloudTrail Activation Rules](#4-log-router--cloudtrail-activation-rules)
 5. [Baseline Configuration Procedures for New Resources](#5-baseline-configuration-procedures-for-new-resources)
+6. [API Security & Client Data Exchange (SaaS-CD-04)](#6-api-security--client-data-exchange-saas-cd-04)
 
 ---
 
@@ -99,7 +101,7 @@ See [architecture-diagram.md](architecture-diagram.md) for a visual topology of 
 - Six public subnets (one per Availability Zone), each with a route to an Internet Gateway. These host:
   - The internet-facing Application Load Balancer (`VIN-instance-loadbalancer`), terminating TLS (see Section 3) and forwarding to the application target group. Currently active in 2 of the 6 AZs (`us-east-1a`, `us-east-1b`).
   - The NAT Gateway used by the private application subnets below.
-  - One remaining standalone EC2 instance, kept as a permanent reference/testing box (deliberate decision — see Open Decisions history); scheduled for eventual retirement once the Auto Scaling Group has had sufficient soak time as the sole production compute.
+  - One remaining standalone EC2 instance (`i-065704b19bce21f09`). **Being retired as of 2026-09-15**: it sat in a public subnet with a security group (`launch-wizard-1`) open to `0.0.0.0/0` on ports 80/443, reachable directly on its own public IP and bypassing the WAF entirely — an exposure not acceptable now that client data is live in production. Deregistered from the ALB target group and removed from the deploy pipeline (PR #85) on this date; full stop/decommission follows once that PR merges.
 
 ### Private subnets (network segmentation) — migration complete
 - Four private subnets, split into two tiers, each spanning the same 2 Availability Zones as the load balancer (`us-east-1a`, `us-east-1b`):
@@ -115,7 +117,7 @@ See [architecture-diagram.md](architecture-diagram.md) for a visual topology of 
 ### Compute elasticity
 - The Auto Scaling Group (`production-asg`) has a target-tracking scaling policy (CPU utilization, target 60%), so capacity adjusts automatically to load, with a defined minimum/maximum instance count.
 - Health checks use type `EBS,ELB` — an instance is only considered "Healthy" by the ASG once it also passes the load balancer's real HTTP health check, not just an EC2-level status check. This closes a previously-identified gap where the ASG's own "healthy" signal could lag true application readiness.
-- Each instance serves both the API (`api.getvinify.com`, reverse-proxied to the Node process) and the frontend (`app.getvinify.com`, static build synced from S3) via host-based nginx virtual hosts — both hostnames are served identically regardless of which instance (ASG or standalone) the load balancer happens to route a given request to.
+- Each instance serves both the API (`api.getvinify.com`, reverse-proxied to the Node process) and the frontend (`app.getvinify.com`, static build synced from S3) via host-based nginx virtual hosts. As of 2026-09-15, the ASG instance is the sole target receiving traffic — the standalone instance has been deregistered from the load balancer (see Section 2 above).
 
 ---
 
@@ -245,4 +247,33 @@ When a single set of instances behind one load balancer needs to serve more than
 
 ---
 
-*This document reflects the AWS account configuration as directly verified via the AWS CLI on 2026-08-01. Subsequent changes to any of the above should be reflected here as part of the change, not retroactively.*
+## 6. API Security & Client Data Exchange (SaaS-CD-04)
+
+How VINify's API exchanges data with clients, verified directly against the running configuration on 2026-09-15.
+
+### Transport
+- HTTPS/TLS 1.2+ is enforced at the load balancer — see Section 3 for the exact policy and cipher suite. Plain HTTP is a 301 redirect to HTTPS, never served directly.
+
+### Authentication
+- API authentication uses **self-issued JWTs** (`jsonwebtoken`), signed on login (`src/controller/LoginController.ts`) and verified on every protected route via middleware (`src/middleware/index.ts`, `jwt.verify`). There is no session-cookie or Basic Auth path for the API.
+
+### Endpoint exposure and network placement
+- The ASG-managed instance(s) — the sole production compute target as of this date (Section 2) — run in the private-app subnets, reachable only via the load balancer; there is no direct inbound path from the internet.
+- The standalone instance was the one exception to this and has been removed from the traffic path (Section 2). Once its retirement completes, every serving endpoint is private-subnet-only, with the ALB as the single public entry point.
+
+### Perimeter / WAF
+- `vinify-production-waf` (AWS WAFv2, regional) is attached to the load balancer. Active rules: `AWSManagedRulesAmazonIpReputationList`, `AWSManagedRulesAdminProtectionRuleSet`, and a custom rate limit (1500 requests / 5 min per IP, block on breach).
+- **Open gap, in progress**: the Web ACL's default action is still `Allow` — this remains a block-known-bad-actors posture, not a default-deny / explicit-allow-list posture. As of 2026-09-15, an observation-only rule (`UnexpectedHostHeader`, action `Count`) is live, flagging any request whose `Host` header isn't `api.getvinify.com` or `app.getvinify.com` — nothing is blocked yet. Once this has run long enough to confirm it doesn't catch legitimate traffic, the ACL's default action moves to `Block` with that rule (or an equivalent) as the explicit allow condition. Not claimed as closed until that flip happens.
+
+### Application integration gateway
+- There is no separate, purpose-built API Gateway product (no AWS API Gateway, Auth0, Kong, etc.). In practice, the ALB + WAF pairing is the single public entry point for all API traffic — TLS termination, perimeter filtering, and routing all happen there before a request reaches application compute. This is documented as the de facto gateway; standing up a dedicated gateway product has not been assessed as necessary at current scale.
+
+### Input/output validation
+- **Open gap, not yet closed**: there is no request/response validation library in use (no Joi, express-validator, zod, or equivalent) anywhere in the codebase. Validation, where it exists at all, is ad hoc per-handler. This is real engineering work, tracked as a follow-up item, not claimed as done here.
+
+### Secrets
+- See Section 1, "EC2 instance role" — API secrets (application `.env`, git deploy key) are held in AWS Secrets Manager, retrieved by compute running in a private subnet, with `secretsmanager:GetSecretValue` scoped to exactly two named secrets rather than broad access.
+
+---
+
+*This document reflects the AWS account configuration as directly verified via the AWS CLI on 2026-08-01, with Section 6 added and Section 2 updated following direct verification on 2026-09-15. Subsequent changes to any of the above should be reflected here as part of the change, not retroactively.*
