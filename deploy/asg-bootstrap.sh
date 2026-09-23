@@ -228,6 +228,16 @@ systemctl restart nginx
 # different name than what's in the committed ecosystem.config.js today).
 # Wipe it so pm2 starts clean and the app comes up under the name the deploy
 # pipeline actually expects.
+#
+# Deleting the directory is not enough on its own: the AMI also carries a
+# systemd unit (pm2-ubuntu) that resurrects that stale process list -- an old
+# release with an outdated DB password -- at boot, before this script runs.
+# That daemon keeps running after the wipe and restarts the old release every
+# ~25s forever (thousands of login errors a day, constant ts-node recompiles).
+# Stop it, and anything it left behind, before wiping.
+timeout 30 systemctl stop pm2-ubuntu || true
+pkill -9 -f 'PM2 v.*God Daemon' || true
+pkill -9 -f 'ts-node src/index.ts' || true
 rm -rf /home/ubuntu/.pm2
 chown -R ubuntu:ubuntu /home/ubuntu
 
