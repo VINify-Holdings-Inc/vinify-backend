@@ -103,3 +103,40 @@ jobs:
           if [ "$FAILED" != "0" ]; then
             exit 1
           fi
+
+      - name: Deploy to ingestion worker
+        run: |
+          # The AAMVA SFTP jobs run on a dedicated worker outside the ASG (it needs a
+          # public subnet to reach outbound port 22), so it is targeted by tag. This
+          # runs after the production instances above have finished, so a problem
+          # here can fail the job but never blocks a production deploy.
+          PARAMS=$(jq -n --rawfile script deploy/remote-deploy.sh '{commands: [$script]}')
+
+          COMMAND_ID=$(aws ssm send-command \
+            --targets "Key=tag:Role,Values=ingestion-worker" \
+            --document-name "AWS-RunShellScript" \
+            --comment "vinify-backend deploy (ingestion worker) from ${{ github.sha }}" \
+            --parameters "$PARAMS" \
+            --output text --query "Command.CommandId")
+          echo "SSM Command ID: $COMMAND_ID"
+
+          # send-command reports TargetCount 0 for tag targets even when the command
+          # is delivered, so wait for real invocations instead of trusting it.
+          for i in $(seq 1 90); do
+            COUNT=$(aws ssm list-command-invocations --command-id "$COMMAND_ID" \
+              --query "length(CommandInvocations)" --output text)
+            IN_FLIGHT=$(aws ssm list-command-invocations --command-id "$COMMAND_ID" \
+              --query "length(CommandInvocations[?Status=='Pending' || Status=='InProgress' || Status=='Delayed'])" \
+              --output text)
+            if [ "$COUNT" -gt 0 ] && [ "$IN_FLIGHT" = "0" ]; then
+              break
+            fi
+            if [ "$COUNT" = "0" ] && [ "$i" -ge 6 ]; then
+              echo "::warning::No instance tagged Role=ingestion-worker picked up the deploy; worker not deployed."
+              exit 0
+            fi
+            sleep 10
+          done
+
+          aws ssm list-command-invocations --command-id "$COMMAND_ID" --details --output json > worker-invocations.json
+          python3 -c "import json,sys; inv=json.load(open('worker-invocations.json'))['CommandInvocations']; [print(i['InstanceId'], i['Status']) for i in inv]; sys.exit(0 if inv and all(i['Status']=='Success' for i in inv) else 1)"
