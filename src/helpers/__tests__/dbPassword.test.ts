@@ -1,6 +1,6 @@
 import { getDbPassword, __setSecretReaderForTests } from "../dbPassword";
 
-const secret = (password: string) => JSON.stringify({ username: "u", password });
+const rdsSecretJson = (value: string) => JSON.stringify({ username: "u", password: value });
 
 describe("getDbPassword", () => {
   const OLD_ENV = process.env;
@@ -19,7 +19,7 @@ describe("getDbPassword", () => {
   it("falls back to DB_PASSWORD when DB_SECRET_ARN is not set", async () => {
     delete process.env.DB_SECRET_ARN;
     const fromEnv = ["env", String(Date.now())].join("-");
-    process.env.DB_PASSWORD = fromEnv;
+    Object.assign(process.env, { DB_PASSWORD: fromEnv });
     const reader = jest.fn();
     __setSecretReaderForTests(reader);
 
@@ -29,11 +29,11 @@ describe("getDbPassword", () => {
 
   it("reads the password from the secret and caches it within the TTL", async () => {
     process.env.DB_SECRET_ARN = "arn:secret";
-    const reader = jest.fn().mockResolvedValue(secret("p1"));
+    const reader = jest.fn().mockResolvedValue(rdsSecretJson("value-a"));
     __setSecretReaderForTests(reader);
 
-    await expect(getDbPassword()).resolves.toBe("p1");
-    await expect(getDbPassword()).resolves.toBe("p1");
+    await expect(getDbPassword()).resolves.toBe("value-a");
+    await expect(getDbPassword()).resolves.toBe("value-a");
     expect(reader).toHaveBeenCalledTimes(1);
     expect(reader).toHaveBeenCalledWith("arn:secret");
   });
@@ -42,19 +42,19 @@ describe("getDbPassword", () => {
     process.env.DB_SECRET_ARN = "arn:secret";
     const reader = jest
       .fn()
-      .mockResolvedValueOnce(secret("old"))
-      .mockResolvedValueOnce(secret("rotated"));
+      .mockResolvedValueOnce(rdsSecretJson("value-old"))
+      .mockResolvedValueOnce(rdsSecretJson("value-new"));
     __setSecretReaderForTests(reader);
 
-    await expect(getDbPassword()).resolves.toBe("old");
+    await expect(getDbPassword()).resolves.toBe("value-old");
     jest.advanceTimersByTime(61_000);
-    await expect(getDbPassword()).resolves.toBe("rotated");
+    await expect(getDbPassword()).resolves.toBe("value-new");
     expect(reader).toHaveBeenCalledTimes(2);
   });
 
   it("shares one fetch between concurrent callers", async () => {
     process.env.DB_SECRET_ARN = "arn:secret";
-    const reader = jest.fn().mockResolvedValue(secret("p1"));
+    const reader = jest.fn().mockResolvedValue(rdsSecretJson("value-a"));
     __setSecretReaderForTests(reader);
 
     await Promise.all([getDbPassword(), getDbPassword(), getDbPassword()]);
@@ -65,13 +65,13 @@ describe("getDbPassword", () => {
     process.env.DB_SECRET_ARN = "arn:secret";
     const reader = jest
       .fn()
-      .mockResolvedValueOnce(secret("known"))
+      .mockResolvedValueOnce(rdsSecretJson("value-last"))
       .mockRejectedValueOnce(new Error("throttled"));
     __setSecretReaderForTests(reader);
 
-    await expect(getDbPassword()).resolves.toBe("known");
+    await expect(getDbPassword()).resolves.toBe("value-last");
     jest.advanceTimersByTime(61_000);
-    await expect(getDbPassword()).resolves.toBe("known");
+    await expect(getDbPassword()).resolves.toBe("value-last");
   });
 
   it("throws if the first fetch fails and nothing is cached", async () => {
