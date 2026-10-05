@@ -99,7 +99,12 @@ sed -i '/^DB_USERNAME=/d; /^DB_PASSWORD=/d' "$SHARED_DIR/.env"
 chown -R ubuntu:ubuntu "$SHARED_DIR"
 
 mkdir -p "$WEB_DIR"
-aws s3 sync "s3://${FRONTEND_BUCKET}/" "$WEB_DIR" --delete
+# The AMI carries an old web root. Default sync skips same-size files with an
+# older local mtime, which left a stale index.html (same byte size, different
+# bundle hash) pointing at a deleted main-*.js after the 2026-09-23 instance
+# refresh. Wipe first so the web root comes entirely from S3.
+rm -rf "$WEB_DIR"/*
+aws s3 sync "s3://${FRONTEND_BUCKET}/" "$WEB_DIR" --delete --exact-timestamps
 chown -R ubuntu:ubuntu "$WEB_DIR"
 
 # Clone into a timestamped release dir and symlink /var/www/api to it, matching
