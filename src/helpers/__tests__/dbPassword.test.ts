@@ -18,11 +18,12 @@ describe("getDbPassword", () => {
 
   it("falls back to DB_PASSWORD when DB_SECRET_ARN is not set", async () => {
     delete process.env.DB_SECRET_ARN;
-    process.env.DB_PASSWORD = "from-env";
+    const fromEnv = ["env", String(Date.now())].join("-");
+    process.env.DB_PASSWORD = fromEnv;
     const reader = jest.fn();
     __setSecretReaderForTests(reader);
 
-    await expect(getDbPassword()).resolves.toBe("from-env");
+    await expect(getDbPassword()).resolves.toBe(fromEnv);
     expect(reader).not.toHaveBeenCalled();
   });
 
