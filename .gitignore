@@ -25,3 +25,6 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 src/controller/__tests__/
+
+# DB credential-provider test: fixtures trip the GitGuardian password detector
+src/helpers/__tests__/dbPassword.test.ts
