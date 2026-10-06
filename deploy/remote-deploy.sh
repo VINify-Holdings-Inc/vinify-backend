@@ -40,10 +40,13 @@ DB_SECRET_ARN=$(aws rds describe-db-instances --db-instance-identifier "$DB_INST
 DB_CREDS=$(aws secretsmanager get-secret-value --secret-id "$DB_SECRET_ARN" --region "$REGION" --query SecretString --output text)
 DB_USERNAME=$(echo "$DB_CREDS" | python3 -c "import json,sys; print(json.load(sys.stdin)['username'])")
 DB_PASSWORD=$(echo "$DB_CREDS" | python3 -c "import json,sys; print(json.load(sys.stdin)['password'])")
-sed -i '/^DB_USERNAME=/d; /^DB_PASSWORD=/d' "$SHARED_DIR/.env"
+sed -i '/^DB_USERNAME=/d; /^DB_PASSWORD=/d; /^DB_SECRET_ARN=/d' "$SHARED_DIR/.env"
 {
   echo "DB_USERNAME=\"$DB_USERNAME\""
   echo "DB_PASSWORD=\"$DB_PASSWORD\""
+  # The app re-reads the password from this secret when it opens a connection
+  # (src/helpers/dbPassword.ts), so a rotation doesn't need a redeploy.
+  echo "DB_SECRET_ARN=\"$DB_SECRET_ARN\""
 } >> "$SHARED_DIR/.env"
 
 sudo -u ubuntu git clone --depth 1 --branch "$BRANCH" "$REPO_URL" "$RELEASE_DIR"
