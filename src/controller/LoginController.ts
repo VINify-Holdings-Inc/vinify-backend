@@ -7,8 +7,7 @@ import { MESSAGES } from "../helpers/constants";
 import { createResponse } from "../helpers/response";
 import { generateToken, profileCompletion } from "../helpers/utils";
 import { auditLog } from "../helpers/auditLog";
-import path from "path";
-import fs from "fs";
+import { putProfilePhoto } from "../helpers/s3Uploads";
 
 // Work factor for password hashing. Every write path below uses this constant so
 // the cost in force is auditable in one place (DCF-60).
@@ -317,16 +316,9 @@ export const userProfileUpdate = async (req: any, res: any) => {
         // Handle file upload using multer
         if (req.files && req.files.profile) {
             const file = req.files.profile;
-            const uploadDir = path.join(__dirname, "../uploads");
-            // Ensure the directory exists
-            if (!fs.existsSync(uploadDir)) {
-                fs.mkdirSync(uploadDir, { recursive: true });
-            }
-
             const timestamp = Date.now();
             const fileName = `${timestamp}_${file.name}`;
-            const uploadPath = path.join(uploadDir, fileName);
-            await file.mv(uploadPath);
+            await putProfilePhoto(fileName, file.data, file.mimetype);
             profileFilename = fileName;
         }
 

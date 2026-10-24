@@ -8,6 +8,7 @@ import { AppDataSource } from "./DbConfig/TypeOrm";
 import { throttleMiddleware } from "./middleware/ThrottleMiddleware";
 import expressFileupload from "express-fileupload";
 import { startDataRetentionCronJob } from "./helpers/DataRetentionCronJob";
+import { getProfilePhoto } from "./helpers/s3Uploads";
 // import { BatchFileExecution } from "./helpers/CronJob";
 const app = express();
 dotenv.config();
@@ -23,6 +24,20 @@ app.use(cors({ origin: "https://app.getvinify.com" }));
 app.use(expressFileupload());
 // Static serve path
 app.use("/api/uploads", express.static("./src/uploads"));
+// Photos live in S3; local files above are only legacy leftovers.
+app.get("/api/uploads/:file", async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const photo = await getProfilePhoto(req.params.file);
+    if (!photo) {
+      res.sendStatus(404);
+      return;
+    }
+    if (photo.contentType) res.type(photo.contentType);
+    photo.body.pipe(res);
+  } catch (err) {
+    next(err);
+  }
+});
 
 // Swagger setup
 app.use("/api-doc", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
